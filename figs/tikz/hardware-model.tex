@@ -1,0 +1,30 @@
+% +-----+ store  +---------+ store  +-------------+
+% |     |------->|         |------->|             |
+% | CPU |        |  Cache  |        | Main Memory |
+% |     |<-------|         |<-------|             |
+% +-----+  load  +---------+  load  +-------------+
+\begin{tikzpicture}
+% CPU
+\draw (0,0) rectangle (2,2);
+\node at (1,1) {CPU};
+
+% Communication between CPU and Cache
+\draw [->][thick] (2,1.5) -- (4,1.5);
+\node [above,align=center] at (3,1.5) {Cache\\Store};
+\draw [<-][thick] (2,0.5) -- (4,0.5);
+\node [below,align=center] at (3,0.5) {Cache\\Load};
+
+% Cache
+\draw (4,0) rectangle (6,2);
+\node at (5,1) {Cache};
+
+% Communication between Cache and Main Memory
+\draw [->][thick] (6,1.5) -- (8,1.5);
+\node [above,align=center] at (7,1.5) {Memory\\Store};
+\draw [<-][thick] (6,0.5) -- (8,0.5);
+\node [below,align=center] at (7,0.5) {Memory\\Load};
+
+% Main Memory
+\draw (8,0) rectangle (12,2);
+\node at (10,1) {Main Memory};
+\end{tikzpicture}

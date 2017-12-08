@@ -1,0 +1,17 @@
+\begin{tikzpicture}
+  \node[cpu node] (cpu) {CPU};
+  \node[cache node] [below right=1cm and -0.4cm of cpu] (d-cache) {Data Cache};
+  \node[cache node] [below left=1cm and -0.4cm of cpu] (i-cache) {Instruction Cache};
+  \node[block node] [below=3cm of cpu] (memory) {Memory};
+  \coordinate[below=0.5cm of d-cache](hidden-d-cache);
+  \coordinate[below=0.5cm of i-cache](hidden-i-cache);
+  \coordinate[above=0.5cm of memory](hidden-memory);
+  \path {
+    (cpu) edge [<->] (d-cache)
+    (cpu) edge [<->] (i-cache)
+    (d-cache) edge [<-] (hidden-d-cache)
+    (i-cache) edge [<-] (hidden-i-cache)
+    (hidden-d-cache) edge [-] (hidden-memory)
+    (hidden-i-cache) edge [-] (hidden-memory)
+    (hidden-memory) edge [->] (memory)};
+\end{tikzpicture}

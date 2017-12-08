@@ -1,0 +1,8 @@
+\begin{tikzpicture}
+  \node[cpu node] (cpu) {CPU};
+  \node[cache node] [below=1cm of cpu] (cache) {Cache};
+  \node[block node] [below=1cm of cache] (memory) {Memory};
+  \path {
+    (cpu) edge [<->] (cache)
+    (cache) edge [<->] (memory)};
+\end{tikzpicture}
