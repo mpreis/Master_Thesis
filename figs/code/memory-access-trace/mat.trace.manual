@@ -1,0 +1,13 @@
+store &sum
+store &x
+store &y
+load  &sum
+load  &x
+store &sum
+store &z
+load  &sum
+load  &y
+store &sum
+load  &sum
+load  &z
+store &sum
