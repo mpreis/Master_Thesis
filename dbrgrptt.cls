@@ -99,7 +99,7 @@
 %\RequirePackage[T1]{fontenc}
 \RequirePackage{babel}%
 \RequirePackage{graphicx}%
-\RequirePackage[linesnumbered, procnumbered, ruled]{algorithm2e}%
+\RequirePackage[linesnumbered, procnumbered, ruled, norelsize]{algorithm2e}%
 \RequirePackage{tikz}%
 \RequirePackage{ifthen}%
 \RequirePackage{xparse}%
