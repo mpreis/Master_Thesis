@@ -161,22 +161,109 @@ Given a trace T of load and store instructions find metrics that characterize th
 
 \section{Benchmarks}
 % \todo{For each benchmark: Description}
-\subsection{SPEC 2006 Benchmarks \cite{henning2006spec}}
-\todo{Benchmark description see paper above.}
-\subsubsection{445 gobmk}
-\subsubsection{445 gobmk 3}
-\subsubsection{445 gobmk 5}
-\subsubsection{445 gobmk 6}
-\subsubsection{450 soplex}
-\subsubsection{454 calculix}
+
+\subsection{SPEC 2006 Benchmarks}
+
+This section describes the subset of benchmarks of the SPEC 2006 benchmark suite \cite{henning2006spec} which we used for our experiments. The benchmark descriptions below are taken from the SPEC 2006 paper.
+
+\subsubsection{445.gobmk}
+
+\begin{quote}
+\textbf{Authors:} (in chronological order of contribution) are Man Lung Li, Wayne Iba, Daniel Bump, David Denholm, Gunnar Farneb\"ack, Nils Lohner, Jerome Dumonteil, Tommy Thorn, Nicklas Ekstrand, Inge Wallin, Thomas Traber, Douglas Ridgway, Teun Burgers, Tanguy Urvoy, Thien-Thi Nguyen, Heikki Levanto, Mark Vytlacil, Adriaan van Kessel, Wolfgang Manner, Jens Yllman, Don Dailey, Mans Ullerstam, Arend Bayer, Trevor Morris, Evan Berggren Daniel, Fernando Portela, Paul Pogonyshev, S.P. Lee, Stephane Nicolet and Martin Holters. General
+
+\textbf{General Category:} Artificial intelligence - game playing.
+
+\textbf{Description\footnote{\url{www.gnu.org/software/gnugo/devel.html}}:} The program plays Go and executes a set of commands to analyze Go positions.
+\end{quote}
+
+\subsubsection{450.soplex}
+
+\begin{quote}
+\textbf{Authors:} Roland Wunderling, Thorsten Koch, Tobias Achterberg
+
+\textbf{General Category:} Simplex Linear Program (LP) Solver
+
+\textbf{Description:} 450.soplex is based on SoPlex Version 1.2.1. SoPlex solves a linear program using the Simplex algorithm. The LP is given as a sparse m by n matrix A, together with a right hand side vector b of dimension m and an objective function coefficient vector c of dimension n. The matrix is sparse in practice. SoPlex employs algorithms for sparse linear algebra, in particular a sparse LU-Factorization and solving routines for the resulting triangular equation systems.
+\end{quote}
+
+\subsubsection{454.calculix}
+
+\begin{quote}
+\textbf{Author:} Guido D.C. Dhondt
+
+\textbf{General Category:} Structural Mechanics
+
+\textbf{Description\footnote{\url{www.calculix.de}}:} 454.calculix is based on CalculiX, a free software finite element code for linear and nonlinear three- dimensional structural applications. It uses classical theory of finite elements described in books such as \cite{zienkiewicz1977finite}. CalculiX can solve problems such as static problems (bridge and building design), buckling, dynamic applications (crash, earthquake resistance) and eigenmode analysis (resonance phenomena).
+\end{quote}
+
 \subsubsection{462 libquantum}
+
+\begin{quote}
+\textbf{Author:} Bj\"orn Butscher, Hendrik Weimer
+
+\textbf{General Category:} Physics / Quantum Computing
+
+\textbf{Description\footnote{\url{http://www.libquantum.de}}:} libquantum is a library for the simulation of a quantum computer. Quantum computers are based on the principles of quantum mechanics and can solve certain computationally hard tasks in polynomial time.
+In 1994, Peter Shor discovered a polynomial-time algorithm for the factorization of numbers, a problem of particular interest for cryptanalysis, as the widely used RSA cryptosystem depends on prime factorization being a problem only to be solvable in exponential time. An implementation of Shor's factorization algorithm is included in libquantum.
+Libquantum provides a structure for representing a quantum register and some elementary gates. Measurements can be used to extract information from the system. Additionally, libquantum offers the simulation of decoherence, the most important obstacle in building practical quantum computers. It is thus not only possible to simulate any quantum algorithm, but also to develop quantum error correction algorithms. As libquantum allows to add new gates, it can easily be extended to fit the ongoing research, e.g. it has been deployed to analyze quantum cryptography.
+\end{quote}
+
 \subsubsection{471 omnetpp}
+
+\begin{quote}
+\textbf{Author:} András Varga, Omnest Global, Inc.
+
+\textbf{General Category:} Discrete Event Simulation
+
+\textbf{Description:} simulation of a large Ethernet network, based on the OMNeT++ discrete event simulation system\footnote{\url{www.omnetpp.org}}, using an ethernet model which is publicly available\footnote{\url{http://ctieware.eng.monash.edu.au/twiki/bin/view/Simulation/EtherNet}}.
+For the reference workload, the simulated network models a large Ethernet campus backbone, with several smaller LANs of various sizes hanging off each backbone switch. It contains about 8000 computers and 900 switches and hubs, including Gigabit Ethernet, 100Mb full duplex, 100Mb half duplex, 10Mb UTP, and 10Mb bus. The training workload models a small LAN.
+The model is accurate in that the CSMA/CD protocol of Ethernet and the Ethernet frame are faithfully modelled. The host model contains a traffic generator which implements a generic request-response based protocol. (Higher layer protocols are not modelled in detail.)
+\end{quote}
+
 \subsubsection{483 xalancbmk}
 
+\begin{quote}
+\textbf{Author:} IBM Corporation, Apache Inc, plus modifications for SPEC purposes by Christopher Cambly, Andrew Godbout, Neil Graham, Sasha Kasapinovic, Jim McInnes, June Ng, Michael Wong. Primary contact: Michael Wong
+
+\textbf{General Category:} XSLT processor for transforming XML documents into HTML, text, or other XML document types
+
+\textbf{Description:} a modified version of Xalan-C++\footnote{\url{http://xml.apache.org/xalan-c/}}, an XSLT processor written in a portable subset of C++ . Xalan-C++ version 1.8 is a robust implementation of the W3C Recommendations for XSL Transformations (XSLT)\footnote{\url{http://www.w3.org/TR/xslt}} and the XML Path Language (XPath)\footnote{\url{http://www.w3.org/TR/xpath}}. It works with a compatible release of the Xerces-C++\footnote{\url{http://xml.apache.org/xerces-c}} XML parser: Xerces-C++ version 2.5.0. The XSLT language is use to compose XSL stylesheets. An XSL stylesheet contains instructions for transforming XML documents from one document type to another document type (XML, HTML, or other). In structural terms, an XSL stylesheet specifies the transformation of one tree of nodes (the XML input) into another tree of nodes (the output or transformation result).
+Modifications for SPEC benchmarking purposes include: combining code to make a standalone executable, removing compiler incompatibilities and improving standard conformance, changing output to display intermediate values, removing large parts of unexecuted code, and moving all the include locations to fit better into the SPEC harness.
+\end{quote}
+
 \subsection{Google JavaScript Engine (V8) Benchmarks}
+
+This section describes the subset of benchmarks of the Octane benchmark suite \cite{v8benchmarks} which we used for our experiments. The benchmark descriptions below are taken from the Octane website.
+
 \subsubsection{Richards}
+
+\begin{quote}
+OS kernel simulation benchmark, originally written in BCPL by Martin Richards\footnote{\url{http://www.cl.cam.ac.uk/~mr10/}} (539 lines).
+
+\textbf{Main focus:} property load/store, function/method calls
+
+\textbf{Secondary focus:} code optimization, elimination of redundant code
+\end{quote}
+
 \subsubsection{Raytrace}
+
+\begin{quote}
+Ray tracer benchmark based on code by Adam Burmister\footnote{\url{http://burmister.com}} (904 lines).
+
+\textbf{Main focus:} argument object, apply
+
+\textbf{Secondary focus:} prototype library object, creation pattern
+\end{quote}
+
 \subsubsection{Deltablue}
+
+\begin{quote}
+One-way constraint solver\footnote{\url{http://constraints.cs.washington.edu/deltablue/}}, originally written in Smalltalk by John Maloney and Mario Wolczko (880 lines).
+
+\textbf{Main focus:} polymorphism
+
+\textbf{Secondary focus:} OO-style programming
+\end{quote}
 
 \section{Metrics}
 \subsection{Address Access}
