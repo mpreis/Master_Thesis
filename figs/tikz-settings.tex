@@ -3,3 +3,13 @@
   cpu node/.style={rectangle,draw,align=center, minimum width=1.5cm, minimum height=1.0cm, fill=black!30},
   cache node/.style={rectangle,draw,align=center, minimum width=1.5cm, minimum height=1.0cm, fill=green!30},
 }
+
+\definecolor{red}{RGB}{221,17,68}
+\definecolor{orange}{RGB}{239,133,53}
+\definecolor{yellow}{RGB}{255,202,40}
+\definecolor{green}{RGB}{124,168,43}
+
+\tikzstyle{cache-load}=[draw=green, line width=1mm, rectangle, rounded corners, minimum size=4mm]
+\tikzstyle{cache-store}=[fill=yellow, draw=yellow, line width=1mm, rectangle, rounded corners, minimum size=4mm]
+\tikzstyle{memory-load}=[draw=orange, line width=1mm, circle]
+\tikzstyle{memory-store}=[fill=red,draw=red, line width=1mm, circle]

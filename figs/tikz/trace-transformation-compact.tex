@@ -1,0 +1,21 @@
+\begin{tikzpicture}
+
+\node[align=left] at (0,0) {A};
+\draw [|-|][thick] (1,0) -- (4,0);
+\draw [|-|][thick] (6,0) -- (8,0);
+\draw [|-|][thick] (10,0) -- (11,0);
+\draw [|-|][thick] (13,0) -- (13,0);
+
+\node [align=left] at (0,-1) {B};
+\draw [|-|][thick] (2,-1) -- (5,-1);
+\draw [|-|][thick] (7,-1) -- (12,-1);
+
+\node [align=left] at (0,-2) {C};
+\draw [|-|][thick] (3,-2) -- (9,-2);
+
+\foreach \x in {1,2,3,...,13}
+{
+  \node at (\x,-7) {\x};
+  \draw [-][draw=gray,dashed] (\x,-6.5) -- (\x,0.5);
+}
+\end{tikzpicture}

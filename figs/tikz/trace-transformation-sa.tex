@@ -1,0 +1,29 @@
+\begin{tikzpicture}
+
+\node [align=left] at (0,0) {A};
+\draw [|-|][thick] (1,0) -- (4,0);
+
+\node [align=left] at (0,-1) {B};
+\draw [|-|][thick] (2,-1) -- (5,-1);
+
+\node [align=left] at (0,-2) {C};
+\draw [|-|][thick] (3,-2) -- (9,-2);
+
+\node [align=left] at (0,-3) {D};
+\draw [|-|][thick] (6,-3) -- (8,-3);
+
+\node [align=left] at (0,-4) {E};
+\draw [|-|][thick] (7,-4) -- (12,-4);
+
+\node [align=left] at (0,-5) {F};
+\draw [|-|][thick] (10,-5) -- (11,-5);
+
+\node [align=left] at (0,-6) {G};
+\draw [|-|][thick] (13,-6) -- (13,-6);
+
+\foreach \x in {1,2,3,...,13}
+{
+  \node at (\x,-7) {\x};
+  \draw [-][draw=gray,dashed] (\x,-6.5) -- (\x,0.5);
+}
+\end{tikzpicture}

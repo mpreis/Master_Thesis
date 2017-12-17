@@ -1,0 +1,49 @@
+\begin{tikzpicture}
+
+\node [align=left] at (0,0) {A};
+\node[cache-store] at (1,0) {};
+\node[memory-store] at (3,0) {};
+\node[memory-load] at (4,0) {};
+\node[memory-store] at (6,0) {};
+\draw [|-|][thick] (1,0) -- (4,0);
+
+\node [align=left] at (0,-1) {B};
+\node[cache-store] at (2,-1) {};
+\node[memory-store] at (4,-1) {};
+\node[memory-load] at (5,-1) {};
+\node[memory-store] at (7,-1) {};
+\draw [|-|][thick] (2,-1) -- (5,-1);
+
+\node [align=left] at (0,-2) {C};
+\node[cache-store] at (3,-2) {};
+\node[memory-store] at (5,-2) {};
+\node[memory-load] at (9,-2) {};
+\draw [|-|][thick] (3,-2) -- (9,-2);
+
+\node [align=left] at (0,-3) {D};
+\node[cache-store] at (6,-3) {};
+\node[cache-load] at (8,-3) {};
+\node[memory-store] at (10,-3) {};
+\draw [|-|][thick] (6,-3) -- (8,-3);
+
+\node [align=left] at (0,-4) {E};
+\node[cache-store] at (7,-4) {};
+\node[memory-store] at (9,-4) {};
+\node[memory-load] at (12,-4) {};
+\draw [|-|][thick] (7,-4) -- (12,-4);
+
+\node [align=left] at (0,-5) {F};
+\node[cache-store] at (10,-5) {};
+\node[cache-load] at (11,-5) {};
+\draw [|-|][thick] (10,-5) -- (11,-5);
+
+\node [align=left] at (0,-6) {G};
+\node[cache-store] at (13,-6) {};
+\draw [|-|][thick] (13,-6) -- (13,-6);
+
+\foreach \x in {1,2,3,...,13}
+{
+  \node at (\x,-7) {\x};
+  \draw [-][draw=gray,dashed] (\x,-6.5) -- (\x,0.5);
+}
+\end{tikzpicture}
