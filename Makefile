@@ -11,7 +11,7 @@ default: compile bib
 	$(MAKE) compile
 
 compile: $(CLS).cls $(DOC).tex
-	pdflatex -interaction=nonstopmode -shell-escape $(DOC).tex
+	pdflatex -shell-escape $(DOC).tex # -interaction=nonstopmode
 
 bib: $(DOC).aux
 	bibtex $(DOC).aux
