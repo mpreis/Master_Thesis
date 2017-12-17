@@ -229,6 +229,27 @@ Each time there is a store on an address an new \emph{liveness interval} begins.
 
 \section{Trace Transformation}\label{sec:trace-transformation}
 
+\begin{figure}[h!]
+  \centering
+  \input{figs/tikz/trace-transformation-original}
+  \caption{Liveness intervals of the C code example shown in \autoref{fig:mat-example-c-code}.}
+  \label{fig:liveness}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \input{figs/tikz/trace-transformation-sa}
+  \caption{Liveness intervals of the C code example shown in \autoref{fig:mat-example-c-code} in \emph{single assignment} form.}
+  \label{fig:trace-tranformation-sa}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \input{figs/tikz/trace-transformation-compact}
+  \caption{Liveness intervals of the C code example shown in \autoref{fig:mat-example-c-code} in \emph{compacted} form.}
+  \label{fig:trace-tranformation-compact}
+\end{figure}
+
 \section{Performance}\label{sec:performance}
 
 \autoref{tab:memory-access-cost} shows the costs for the different types of memory accesses. These numbers are taken form literature \cite{drepper2007every}, \footnote{\url{http://www.7-cpu.com/cpu/Skylake.html}}. The actual values are not that important than the relation of cache instruction costs to the memory instruction costs.
