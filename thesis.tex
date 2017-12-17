@@ -198,6 +198,35 @@ This section showed how the memory access trace of a program is observed. For th
 
 \section{Liveness}\label{sec:liveness}
 
+This section introduces the concept of \emph{liveness of an address}. Informal the liveness of an address describes a timespan in which the address is used by a program. In general the liveness of an address begins with its allocation and ends with its deallocation as illustrated by \autoref{fig:liveness-classical}. This is how it is defined in many papers, e.g., \cite{aigner2013acdc}. Nevertheless, in this work liveness is defined differently. Since a store instruction overwrites the value currently stored at an address this is similar to  initialization.
+
+\begin{definition}[Liveness interval]
+Each time there is a store on an address an new \emph{liveness interval} begins. A liveness interval end by the last time the address is loaded before the next store instruction occurs. A liveness intervals ends also with the absolute last access on an addresses.
+\end{definition}
+
+\begin{figure}[h!]
+  \centering
+  \input{figs/tikz/liveness-classical}
+  \caption{Classical liveness definition}
+  \label{fig:liveness-classical}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \input{figs/tikz/liveness}
+  \caption{Liveness definition of this work}
+  \label{fig:liveness}
+\end{figure}
+
+
+\begin{figure}[h!]
+  \centering
+  \input{figs/tikz/liveness-intervals-example}
+  \caption{Liveness intervals of the C code example shown in \autoref{fig:mat-example-c-code}.}
+  \label{fig:liveness-intervals-example}
+\end{figure}
+
+
 \section{Trace Transformation}\label{sec:trace-transformation}
 
 \section{Performance}\label{sec:performance}
