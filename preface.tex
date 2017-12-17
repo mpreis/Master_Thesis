@@ -14,7 +14,10 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % abstract / Kurzfassung
-\abstract{\todo{Enter text.}\newline\torevise}%
+\abstract{\torevise
+The performance gap of CPU speed and memory access time is a known problem in computer science. For more than 30 years computer architects make use of caches trying to close this gap. Caches are designed according to two major observations on programs, if data is accessed once it is likely (1) that nearby data is accessed in near future (\emph{spatial locality}) and (2) that the same data is accessed again in near future (\emph{temporal locality}). Obviously, there are programs which might need an different cache behavior to offer the best possible performance. For this reason researchers started investigating on optimizing programs for caches.
+Data has a \emph{liveness} starting with the first time it is written and end with the last accesses. Further, data is located somewhere on memory according to the allocation strategy of the used allocator. The influence of the data location on the program performance not surprising, because of spatial locality. We claim that reusing memory as quickly as possible after the liveness ended is dominating the overall performance impact.%
+\newline}%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % table of contents / Inhaltsverzeichnis
