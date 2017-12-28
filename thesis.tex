@@ -111,7 +111,7 @@ Further, the main memory is structured in equally sized chunks of memory, e.g., 
 A \emph{cache} is a small, high-speed memory which temporarily holds data of the addresses used by the currently processed program. The concept of caches has been introduced by Smith in his work \cite{smith1982cache}.
 Caches are based on two major observation. \emph{Temporal locality}, if data is accessed it is likely that the same data is accessed again in the near future. \emph{Spatial locality}, if data is accessed it is likely that other data near by is also accessed in the near future. Speaking about \emph{accessing an address} is equivalent with \emph{accessing data stored at an address in the main memory}. Same for cached addresses.
 For the \ac{CPU} a cache is invisible. Independent if there is a cache or not the \ac{CPU} always just wants to access a certain address. If there is cache present it simply takes less time to load the value of an address into the \ac{CPU}s register. This is because caches are high-speed memory units.
-A \emph{cache miss} occurs whenever the CPU wants to access an address which is not currently in the cache. Such a situation requires to load the data of the requested address from main memory into the cache. Before the value stored at this address is loaded into one of the registers. Such an operation is expensive as explained in \Cref{sec:performance}. If the requested address is already in the cache it is not required to access the main memory, this case is called a \emph{cache hit}. Since caches are small memory they are limited in the number of addresses which could be temporarily stored. In case the cache is full and a cache miss occurs it is required to make some space to load the requested address. The so-called \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory to get space. There are many different algorithms trying to make a good chose on the address to evict, e.g., \ac{LRU}. For more details see \Cref{sec:caches}
+A \emph{cache miss} occurs whenever the CPU wants to access an address which is not currently in the cache. Such a situation requires to load the data of the requested address from main memory into the cache. Before the value stored at this address is loaded into one of the registers. Such an operation is expensive as explained in \Cref{sec:performance}. If the requested address is already in the cache it is not required to access the main memory, this case is called a \emph{cache hit}. Since caches are small memory they are limited in the number of addresses which could be temporarily stored. In case the cache is full and a cache miss occurs it is required to make some space to load the requested address. The so-called \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory to get space. There are many different algorithms trying to make a good chose on the address to evict, e.g., \ac{LRU}. For more details see \Cref{sec:cache-models}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Memory Access Trace
@@ -298,7 +298,7 @@ We proceed as follows, after the \ac{trace} of a program has been generated its 
 \text{CPA}(T,C) = \frac{\text{Sum of cycles}(T, C)}{\text{Sum of accesses}(T)}
 \end{equation}
 
-$T$ represents the \ac{trace} of the analyzed program. $C$ represents the applied cache model, the different cache models are explained in \Cref{sec:caches}.
+$T$ represents the \ac{trace} of the analyzed program. $C$ represents the applied cache model, the different cache models are explained in \Cref{sec:cache-models}.
 
 \emph{sum of cycles(T, C)} represents the sum of all memory accesses each weight according to its costs. The costs for a memory access the depends on the latency of the memory unit accessed. This is why cache accesses are cheaper than main memory accesses. The \emph{sum of accesses(T)} represents the total number of load and store instructions executed by the \ac{trace} $T$.
 
@@ -644,30 +644,23 @@ Given a \ac{trace} $T$ of load and store instructions find metrics that characte
 
 \chapter{Experimental Setup}\label{cha:experimental-setup}
 
-This chapter explains the setup for the experiments presented by \Cref{cha:experimetns}. \Cref{cha:theoretical-foundations} explains the theoretical background for the tool chain applied to observe the aimed information. In general there are two major aspects we are interested in, (1) the performance of a \ac{trace} and (2) the metrics of a \ac{trace} which characterize its performance. We implemented a multistate offline approach to observe all the information. At the first state a benchmark is compiled with GCC 4.8.5 on Ubuntu 16.04 for AMD Opteron\texttrademark processor 6376 with x86\_64 architecture. For the second state the Valgrind\cite{Valgrind} tool called \emph{Lackey} is used to obtain all memory accesses of the benchmark. This represents the \ac{trace} of the benchmark which will be transformed. The fourth state is the \ac{trace} transformation. At least the addresses of the \ac{trace} obtained by Valgrind has to be replaced by variables, this is the original \ac{trace}. Furthermore, the \ac{trace} could also be transformed either into a single assignment \ac{trace} or a compact \ac{trace}. At the fifth state the metrics as explained in \Cref{sec:metrics} are observed.
+This chapter explains the setup for the experiments presented by \Cref{cha:experimetns}. \Cref{cha:theoretical-foundations} explains the theoretical background for the tool chain applied to observe the aimed information. In general there are two major aspects we are interested in, (1) the performance of a \ac{trace} and (2) the metrics of a \ac{trace} which characterize its performance.
 
+\section{Workflow}
+We implemented a multistate offline approach to observe all the information. In this context \emph{offline} indicates that there are analyzing steps required before executing the \ac{trace}. More concrete this is about \emph{Preparation}, and \emph{Transformation}.
 
-\emph{Offline} indicates that there are analyzing steps required before executing the \ac{trace}.
+\begin{description}
+  \item[Compilation] It is required to generate a binary of a benchmark. The benchmarks used are compiled with GCC 4.8.5 on Ubuntu 16.04 for AMD Opteron\texttrademark Processor 6376 with x86\_64 Architecture.
+  \item[Preparation] Next is to obtain a \ac{trace} of load and store instruction on addresses. We use the Valgrind\cite{Valgrind} tool called \emph{Lackey} obtain all memory accesses of an executable. This represents the \ac{trace} of the benchmark which will be transformed.
+  \item[Transformation \& Analysis] After the \ac{trace} has been obtained two steps are handled simultaneously, (1) transforming the \ac{trace} from an address-based \ac{trace} to a variable-based \ac{trace} and (2) observing the metrics explained in \Cref{sec:metrics}.
+  \item[Execution] Finally the transformed \ac{trace} can be executed to figure out its performance. This procedure requires to apply a cache model. In this work there are several cache models available which are presented by \Cref{sec:cache-models}. During execution the memory accesses are counted which are finally used to calculate the performance.
+\end{description}
 
-\section{Caches}\label{sec:caches}
-\subsection{Belady Cache}\label{ssec:cache-belady}
-\subsection{Belady Cache with Liveness Information}\label{ssec:cache-belady-liveness}
-\subsection{Least Recently Used Cache}\label{ssec:cache-lru}
-\subsection{Least Recently Used Cache with Liveness Information}\label{ssec:cache-lru-liveness}
+\section{Preparation: Valgrind} % Valgrind
 
-\section{Allocators}
-\subsection{Original Allocator}\label{ssec:allocator-original}
-\subsection{Single Assignment Allocator}\label{ssec:allocator-single-assignment}
-\subsection{Compacting Allocator}\label{ssec:allocator-compact}
-\subsubsection{Compacting Allocator with Stack Semantic Free List}
-\label{sssec:allocator-compact-stack}
-\subsubsection{Compacting Allocator with Queue Semantic Free List}
-\label{sssec:allocator-compact-queue}
-\subsubsection{Compacting Allocator with Set Semantic Free List}
-\label{sssec:allocator-compact-set}
+\section{Compilation: Benchmarks}
 
-\section{Benchmarks}
-% \todo{For each benchmark: Description}
+Our experiments are build on two benchmark suites the \emph{SPEC 2006 Benchmarks}\cite{henning2006spec} and \emph{Octane Benchmarks}\cite{v8benchmarks}. From both benchmark suites only a subset of the available benchmarks are used which are are explained below.
 
 \subsection{SPEC 2006 Benchmarks}
 
@@ -750,7 +743,7 @@ Modifications for SPEC benchmarking purposes include: combining code to make a s
 \end{description}
 \end{quote}
 
-\subsection{Google JavaScript Engine (V8) Benchmarks}
+\subsection{Octane Benchmarks}
 
 This section describes the subset of benchmarks of the Octane benchmark suite \cite{v8benchmarks} which we used for our experiments. The benchmark descriptions below are taken from the Octane website.
 
@@ -784,13 +777,26 @@ This section describes the subset of benchmarks of the Octane benchmark suite \c
 \end{description}
 \end{quote}
 
-\section{Metrics}
-\subsection{Address Access}
-\subsection{Access Distance}
-\subsection{Live Addresses}
-\subsection{Liveness Length}
+\section{Transformation}
 
-\section{Trace generation (Valgrind / Cachegrind)}
+\section{Execution: Allocators}
+
+\subsection{Original Allocator}\label{ssec:allocator-original}
+\subsection{Single Assignment Allocator}\label{ssec:allocator-single-assignment}
+\subsection{Compacting Allocator}\label{ssec:allocator-compact}
+\subsubsection{Compacting Allocator with Stack Semantic Free List}
+\label{sssec:allocator-compact-stack}
+\subsubsection{Compacting Allocator with Queue Semantic Free List}
+\label{sssec:allocator-compact-queue}
+\subsubsection{Compacting Allocator with Set Semantic Free List}
+\label{sssec:allocator-compact-set}
+\section{Cache Models}\label{sec:cache-models}
+\subsection{Belady Cache}\label{ssec:cache-belady}
+\subsection{Belady Cache with Liveness Information}\label{ssec:cache-belady-liveness}
+\subsection{Least Recently Used Cache}\label{ssec:cache-lru}
+\subsection{Least Recently Used Cache with Liveness Information}\label{ssec:cache-lru-liveness}
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
