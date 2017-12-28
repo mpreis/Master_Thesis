@@ -41,6 +41,11 @@
 \node[cache-store] at (13,-6) {};
 \draw [|-|][thick] (13,-6) -- (13,-6);
 
+\node[cache-load,   label=right:cache load]   at  (1,-8) {};
+\node[cache-store,  label=right:cache store]  at  (4,-8) {};
+\node[memory-load,  label=right:memory load]  at  (7,-8) {};
+\node[memory-store, label=right:memory store] at (10,-8) {};
+
 \foreach \x in {1,2,3,...,13}
 {
   \node at (\x,-7) {\x};

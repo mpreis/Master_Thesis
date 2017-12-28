@@ -4,11 +4,11 @@
 \node[cache-store] at (1,0) {};
 \node[memory-store] at (3,0) {};
 \node[memory-load] at (4,0) {};
-\node[cache-load] at (6,0) {};
+\node[cache-store] at (6,0) {};
 \node[cache-load] at (8,0) {};
-\node[cache-load] at (10,0) {};
+\node[cache-store] at (10,0) {};
 \node[cache-load] at (11,0) {};
-\node[cache-load] at (13,0) {};
+\node[cache-store] at (13,0) {};
 \draw [|-|][thick] (1,0) -- (4,0);
 \draw [|-|][thick] (6,0) -- (8,0);
 \draw [|-|][thick] (10,0) -- (11,0);
@@ -32,6 +32,11 @@
 \node[memory-store] at (9,-3) {};
 \node[memory-load] at (12,-3) {};
 \draw [|-|][thick] (7,-3) -- (12,-3);
+
+\node[cache-load,   label=right:cache load]   at  (1,-8) {};
+\node[cache-store,  label=right:cache store]  at  (4,-8) {};
+\node[memory-load,  label=right:memory load]  at  (7,-8) {};
+\node[memory-store, label=right:memory store] at (10,-8) {};
 
 \foreach \x in {1,2,3,...,13}
 {
