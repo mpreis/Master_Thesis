@@ -5,26 +5,23 @@
 % +-----+  load  +---------+  load  +-------------+
 \begin{tikzpicture}
 % CPU
-\draw (0,0) rectangle (2,2);
-\node at (1,1) {CPU};
+\node (cpu)[stdnode, minimum width=2cm, minimum height=2cm] at (1,1) {CPU};
+% Cache
+\node (cache)[stdnode, minimum width=2cm, minimum height=2cm] at (5,1) {Cache};
+% Main Memory
+\node (memory)[stdnode, minimum width=4cm, minimum height=2cm] at (10,1) {Main Memory};
+
 
 % Communication between CPU and Cache
-\draw [->][thick] (2,1.5) -- (4,1.5);
+\draw [arrow] (2,1.5) -- (4,1.5);
 \node [above,align=center] at (3,1.5) {Cache\\Store};
-\draw [<-][thick] (2,0.5) -- (4,0.5);
+\draw [arrow] (4,0.5) -- (2,0.5);
 \node [below,align=center] at (3,0.5) {Cache\\Load};
 
-% Cache
-\draw (4,0) rectangle (6,2);
-\node at (5,1) {Cache};
-
 % Communication between Cache and Main Memory
-\draw [->][thick] (6,1.5) -- (8,1.5);
+\draw [arrow] (6,1.5) -- (8,1.5);
 \node [above,align=center] at (7,1.5) {Memory\\Store};
-\draw [<-][thick] (6,0.5) -- (8,0.5);
+\draw [arrow] (8,0.5) -- (6,0.5);
 \node [below,align=center] at (7,0.5) {Memory\\Load};
 
-% Main Memory
-\draw (8,0) rectangle (12,2);
-\node at (10,1) {Main Memory};
 \end{tikzpicture}

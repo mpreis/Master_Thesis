@@ -16,7 +16,7 @@
 \usepackage{listings}
 \usepackage{multirow}
 \usepackage{tikz}
-\usetikzlibrary{positioning}
+\usetikzlibrary{arrows, positioning, fit}
 \input{figs/tikz-settings}
 
 
@@ -111,7 +111,7 @@ Further, the main memory is structured in equally sized chunks of memory, e.g., 
 A \emph{cache} is a small, high-speed memory which temporarily holds data of the addresses used by the currently processed program. The concept of caches has been introduced by Smith in his work \cite{smith1982cache}.
 Caches are based on two major observation. \emph{Temporal locality}, if data is accessed it is likely that the same data is accessed again in the near future. \emph{Spatial locality}, if data is accessed it is likely that other data near by is also accessed in the near future. Speaking about \emph{accessing an address} is equivalent with \emph{accessing data stored at an address in the main memory}. Same for cached addresses.
 For the \ac{CPU} a cache is invisible. Independent if there is a cache or not the \ac{CPU} always just wants to access a certain address. If there is cache present it simply takes less time to load the value of an address into the \ac{CPU}s register. This is because caches are high-speed memory units.
-A \emph{cache miss} occurs whenever the CPU wants to access an address which is not currently in the cache. Such a situation requires to load the data of the requested address from main memory into the cache. Before the value stored at this address is loaded into one of the registers. Such an operation is expensive as explained in \Cref{sec:performance}. If the requested address is already in the cache it is not required to access the main memory, this case is called a \emph{cache hit}. Since caches are small memory they are limited in the number of addresses which could be temporarily stored. In case the cache is full and a cache miss occurs it is required to make some space to load the requested address. The so-called \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory to get space. There are many different algorithms trying to make a good chose on the address to evict, e.g., \ac{LRU}. For more details see \Cref{sec:cache-models}
+A \emph{cache miss} occurs whenever the CPU wants to access an address which is not currently in the cache. Such a situation requires to load the data of the requested address from main memory into the cache. Before the value stored at this address is loaded into one of the registers. Such an operation is expensive as explained in \Cref{sec:performance}. If the requested address is already in the cache it is not required to access the main memory, this case is called a \emph{cache hit}. Since caches are small memories they are limited in the number of addresses which could be temporarily stored. In case the cache is full and a cache miss occurs it is required to make some space to load the requested address. The so-called \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory to get space. There are many different algorithms trying to make a good chose on the address to evict, e.g., \ac{LRU}. For more details see \Cref{sec:cache-models}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Memory Access Trace
@@ -328,7 +328,7 @@ This section presents our definition of performance and how the performance of a
 
 \section{Metrics}\label{sec:metrics}
 
-This section presents the metrics chosen to characterize a \ac{trace}. The characteristic of \ac{trace} consists of the four metrics \emph{accesses}, \emph{access distance}, \emph{concurrently live}, and \emph{liveness interval length}. These are used to reason about the resulting performance of a \ac{trace} and further to compare a \ac{trace} with other \ac{trace}s. The metrics presented by this section are all applied after \ac{trace} transformation. So, these operate on variables rather than directly on addresses. Nevertheless, variables could easily be mapped to addresses. Furthermore, for all four metrics the same statistical parameters are computed: minimum, maximum, average, 5\% percentile, 25\% percentile, 50\% percentile, 75\% percentile, and 95\% percentile.
+This section presents the metrics chosen to characterize a \ac{trace}. The characteristic of \ac{trace} consists of the four metrics \emph{accesses}, \emph{access distance}, \emph{overlapping liveness}, and \emph{liveness interval length}. These are used to reason about the resulting performance of a \ac{trace} and further to compare a \ac{trace} with other \ac{trace}s. The metrics presented by this section are all applied after \ac{trace} transformation. So, these operated on variables rather than directly on addresses. Nevertheless, variables could easily be mapped to addresses. Furthermore, for all four metrics the same statistical parameters are computed: minimum, maximum, average, 5\% percentile, 25\% percentile, 50\% percentile, 75\% percentile, and 95\% percentile.
 
 \begin{remark} Statical metrics\
 \begin{itemize}
@@ -358,8 +358,8 @@ The metric called \emph{accesses} is as simple as the name suggests. It investig
 \subsection{Access Distance}\label{ssec:metric-access-distance}
 The \emph{access distance} metric shows the distance between two sequential accesses on the same variable, e.g, if there is only one variable accessed the access distance of such a \ac{trace} is 0, but assume a \ac{trace} which accesses two variables alternating as shown by \Cref{fig:metrics-access-distance-exmaple} then the access distance of $A$ is 2. Its computed by subtracting the instruction number of the last access by the current instruction number, i.e., in case of $A$ the access distance is computed by $3-1 = 2$, same of $B$ ($2 - 2 = 0$). Finally, the statistical metrics as explained above are computed on the observed sample. Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$. Between the load of variable $A$ and the store on it there is only one other instruction this is why there is a $1$ in the list. The $0$ results for variable $B$ which accessed only once.
 
-\subsection{Concurrently Live}\label{ssec:metric-concurrently-live}
-The \emph{concurrently live} metric presents the number of variables which are live at a certain instruction number, i.e., this metric is equivalent with the number of overlapping liveness intervals observed for each instruction number. The set of live variable which are currently used is called \emph{working set}. The term working set has been introduced by the work \cite{denning1968working}. This metric shows how a \ac{trace}s working set size behaves. For this reason at each instruction the currently live variables are counted. The observed value is appended to then set of samples. Finally, the statistical metrics as explained above are computed on the observed sample. Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(1, 1, 2)$. At instruction number 1 and 3 only one variable is live $A$, namely. At instruction number 2 there are two variables live $A$, and $B$, respectively.
+\subsection{Overlapping Liveness}\label{ssec:metric-concurrently-live}
+The \emph{overlapping liveness} metric presents the number of variables which are live at a certain instruction number, i.e., this metric is equivalent with the number of overlapping liveness intervals observed for each instruction number. The set of live variable which are currently used is called \emph{working set}. The term working set has been introduced by the work \cite{denning1968working}. This metric shows how a \ac{trace}s working set size behaves. For this reason at each instruction the currently live variables are counted. The observed value is appended to then set of samples. Finally, the statistical metrics as explained above are computed on the observed sample. Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(1, 1, 2)$. At instruction number 1 and 3 only one variable is live $A$, namely. At instruction number 2 there are two variables live $A$, and $B$, respectively.
 
 \subsection{Liveness Interval Length}\label{ssec:metric-liveness-interval-length}
 The \emph{liveness interval length} metric illustrates the different lengths of liveness intervals. Variables are used for a certain timespan and this timespan varies. In general there are variables which are used for a short period and others are live for longer. If a variable is only accessed once the liveness interval length is $0$. The liveness interval length is computed similar to the access distance by subtracting the instruction number of beginning of a liveness interval from the instruction number of its last access. Finally, the statistical metrics as explained above are computed on the observed sample. Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$. As explained above if a variable is only accessed once the liveness interval length is $0$, this is the case of $B$. The length of the liveness interval of variable $A$ is represented by the second value of the list, $2$.
@@ -370,11 +370,17 @@ The \emph{liveness interval length} metric illustrates the different lengths of 
 
 \section{Trace Transformation}\label{sec:trace-transformation}
 
-\Cref{sec:memory-access-trace} illustrated how to observe the \ac{trace} of a program. \Cref{sec:liveness} describes our definition of liveness and introduces liveness intervals. This section shows how to use these information to transform the \ac{trace} $T$ of a program. The aim is to transform a \ac{trace} $T$ into a \ac{trace} $T'$ which is semantically equivalent to $T$ but which offers better performance. The performance of a \ac{trace} is judged as shown in \Cref{sec:performance}.
+\Cref{sec:memory-access-trace} illustrated how to observe the \ac{trace} of a program. \Cref{sec:liveness} describes our definition of liveness and introduces liveness intervals. This section shows how to use these information to transform the \ac{trace} $T$ of a program. The aim is to transform a \ac{trace} $T$ into a \ac{trace} $T'$ which is semantically equivalent to $T$ but which offers better performance. The performance of a \ac{trace} is judged as shown in \Cref{sec:performance}. During transformation the addresses of the original \ac{trace} are replaced by other addresses.
 
-\subsection{Original Trace}
+We distinguish the originally used addresses form the addresses used after transformation. The latter ones are called \emph{variables}. A \emph{variable} is in general nothing else than an address. There are two significant reasons why to use a different naming.
 
-For transformation the addresses of a \ac{trace} are replaces by variable names. Based on the \ac{trace} (see \Cref{fig:mat-example-trace}) observed from the C code illustrates by \Cref{fig:mat-example-c-code} the addresses are replaces by variables as shown by \Cref{fig:trace-transformation-original}. Basically, \texttt{\&sum} becomes $A$, \texttt{\&x} becomes $B$, \texttt{\&y} becomes $C$, and \texttt{\&z} becomes $D$. Obviously, there one more difference the x-axis and y-axis are switched, namely. The reason is simple because it requires less space vertically. However, note that liveness intervals of the variables shown by \Cref{fig:trace-transformation-original} are exactly the same as those of the addresses illustrated by \Cref{fig:liveness-intervals-example}.
+First the original addresses have some properties like being an address on the heap or being an address of the globals or being an address within the program code which introduces some restrictions. For our purpose this information is not important. During transformation we do not care about this. Each address is handled the same way.
+
+Second it simplifies talking about \ac{trace}s. Each time we talk about an address it refers to the \ac{trace} observed form the binary. Talking about variables indicates that the \ac{trace} has been transformed already.
+
+\subsection{Identity Trace}
+
+For transformation simply the addresses of a \ac{trace} are replaces by variables. There are no further changes. Based on the \ac{trace} (see \Cref{fig:mat-example-trace}) observed from the C code illustrates by \Cref{fig:mat-example-c-code} the addresses are replaces by variables as shown by \Cref{fig:trace-transformation-original}. Basically, \texttt{\&sum} becomes $A$, \texttt{\&x} becomes $B$, \texttt{\&y} becomes $C$, and \texttt{\&z} becomes $D$. Obviously, there is one more difference the x-axis and y-axis are switched, namely. The reason is simple because it requires less space vertically. However, note that liveness intervals of the variables shown by \Cref{fig:trace-transformation-original} are exactly the same as those of the addresses illustrated by \Cref{fig:liveness-intervals-example}.
 
 \begin{figure}[!ht]
   \centering
@@ -423,8 +429,8 @@ Lets take a look at the performance of the three \ac{trace}s from above. Assume 
 
 If a variable is accessed which is already in the cache a cheap cache access can be executed, either a load or store instruction. Otherwise, a much more expensive main memory instruction has to be executed. The costs of these instructions are presented by \Cref{tab:memory-access-cost}. For the following performance computation we assume a simple optimization. The first store instruction on a variable can be executed directly into the cache. Furthermore, assume that in case of an eviction the data of a variable is stored in main memory. Independent, if the variable is still alive or already dead.
 
-\subsection{Original Trace}
-\Cref{fig:trace-transformation-original-marked} shows the annotated liveness intervals of the original trace of \Cref{fig:trace-transformation-original}. According to the assumptions from above every beginning of a liveness interval is annotated with a cache store instruction. Since the assumed cache model fits exactly two variables the first eviction occurs when writing variable $C$ at instruction 3. According to the eviction policy of the applied \ac{LRU} cache variable $A$ is evicted. The memory store of variable $A$ is annotated with a filled red circle. Unfortunately, variable $A$ is accessed at the next instruction. For this reason it has to be loaded from main memory again, but before $B$ is stored in main memory to make space in the cache for $A$. The same procedure repeats for the variables $B$ and $C$ at instruction number 5. At instruction number 6 we are able to load a variable directly from cache for the first time. Nevertheless, there are two more eviction required to finish the execution of this trace. One at instruction 7, variable $B$ is evicted to make space for variable $D$ which is accessed for the first time. A interesting aspect at this instruction is that the liveness interval of variable $B$ end two instruction before, so $B$ is dead. Furthermore, $B$ is not needed anymore for the following instructions. In general this information is not available, this is why there is a memory store annotated. But if a systems knows about the liveness intervals of its variables it might decide to overwrite the value of $B$ by the value of $D$ and avoid the memory store. The last eviction appears at instruction 9 when variable $C$ is accessed for the last time. Variable $A$ is accessed several time without any interaction with the main memory, because each time it is access it is in the cache.
+\subsection{Identity Trace}
+\Cref{fig:trace-transformation-original-marked} shows the annotated liveness intervals of the identity \ac{trace} of \Cref{fig:trace-transformation-original}. According to the assumptions from above every beginning of a liveness interval is annotated with a cache store instruction. Since the assumed cache model fits exactly two variables the first eviction occurs when writing variable $C$ at instruction 3. According to the eviction policy of the applied \ac{LRU} cache variable $A$ is evicted. The memory store of variable $A$ is annotated with a filled red circle. Unfortunately, variable $A$ is accessed at the next instruction. For this reason it has to be loaded from main memory again, but before $B$ is stored in main memory to make space in the cache for $A$. The same procedure repeats for the variables $B$ and $C$ at instruction number 5. At instruction number 6 we are able to load a variable directly from cache for the first time. Nevertheless, there are two more eviction required to finish the execution of this trace. One at instruction 7, variable $B$ is evicted to make space for variable $D$ which is accessed for the first time. A interesting aspect at this instruction is that the liveness interval of variable $B$ end two instruction before, so $B$ is dead. Furthermore, $B$ is not needed anymore for the following instructions. In general this information is not available, this is why there is a memory store annotated. But if a systems knows about the liveness intervals of its variables it might decide to overwrite the value of $B$ by the value of $D$ and avoid the memory store. The last eviction appears at instruction 9 when variable $C$ is accessed for the last time. Variable $A$ is accessed several time without any interaction with the main memory, because each time it is access it is in the cache.
 
 \begin{figure}[!ht]
   \centering
@@ -433,7 +439,7 @@ If a variable is accessed which is already in the cache a cheap cache access can
   \label{fig:trace-transformation-original-marked}
 \end{figure}
 
-The metrics of the \ac{trace} illustrated by \Cref{fig:trace-transformation-original-marked} characterize it. The \emph{accesses} metric is observed by counting all accesses on a certain variable. In this example the list of samples holds four values one for each variable. The number of accesses on variable $A$ is $7$, on all other variables are accessed twice. The resulting and (sorted) list of samples looks as follows $(2, 2, 2, 7)$. The \emph{access distance} presents kind of the access frequency on an variable. Depending on the number of accesses the list of access distances could be significantly larger than the number of used variables. In this case the sorted list of samples looks as follows $(0, 1, 2, 2, 2, 2, 3, 3, 5, 6)$. For variable $A$ there are multiple access distances (from left to write) $3$, $2$, $2$, $2$, $1$, and $0$, namely. The \emph{concurrently live} metrics shows how many variables are used at the same instruction number. The list of samples is computed by counting the overlapping liveness intervals for each instruction number. As a result the size of the samples list depends on the number of instructions rather than on the number of used variables. In case of the current example the samples are $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$. For the purpose of better understanding the list is on sorted instead it is ordered according to the correlating instruction number, i.e., the first entry represents the number of concurrently live variable at instruction number 1 and the last entry represents this value for instruction number 13. The fourth metric is the \emph{liveness interval length}. The number of used variables and the number of accesses on a variables define number of samples for this metric. The number of accesses on a variable are signification because these define the liveness intervals. For this example the list of samples looks as follows $(0, 1, 2, 3, 3, 5, 6)$. For variable $A$ there are four entry in the list $0$, $1$, $2$, and $3$. The resulting metrics are presented by \Cref{tab:summarizing-example-metrics-original}.
+The metrics of the \ac{trace} illustrated by \Cref{fig:trace-transformation-original-marked} characterize it. The \emph{accesses} metric is observed by counting all accesses on a certain variable. In this example the list of samples holds four values one for each variable. The number of accesses on variable $A$ is $7$, on all other variables are accessed twice. The resulting and (sorted) list of samples looks as follows $(2, 2, 2, 7)$. The \emph{access distance} presents kind of the access frequency on an variable. Depending on the number of accesses the list of access distances could be significantly larger than the number of used variables. In this case the sorted list of samples looks as follows $(0, 1, 2, 2, 2, 2, 3, 3, 5, 6)$. For variable $A$ there are multiple access distances (from left to write) $3$, $2$, $2$, $2$, $1$, and $0$, namely. The \emph{overlapping liveness} metrics shows how many variables are used at the same instruction number. The list of samples is computed by counting the overlapping liveness intervals for each instruction number. As a result the size of the samples list depends on the number of instructions rather than on the number of used variables. In case of the current example the samples are $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$. For the purpose of better understanding the list is on sorted instead it is ordered according to the correlating instruction number, i.e., the first entry represents the number of overlapping liveness variable at instruction number 1 and the last entry represents this value for instruction number 13. The fourth metric is the \emph{liveness interval length}. The number of used variables and the number of accesses on a variables define number of samples for this metric. The number of accesses on a variable are signification because these define the liveness intervals. For this example the list of samples looks as follows $(0, 1, 2, 3, 3, 5, 6)$. For variable $A$ there are four entry in the list $0$, $1$, $2$, and $3$. The resulting metrics are presented by \Cref{tab:summarizing-example-metrics-original}.
 
 \begin{table}[!ht]
   \centering
@@ -444,11 +450,11 @@ The metrics of the \ac{trace} illustrated by \Cref{fig:trace-transformation-orig
     \hline
     Accesses                 & 2.00 & 7.00 & 3.25 & 2.00 & 2.00 & 2.00 & 3.25 & 6.25 \\
     Access Distance          & 0.00 & 6.00 & 2.60 & 0.45 & 2.00 & 2.00 & 3.00 & 5.55 \\
-    Concurrently Live        & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
+    Overlapping Liveness        & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
     Liveness Interval Length & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     \hline
   \end{tabular}
-  \caption{Metrics of the original \ac{trace} illustrated by \Cref{fig:trace-transformation-original-marked} (values are rounded).}
+  \caption{Metrics of the identity \ac{trace} illustrated by \Cref{fig:trace-transformation-original-marked} (values are rounded).}
   \label{tab:summarizing-example-metrics-original}
 \end{table}
 
@@ -459,7 +465,7 @@ To compute the performance of \Cref{equ:trace-transformation-original-marked} th
 \end{equation}
 
 \subsection{Single Assignment Trace}
-\Cref{fig:trace-transformation-sa-marked} shows the annotated liveness intervals of the single assignment trace of \Cref{fig:trace-transformation-sa}. Unexpectedly, the number of cache stores increases according to the number of variables used. On the one hand the assumption of executing the first store on a variable directly on the cache and using more variables result in more cache store instructions. On the other hand by using more addresses the number of cache loads seams to reduce for this example. In total the number of cache instructions is the same as required for the original trace, but the distribution is a different. Taking a look at the main memory accesses we observe an increased number of memory stores. The number of memory loads is the same. The more variables used the more variables have to be saved in main memory in case of eviction. Compared to \Cref{fig:trace-transformation-original} there three times more memory stores on variables which are already dead. The other four memory store instructions executed are identical to those of the original trace.
+\Cref{fig:trace-transformation-sa-marked} shows the annotated liveness intervals of the single assignment trace of \Cref{fig:trace-transformation-sa}. Unexpectedly, the number of cache stores increases according to the number of variables used. On the one hand the assumption of executing the first store on a variable directly on the cache and using more variables result in more cache store instructions. On the other hand by using more addresses the number of cache loads seams to reduce for this example. In total the number of cache instructions is the same as required for the identity \ac{trace}, but the distribution is a different. Taking a look at the main memory accesses we observe an increased number of memory stores. The number of memory loads is the same. The more variables used the more variables have to be saved in main memory in case of eviction. Compared to \Cref{fig:trace-transformation-original} there three times more memory stores on variables which are already dead. The other four memory store instructions executed are identical to those of the identity \ac{trace}.
 
 \begin{figure}
   \centering
@@ -468,7 +474,7 @@ To compute the performance of \Cref{equ:trace-transformation-original-marked} th
   \label{fig:trace-transformation-sa-marked}
 \end{figure}
 
-As introduces by \Cref{ssec:metric-accesses} the access distance for the \ac{trace} presented by \Cref{fig:trace-transformation-sa} is computed. The resulting list of samples looks as follows $(1, 2, 2, 2, 2, 2, 2)$. As expected for each variable there is only one entry in the list. Different to the accesses of the original \ac{trace} there are more entries. By coincident each variable except $G$ is accessed twice. Computing the \emph{access distance} results in following list of samples $(0, 1, 2, 3, 3, 5, 6)$. The \emph{concurrently live} variables are observed by counting the overlapping liveness intervals and result in the displayed list $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$. Since the liveness intervals are not change during transforming a \ac{trace} these values are the same as for the original \ac{trace}. The samples for the \emph{liveness interval length} look as follows $(0, 1, 2, 3, 3, 5, 6)$. For this example the samples of the access distance and the liveness interval length are identical, but this is a coincident and not generally the case. \Cref{tab:summarizing-example-metrics-sa} presents the statistical metrics.
+As introduces by \Cref{ssec:metric-accesses} the access distance for the \ac{trace} presented by \Cref{fig:trace-transformation-sa} is computed. The resulting list of samples looks as follows $(1, 2, 2, 2, 2, 2, 2)$. As expected for each variable there is only one entry in the list. Different to the accesses of the identity \ac{trace} there are more entries. By coincident each variable except $G$ is accessed twice. Computing the \emph{access distance} results in following list of samples $(0, 1, 2, 3, 3, 5, 6)$. The \emph{overlapping liveness} variables are observed by counting the overlapping liveness intervals and result in the displayed list $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$. Since the liveness intervals are not change during transforming a \ac{trace} these values are the same as for the identity \ac{trace}. The samples for the \emph{liveness interval length} look as follows $(0, 1, 2, 3, 3, 5, 6)$. For this example the samples of the access distance and the liveness interval length are identical, but this is a coincident and not generally the case. \Cref{tab:summarizing-example-metrics-sa} presents the statistical metrics.
 
 \begin{table}[!ht]
   \centering
@@ -479,7 +485,7 @@ As introduces by \Cref{ssec:metric-accesses} the access distance for the \ac{tra
     \hline
     Accesses                 & 1.00 & 2.00 & 1.86 & 1.30 & 2.00 & 2.00 & 2.00 & 2.00 \\
     Access Distance          & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.67 \\
-    Concurrently Live        & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
+    Overlapping Liveness        & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
     Liveness Interval Length & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     \hline
   \end{tabular}
@@ -487,14 +493,14 @@ As introduces by \Cref{ssec:metric-accesses} the access distance for the \ac{tra
   \label{tab:summarizing-example-metrics-sa}
 \end{table}
 
-The performance is computed as defined above. For this single assignment trace we observe 2 cache loads, 7 cache stores, 4 memory loads, and 7 memory stores which results in a \ac{CPA} of 4.92. This result is slightly worse than the \ac{CPA} of the original trace presented by \Cref{equ:trace-transformation-original-marked}.
+The performance is computed as defined above. For this single assignment trace we observe 2 cache loads, 7 cache stores, 4 memory loads, and 7 memory stores which results in a \ac{CPA} of 4.92. This result is slightly worse than the \ac{CPA} of the identity \ac{trace} presented by \Cref{equ:trace-transformation-original-marked}.
 
 \begin{equation}\label{equ:trace-transformation-sa-marked}
 \text{\ac{CPA}}(T_{single~assigment}, C_{LRU}) = \frac{1 * (2 + 7) + 5 * (4 + 7)}{13} = 4.92
 \end{equation}
 
 \subsection{Compact Trace}
-\Cref{fig:trace-transformation-compact-marked} shows the annotated liveness intervals of the compact trace of \Cref{fig:trace-transformation-compact}. The most significant difference compared to the others two trace is the number of variables used. Variable $B$ is reused for the variable $D$ of the original trace. Obviously, there are less memory stores required than for the single assignment trace. Furthermore, there are even less memory stores required than for the original trace. The reason is that reusing variable $B$ turn the memory store into a cache store of the new value. The other memory accesses are quite similar as explained above. Each liveness interval begins with a cache store. Variable $A$ allows two cache loads. The memory stores on the instructions 3, 4, 5, and 9 are identical for all three traces. Same for the memory loads at instruction 4, 5, 9, and 12.
+\Cref{fig:trace-transformation-compact-marked} shows the annotated liveness intervals of the compact trace of \Cref{fig:trace-transformation-compact}. The most significant difference compared to the others two trace is the number of variables used. Variable $B$ is reused for the variable $D$ of the identity \ac{trace}. Obviously, there are less memory stores required than for the single assignment trace. Furthermore, there are even less memory stores required than for the identity \ac{trace}. The reason is that reusing variable $B$ turn the memory store into a cache store of the new value. The other memory accesses are quite similar as explained above. Each liveness interval begins with a cache store. Variable $A$ allows two cache loads. The memory stores on the instructions 3, 4, 5, and 9 are identical for all three traces. Same for the memory loads at instruction 4, 5, 9, and 12.
 
 \begin{figure}
   \centering
@@ -503,7 +509,7 @@ The performance is computed as defined above. For this single assignment trace w
   \label{fig:trace-transformation-compact-marked}
 \end{figure}
 
-For the \ac{trace} presented by \Cref{fig:trace-transformation-compact} the list of samples for th \emph{accesses} metric is $(2, 4, 7)$. According the number of used variables the list holds only three vales. The samples of the \emph{access distance} looks as follows $(0, 1, 2, 2, 2, 2, 2, 3, 3, 5, 6)$. The resulting statistical metrics are presented by \Cref{tab:summarizing-example-metrics-compact}. The \emph{concurrently live} metrics yields in the same list of samples as for the original \ac{trace} and the single assignment \ac{trace}, $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$. Reason is that the liveness intervals are not changed only rearranged. As already mentioned the samples for the \emph{liveness interval length} are the same as for the single assignment \ac{trace} and the original \ac{trace}, $(0, 1, 2, 3, 3, 5, 6)$. The reason for this is at the liveness intervals are never changed.
+For the \ac{trace} presented by \Cref{fig:trace-transformation-compact} the list of samples for th \emph{accesses} metric is $(2, 4, 7)$. According the number of used variables the list holds only three vales. The samples of the \emph{access distance} looks as follows $(0, 1, 2, 2, 2, 2, 2, 3, 3, 5, 6)$. The resulting statistical metrics are presented by \Cref{tab:summarizing-example-metrics-compact}. The \emph{overlapping liveness} metrics yields in the same list of samples as for the identity \ac{trace} and the single assignment \ac{trace}, $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$. Reason is that the liveness intervals are not changed only rearranged. As already mentioned the samples for the \emph{liveness interval length} are the same as for the single assignment \ac{trace} and the identity \ac{trace}, $(0, 1, 2, 3, 3, 5, 6)$. The reason for this is at the liveness intervals are never changed.
 
 \begin{table}[!ht]
   \centering
@@ -514,7 +520,7 @@ For the \ac{trace} presented by \Cref{fig:trace-transformation-compact} the list
     \hline
     Accesses                 & 2.00 & 7.00 & 4.33 & 2.20 & 3.00 & 4.00 & 5.50 & 6.70 \\
     Access Distance          & 0.00 & 6.00 & 2.55 & 0.50 & 2.00 & 2.00 & 3.00 & 5.50 \\
-    Concurrently Live        & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
+    Overlapping Liveness        & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
     Liveness Interval Length & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     \hline
   \end{tabular}
@@ -540,7 +546,7 @@ To conclude the summarizing example for each metric and the performance the thre
     \hline
     Trace & \ac{CPA} \tabularnewline
     \hline
-    Original          & 4.15 \\
+    Identity          & 4.15 \\
     Single Assignment & 4.92 \\
     Compact           & 3.77 \\
     \hline
@@ -551,7 +557,7 @@ To conclude the summarizing example for each metric and the performance the thre
 
 \subsubsection{Accesses}
 
-By transforming a \ac{trace} into another one the total number of accesses never changes. Nevertheless, which variable is access and how often a variable is accessed has a high potential to be modified. Because this is the purpose of \ac{trace} transformation. The \Cref{tab:summarizing-example-metrics-overview-accesses} illustrates the comparison of the three \ac{trace}s discussed. Obviously, the variables of the single assignment \ac{trace} are accessed significantly less often than in case of the other two \ac{trace}s. To pick one value, 95 percentage of all variables of the single assignment \ac{trace} are accessed only twice. For the original \ac{trace} and also for the compact \ac{trace} the 95\% percentile is larger than 6. For the compact \ac{trace} it is expected, because less variables are used and the number of accesses is not changed. Hence, a single variable has to be access more often.
+By transforming a \ac{trace} into another one the total number of accesses never changes. Nevertheless, which variable is access and how often a variable is accessed has a high potential to be modified. Because this is the purpose of \ac{trace} transformation. The \Cref{tab:summarizing-example-metrics-overview-accesses} illustrates the comparison of the three \ac{trace}s discussed. Obviously, the variables of the single assignment \ac{trace} are accessed significantly less often than in case of the other two \ac{trace}s. To pick one value, 95 percentage of all variables of the single assignment \ac{trace} are accessed only twice. For the identity \ac{trace} and also for the compact \ac{trace} the 95\% percentile is larger than 6. For the compact \ac{trace} it is expected, because less variables are used and the number of accesses is not changed. Hence, a single variable has to be access more often.
 
 \begin{table}[!ht]
   \centering
@@ -560,7 +566,7 @@ By transforming a \ac{trace} into another one the total number of accesses never
     \multirow{2}{*}{Trace} & \multirow{2}{*}{Min.} & \multirow{2}{*}{Max.} & \multirow{2}{*}{Avg.} & \multicolumn{5}{c}{Percentile} \tabularnewline
     & & & & 5\% & 25\% & 50\% & 75\% & 95\% \tabularnewline
     \hline
-    Original          & 2.00 & 7.00 & 3.25 & 2.00 & 2.00 & 2.00 & 3.25 & 6.25 \\
+    Identity          & 2.00 & 7.00 & 3.25 & 2.00 & 2.00 & 2.00 & 3.25 & 6.25 \\
     Single Assignment & 1.00 & 2.00 & 1.86 & 1.30 & 2.00 & 2.00 & 2.00 & 2.00 \\
     Compact           & 2.00 & 7.00 & 4.33 & 2.20 & 3.00 & 4.00 & 5.50 & 6.70 \\
     \hline
@@ -571,7 +577,7 @@ By transforming a \ac{trace} into another one the total number of accesses never
 
 \subsubsection{Access Distance}
 
-\Cref{tab:summarizing-example-metrics-overview-access-distance} shows the comparison of the access distance metric. The differences between original \ac{trace} and compacted \ac{trace} are minimal. The reason is that there is only one difference, the liveness interval of variable $D$ of the original \ac{trace} is merged into variable $B$ of the compacted \ac{trace}. For the calculation this means that there is one sample more in the list of the compact \ac{trace}, of value $2$ namely. All other sample are identical to those the original \ac{trace}. The difference between original \ac{trace} and single assignment \ac{trace} are a bit more significant. The reason in this case is that the access distance of the single assignment \ac{trace} is reduced to pure liveness intervals. In this case the list of sample for the single assignment \ac{trace} is shorter than the one of the original \ac{trace}.
+\Cref{tab:summarizing-example-metrics-overview-access-distance} shows the comparison of the access distance metric. The differences between identity \ac{trace} and compacted \ac{trace} are minimal. The reason is that there is only one difference, the liveness interval of variable $D$ of the identity \ac{trace} is merged into variable $B$ of the compacted \ac{trace}. For the calculation this means that there is one sample more in the list of the compact \ac{trace}, of value $2$ namely. All other sample are identical to those the identity \ac{trace}. The difference between identity \ac{trace} and single assignment \ac{trace} are a bit more significant. The reason in this case is that the access distance of the single assignment \ac{trace} is reduced to pure liveness intervals. In this case the list of sample for the single assignment \ac{trace} is shorter than the one of the identity \ac{trace}.
 
 \begin{table}[!ht]
   \centering
@@ -580,7 +586,7 @@ By transforming a \ac{trace} into another one the total number of accesses never
     \multirow{2}{*}{Trace} & \multirow{2}{*}{Min.} & \multirow{2}{*}{Max.} & \multirow{2}{*}{Avg.} & \multicolumn{5}{c}{Percentile} \tabularnewline
     & & & & 5\% & 25\% & 50\% & 75\% & 95\% \tabularnewline
     \hline
-    Original          & 0.00 & 6.00 & 2.60 & 0.45 & 2.00 & 2.00 & 3.00 & 5.55 \\
+    Identity          & 0.00 & 6.00 & 2.60 & 0.45 & 2.00 & 2.00 & 3.00 & 5.55 \\
     Single Assignment & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.67 \\
     Compact           & 0.00 & 6.00 & 2.55 & 0.50 & 2.00 & 2.00 & 3.00 & 5.50 \\
     \hline
@@ -589,8 +595,8 @@ By transforming a \ac{trace} into another one the total number of accesses never
   \label{tab:summarizing-example-metrics-overview-access-distance}
 \end{table}
 
-\subsubsection{Concurrently Live}
-The results for concurrently live metric are presented by \Cref{tab:summarizing-example-metrics-overview-concurrently-live}. Unexpectedly, the results for all three \ac{trace}s are identical. Since the liveness intervals are potentially reassigned to another variable, but never changed in terms of length, beginning, and ending this is not surprising.
+\subsubsection{Overlapping Liveness}
+The results for overlapping liveness metric are presented by \Cref{tab:summarizing-example-metrics-overview-concurrently-live}. Unexpectedly, the results for all three \ac{trace}s are identical. Since the liveness intervals are potentially reassigned to another variable, but never changed in terms of length, beginning, and ending this is not surprising.
 
 \begin{table}[!ht]
   \centering
@@ -599,12 +605,12 @@ The results for concurrently live metric are presented by \Cref{tab:summarizing-
     \multirow{2}{*}{Trace} & \multirow{2}{*}{Min.} & \multirow{2}{*}{Max.} & \multirow{2}{*}{Avg.} & \multicolumn{5}{c}{Percentile} \tabularnewline
     & & & & 5\% & 25\% & 50\% & 75\% & 95\% \tabularnewline
     \hline
-    Original          & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
+    Identity          & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
     Single Assignment & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
     Compact           & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
     \hline
   \end{tabular}
-  \caption{Compare the \emph{concurrently live} metric of all three different \ac{trace}s.}
+  \caption{Compare the \emph{overlapping liveness} metric of all three different \ac{trace}s.}
   \label{tab:summarizing-example-metrics-overview-concurrently-live}
 \end{table}
 
@@ -618,7 +624,7 @@ The results for the liveness interval length metric does not show any difference
     \multirow{2}{*}{Trace} & \multirow{2}{*}{Min.} & \multirow{2}{*}{Max.} & \multirow{2}{*}{Avg.} & \multicolumn{5}{c}{Percentile} \tabularnewline
     & & & & 5\% & 25\% & 50\% & 75\% & 95\% \tabularnewline
     \hline
-    Original          & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
+    Identity          & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     Single Assignment & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     Compact           & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     \hline
@@ -646,19 +652,64 @@ Given a \ac{trace} $T$ of load and store instructions find metrics that characte
 
 This chapter explains the setup for the experiments presented by \Cref{cha:experimetns}. \Cref{cha:theoretical-foundations} explains the theoretical background for the tool chain applied to observe the aimed information. In general there are two major aspects we are interested in, (1) the performance of a \ac{trace} and (2) the metrics of a \ac{trace} which characterize its performance.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Workflow
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Workflow}
-We implemented a multistate offline approach to observe all the information. In this context \emph{offline} indicates that there are analyzing steps required before executing the \ac{trace}. More concrete this is about \emph{Preparation}, and \emph{Transformation}.
+
+We implemented a multistate offline approach to observe all the information as illustrated by \Cref{fig:workflow}. In this context \emph{offline} indicates that there are analyzing steps required before executing the \ac{trace}. More concrete this is about \emph{Preparation}, and \emph{Transformation \& Analysis}.
 
 \begin{description}
-  \item[Compilation] It is required to generate a binary of a benchmark. The benchmarks used are compiled with GCC 4.8.5 on Ubuntu 16.04 for AMD Opteron\texttrademark Processor 6376 with x86\_64 Architecture.
-  \item[Preparation] Next is to obtain a \ac{trace} of load and store instruction on addresses. We use the Valgrind\cite{Valgrind} tool called \emph{Lackey} obtain all memory accesses of an executable. This represents the \ac{trace} of the benchmark which will be transformed.
-  \item[Transformation \& Analysis] After the \ac{trace} has been obtained two steps are handled simultaneously, (1) transforming the \ac{trace} from an address-based \ac{trace} to a variable-based \ac{trace} and (2) observing the metrics explained in \Cref{sec:metrics}.
-  \item[Execution] Finally the transformed \ac{trace} can be executed to figure out its performance. This procedure requires to apply a cache model. In this work there are several cache models available which are presented by \Cref{sec:cache-models}. During execution the memory accesses are counted which are finally used to calculate the performance.
+  \item[Compilation] It is required to generate a binary of a benchmark which should be analyzed. The benchmarks we used are presented by \Cref{sec:benchmarks}. For our experiments these benchmarks are compiled with \emph{GCC 4.8.5} on \emph{Ubuntu 16.04} for \emph{AMD Opteron\texttrademark Processor 6376} with \emph{x86\_64 Architecture}.
+
+  \item[Preparation] Next is to obtain a \ac{trace} of load and store instruction on addresses. We use the Valgrind\cite{Valgrind} tool called \emph{Lackey} to obtain all the memory accesses of an x86\_64 executable. This represents the \ac{trace} of the benchmark which will be analyzed and transformed later on.
+
+  \item[Analysis] After the \ac{trace} has been obtained and before it is executed there is an analyzing step to observing the metrics explained in \Cref{sec:metrics}. This informations are partly used by some of the cache models presented by \Cref{sec:cache-models}.
+
+  \item[Execution \& Transformation] Finally the \ac{trace} can be executed to figure out its performance. During execution the \ac{trace} is transformed. An allocator is used to proceed the transformation into a single assignment \ac{trace}, or a compact \ac{trace}, or an identity \ac{trace}. This procedure requires to apply a cache model. In this work there are several cache models available which are presented by \Cref{sec:cache-models}. During execution the memory accesses are counted which are finally used to calculate the performance.
 \end{description}
 
-\section{Preparation: Valgrind} % Valgrind
+\begin{figure}[!ht]
+  \centering
+  \input{figs/tikz/workflow}
+  \caption{Workflow}
+  \label{fig:workflow}
+\end{figure}
 
-\section{Compilation: Benchmarks}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Allocators
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Allocators}
+\label{sec:allocators}
+
+This section presents the implementation of the trace transformation. In general for every trace there is a transformation required to replace the addresses observed via Valgrind by variables. Even for analyzing the identity \ac{trace} this transformation is necessary. The actual transformation is done during the execution phase by an \emph{allocator}. Each store instruction is interpreted like a \texttt{malloc} in C. Hence, each store instruction forces the allocator to return an variable to operate on. This is the point in time where an address is replaced by a variable.  It is up to the used allocator if a new variable is returned or a variable is reused. This architecture is the reason why also for the execution the identity \ac{trace} a transformation is applied. In our system there are three types of allocators: the \emph{Identity Allocator}, the \emph{Single Assignment Allocator} and the \emph{Compact Allocator}.
+
+\subsection{Identity Allocator}\label{ssec:allocator-original}
+
+The identity allocator is used to measure the performance of a programs \ac{trace} with any chances. This allocator produces the \emph{identity \ac{trace}} as explained by \Cref{sec:trace-transformation}. The identity \ac{trace} is important to figure out which one of the other transformations shows an improvement and which make performance even worse. The implementation of the identity allocator is as simple as it simply used the addresses of a \ac{trace} as variables.
+
+\subsection{Single Assignment Allocator}\label{ssec:allocator-single-assignment}
+
+The single assignment allocator is used to illustrate the performance of never reusing any address at all. Which can be interpreted as compacting allocator with a compaction ration of 0 percentage. Which means there is no compaction. It is implemented by a bump pointer allocator assuming endless memory. Each time there is a store instruction the bump pointer is increased and the new variable is returned. The bump pointer is never decreased.
+
+\subsection{Compacting Allocator}\label{ssec:allocator-compact}
+
+The compacting allocators are used to illustrate the advantages and disadvantages of compaction. Compaction is achieved by using a free list. If the free list is empty the bump pointer is increased an the new variable is returned. Otherwise a variable of the free list is taken. The variable is removed from the list and return for usage. This work presents three different implementation of the compact allocator. These differ in the semantics of the free list, there is one implementation with \emph{stack} semantic, one with \emph{queue} semantic, and one with \emph{set} semantic. The stack semantic is equivalent with picking the most recently freed variable. In contract to the stack semantic there is the queue semantics which represents pick the least recently freed variable. And finally the set semantic represents picking a random variable of the freed ones.
+
+\section{Cache Models}\label{sec:cache-models}
+\subsection{Belady Cache}\label{ssec:cache-belady}
+\subsection{Belady Cache with Liveness Information}\label{ssec:cache-belady-liveness}
+\subsection{Least Recently Used Cache}\label{ssec:cache-lru}
+\subsection{Least Recently Used Cache with Liveness Information}\label{ssec:cache-lru-liveness}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Benchmarks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Benchmarks}\label{sec:benchmarks}
 
 Our experiments are build on two benchmark suites the \emph{SPEC 2006 Benchmarks}\cite{henning2006spec} and \emph{Octane Benchmarks}\cite{v8benchmarks}. From both benchmark suites only a subset of the available benchmarks are used which are are explained below.
 
@@ -776,27 +827,6 @@ This section describes the subset of benchmarks of the Octane benchmark suite \c
 \item[Secondary focus:] OO-style programming
 \end{description}
 \end{quote}
-
-\section{Transformation}
-
-\section{Execution: Allocators}
-
-\subsection{Original Allocator}\label{ssec:allocator-original}
-\subsection{Single Assignment Allocator}\label{ssec:allocator-single-assignment}
-\subsection{Compacting Allocator}\label{ssec:allocator-compact}
-\subsubsection{Compacting Allocator with Stack Semantic Free List}
-\label{sssec:allocator-compact-stack}
-\subsubsection{Compacting Allocator with Queue Semantic Free List}
-\label{sssec:allocator-compact-queue}
-\subsubsection{Compacting Allocator with Set Semantic Free List}
-\label{sssec:allocator-compact-set}
-\section{Cache Models}\label{sec:cache-models}
-\subsection{Belady Cache}\label{ssec:cache-belady}
-\subsection{Belady Cache with Liveness Information}\label{ssec:cache-belady-liveness}
-\subsection{Least Recently Used Cache}\label{ssec:cache-lru}
-\subsection{Least Recently Used Cache with Liveness Information}\label{ssec:cache-lru-liveness}
-
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1384,7 +1414,7 @@ This report compares several implementations of compacting allocators.
 
 We compare the following allocators.
 \begin{enumerate}
-  \item \textbf{Identity} Addresses are unchanged from the original trace.
+  \item \textbf{Identity} Addresses are unchanged from the identity \ac{trace}.
   \item \textbf{SSA} Addresses are not reused.
   \item \textbf{CompactStack} Bump pointer allocator with a free list with stack semantics. Freed addresses are appended at the end and popped from the end on allocation.
   \item \textbf{CompactQueue} Bump pointer allocator with a free list with queue semantics. Freed addresses are appended at the end and taken from the beginning on allocation.

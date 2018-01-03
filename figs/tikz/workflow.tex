@@ -1,0 +1,61 @@
+\begin{tikzpicture}[every text node part/.style={align=center}]
+%
+% text of boxes
+%
+% benchmark
+\newcommand{\bmkLabel}{benchmark (C/C++ code)}
+\newcommand{\bmkContent}{\dots \\ \texttt{s = s + 1} \\ \dots}
+% compilation
+\newcommand{\comLabel}{x86\_64 binary}
+\newcommand{\comContentAssembly}{%
+    \\ \dots \\\texttt{movl -12(\%rbp), \%eax} \\ \texttt{addl \%eax, -16(\%rbp)} \\ \dots \\}
+\newcommand{\comContentBinary}{\\ \dots \\ \texttt{010101010101} \\ \dots \\}
+% memory access trace
+\newcommand{\matLabel}{memory access trace}
+\newcommand{\matContent}{%
+  \dots \\ \texttt{load \&s} \\ \texttt{load \&x} \\ \texttt{store \&s} \\ \dots}
+% trace transformation
+\newcommand{\trtLabel}{transformed trace}
+\newcommand{\trtContent}{\dots \\ \texttt{load A} \\ \texttt{load B} \\ \texttt{store A} \\ \dots}
+%
+% style
+%
+\tikzstyle{innernode}=[minimum width=4.5cm, node distance=0.25cm]
+\tikzstyle{firstinnernode}=[minimum width=4.5cm, node distance=1.5cm]
+\tikzstyle{outernode}=[minimum width=5.5cm]
+%
+% bmk
+%
+\node (bmk label)   [innernode]                                           {\bmkLabel};
+\node (bmk content) [innernode, below=of bmk label]                       {\bmkContent};
+\node (bmk)         [stdnode, outernode, fit={(bmk label) (bmk content)}] {};
+%
+% compilcation
+%
+\node (com label) [firstinnernode,     below=of bmk content.south]            {\comLabel};
+\node (com ass)   [stdnode, innernode, below=of com label]                    {\comContentAssembly};
+\node (com bin)   [stdnode, innernode, below=of com ass.south]                {\comContentBinary};
+\node (com)       [stdnode, outernode, fit={(com label) (com ass) (com bin)}] {};
+%
+% memory access trace
+%
+\node (mat label)   [firstinnernode, below=of com bin.south]              {\matLabel};
+\node (mat content) [innernode,      below=of mat label]                  {\matContent};
+\node (mat)         [stdnode, outernode, fit={(mat label) (mat content)}] {};
+%
+% transformed trace
+%
+\node (trt label)   [firstinnernode, below=of mat content.south]          {\trtLabel};
+\node (trt content) [innernode,      below=of trt label]                  {\trtContent};
+\node (trt)         [stdnode, outernode, fit={(trt label) (trt content)}] {};
+
+% % arrows
+\draw [arrow, label] (com ass) -- (com bin);
+\draw [arrow] (bmk) -- (com);
+\draw [arrow] (com) -- (mat);
+\draw [arrow] (mat) -- (trt);
+
+\node [below=of bmk.south, yshift=0.7cm, xshift=1.5cm] {compilation};
+\node [below=of com.south, yshift=0.7cm, xshift=1.5cm] {preparation};
+\node [below=of mat.south, yshift=0.9cm, xshift=1.5cm] {execution \& \\ transformation};
+\end{tikzpicture}
