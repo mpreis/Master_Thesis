@@ -111,7 +111,7 @@ Further, the main memory is structured in equally sized chunks of memory, e.g., 
 A \emph{cache} is a small, high-speed memory which temporarily holds data of the addresses used by the currently processed program. The concept of caches has been introduced by Smith in his work \cite{smith1982cache}.
 Caches are based on two major observation. \emph{Temporal locality}, if data is accessed it is likely that the same data is accessed again in the near future. \emph{Spatial locality}, if data is accessed it is likely that other data near by is also accessed in the near future. Speaking about \emph{accessing an address} is equivalent with \emph{accessing data stored at an address in the main memory}. Same for cached addresses.
 For the \ac{CPU} a cache is invisible. Independent if there is a cache or not the \ac{CPU} always just wants to access a certain address. If there is cache present it simply takes less time to load the value of an address into the \ac{CPU}s register. This is because caches are high-speed memory units.
-A \emph{cache miss} occurs whenever the CPU wants to access an address which is not currently in the cache. Such a situation requires to load the data of the requested address from main memory into the cache. Before the value stored at this address is loaded into one of the registers. Such an operation is expensive as explained in \Cref{sec:performance}. If the requested address is already in the cache it is not required to access the main memory, this case is called a \emph{cache hit}. Since caches are small memories they are limited in the number of addresses which could be temporarily stored. In case the cache is full and a cache miss occurs it is required to make some space to load the requested address. The so-called \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory to get space. There are many different algorithms trying to make a good chose on the address to evict, e.g., \ac{LRU}. For more details see \Cref{sec:cache-models}
+A \emph{cache miss} occurs whenever the CPU wants to access an address which is not currently in the cache. Such a situation requires to load the data of the requested address from main memory into the cache. Before the value stored at this address is loaded into one of the registers. Such an operation is expensive as explained in \Cref{sec:performance}. If the requested address is already in the cache it is not required to access the main memory, this case is called a \emph{cache hit}. Since caches are small memories they are limited in the number of addresses which could be temporarily stored. In case the cache is full and a cache miss occurs it is required to make some space to load the requested address. The so-called \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory to get space. There are many different algorithms trying to make a good chose on the address to evict, e.g., \ac{LRU}. For more details see \Cref{sec:caches}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Memory Access Trace
@@ -292,13 +292,13 @@ This section presents how the performance of a trace is computed. The performanc
 
 In our system \emph{performance} is measured in \ac{CPA}. Indeed performance is not directly measured. As \Cref{equ:performance-cpa} illustrates it is computed according to the measured number of memory accesses. \ac{CPA} describes the average number of \ac{CPU} cycles per memory access with memory access equivalent to an instruction of the trace.
 
-We proceed as follows, after the \ac{trace} of a program has been generated its performance is analyzed by applying the trace on a simulated cache model and counting the different kinds of memory accesses. At the end of the execution the performance is computed as illustrated by \Cref{equ:performance-cpa}.
+We proceed as follows, after the \ac{trace} of a program has been generated its performance is analyzed by applying the trace on a simulated cache and counting the different kinds of memory accesses. At the end of the execution the performance is computed as illustrated by \Cref{equ:performance-cpa}.
 
 \begin{equation}\label{equ:performance-cpa}
 \text{CPA}(T,C) = \frac{\text{Sum of cycles}(T, C)}{\text{Sum of accesses}(T)}
 \end{equation}
 
-$T$ represents the \ac{trace} of the analyzed program. $C$ represents the applied cache model, the different cache models are explained in \Cref{sec:cache-models}.
+$T$ represents the \ac{trace} of the analyzed program. $C$ represents the applied cache, the different caches are explained in \Cref{sec:caches}.
 
 \emph{sum of cycles(T, C)} represents the sum of all memory accesses each weight according to its costs. The costs for a memory access the depends on the latency of the memory unit accessed. This is why cache accesses are cheaper than main memory accesses. The \emph{sum of accesses(T)} represents the total number of load and store instructions executed by the \ac{trace} $T$.
 
@@ -425,12 +425,12 @@ This section presents two different kinds of \ac{trace} transformations, single 
 
 \section{Summarizing Example}
 
-Lets take a look at the performance of the three \ac{trace}s from above. Assume a \ac{LRU} cache with 2 cache lines, each cache line fits exactly one variable. For details on \ac{LRU} caches see \Cref{ssec:cache-lru}. As a breath description of the applied cache model imaging as long as there is a free cache line within the cache this one is used. In case of an eviction, there is no more free space in the cache, the \emph{least recently used} cache line is evicted to make space for a new one.
+Lets take a look at the performance of the three \ac{trace}s from above. Assume a \ac{LRU} cache with 2 cache lines, each cache line fits exactly one variable. For details on \ac{LRU} caches see \Cref{ssec:cache-lru}. As a breath description of the applied cache imaging as long as there is a free cache line within the cache this one is used. In case of an eviction, all cache lines are utilized, so there is no more free space. To make space the \emph{least recently used} cache line is evicted.
 
 If a variable is accessed which is already in the cache a cheap cache access can be executed, either a load or store instruction. Otherwise, a much more expensive main memory instruction has to be executed. The costs of these instructions are presented by \Cref{tab:memory-access-cost}. For the following performance computation we assume a simple optimization. The first store instruction on a variable can be executed directly into the cache. Furthermore, assume that in case of an eviction the data of a variable is stored in main memory. Independent, if the variable is still alive or already dead.
 
 \subsection{Identity Trace}
-\Cref{fig:trace-transformation-original-marked} shows the annotated liveness intervals of the identity \ac{trace} of \Cref{fig:trace-transformation-original}. According to the assumptions from above every beginning of a liveness interval is annotated with a cache store instruction. Since the assumed cache model fits exactly two variables the first eviction occurs when writing variable $C$ at instruction 3. According to the eviction policy of the applied \ac{LRU} cache variable $A$ is evicted. The memory store of variable $A$ is annotated with a filled red circle. Unfortunately, variable $A$ is accessed at the next instruction. For this reason it has to be loaded from main memory again, but before $B$ is stored in main memory to make space in the cache for $A$. The same procedure repeats for the variables $B$ and $C$ at instruction number 5. At instruction number 6 we are able to load a variable directly from cache for the first time. Nevertheless, there are two more eviction required to finish the execution of this trace. One at instruction 7, variable $B$ is evicted to make space for variable $D$ which is accessed for the first time. A interesting aspect at this instruction is that the liveness interval of variable $B$ end two instruction before, so $B$ is dead. Furthermore, $B$ is not needed anymore for the following instructions. In general this information is not available, this is why there is a memory store annotated. But if a systems knows about the liveness intervals of its variables it might decide to overwrite the value of $B$ by the value of $D$ and avoid the memory store. The last eviction appears at instruction 9 when variable $C$ is accessed for the last time. Variable $A$ is accessed several time without any interaction with the main memory, because each time it is access it is in the cache.
+\Cref{fig:trace-transformation-original-marked} shows the annotated liveness intervals of the identity \ac{trace} of \Cref{fig:trace-transformation-original}. According to the assumptions from above every beginning of a liveness interval is annotated with a cache store instruction. Since the assumed cache fits exactly two variables the first eviction occurs when writing variable $C$ at instruction 3. According to the eviction policy of the applied \ac{LRU} cache variable $A$ is evicted. The memory store of variable $A$ is annotated with a filled red circle. Unfortunately, variable $A$ is accessed at the next instruction. For this reason it has to be loaded from main memory again, but before $B$ is stored in main memory to make space in the cache for $A$. The same procedure repeats for the variables $B$ and $C$ at instruction number 5. At instruction number 6 we are able to load a variable directly from cache for the first time. Nevertheless, there are two more eviction required to finish the execution of this trace. One at instruction 7, variable $B$ is evicted to make space for variable $D$ which is accessed for the first time. A interesting aspect at this instruction is that the liveness interval of variable $B$ end two instruction before, so $B$ is dead. Furthermore, $B$ is not needed anymore for the following instructions. In general this information is not available, this is why there is a memory store annotated. But if a systems knows about the liveness intervals of its variables it might decide to overwrite the value of $B$ by the value of $D$ and avoid the memory store. The last eviction appears at instruction 9 when variable $C$ is accessed for the last time. Variable $A$ is accessed several time without any interaction with the main memory, because each time it is access it is in the cache.
 
 \begin{figure}[!ht]
   \centering
@@ -450,7 +450,7 @@ The metrics of the \ac{trace} illustrated by \Cref{fig:trace-transformation-orig
     \hline
     Accesses                 & 2.00 & 7.00 & 3.25 & 2.00 & 2.00 & 2.00 & 3.25 & 6.25 \\
     Access Distance          & 0.00 & 6.00 & 2.60 & 0.45 & 2.00 & 2.00 & 3.00 & 5.55 \\
-    Overlapping Liveness        & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
+    Overlapping Liveness     & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
     Liveness Interval Length & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     \hline
   \end{tabular}
@@ -485,7 +485,7 @@ As introduces by \Cref{ssec:metric-accesses} the access distance for the \ac{tra
     \hline
     Accesses                 & 1.00 & 2.00 & 1.86 & 1.30 & 2.00 & 2.00 & 2.00 & 2.00 \\
     Access Distance          & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.67 \\
-    Overlapping Liveness        & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
+    Overlapping Liveness.    & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
     Liveness Interval Length & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     \hline
   \end{tabular}
@@ -520,7 +520,7 @@ For the \ac{trace} presented by \Cref{fig:trace-transformation-compact} the list
     \hline
     Accesses                 & 2.00 & 7.00 & 4.33 & 2.20 & 3.00 & 4.00 & 5.50 & 6.70 \\
     Access Distance          & 0.00 & 6.00 & 2.55 & 0.50 & 2.00 & 2.00 & 3.00 & 5.50 \\
-    Overlapping Liveness        & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
+    Overlapping Liveness     & 1.00 & 3.00 & 2.08 & 1.00 & 2.00 & 2.00 & 3.00 & 3.00 \\
     Liveness Interval Length & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     \hline
   \end{tabular}
@@ -538,7 +538,7 @@ The performance of the compact trace presented by \Cref{fig:trace-transformation
 To conclude the summarizing example for each metric and the performance the three \ac{trace}s are compared. This example concludes the Theoretical Foundations illustrating the differences of these \ac{trace}s in terms of execution and performance.
 
 \subsubsection{Performance}
-\Cref{tab:summarizing-example-performance} presents the computed performance for each \ac{trace} applied to a cache model based on \ac{LRU} eviction policy. As the table shows a transformation not always resulting in an improvement. For this example the compacted \ac{trace} yield the best performance.
+\Cref{tab:summarizing-example-performance} presents the computed performance for each \ac{trace} applied to a simulated cache based on \ac{LRU} eviction policy. As the table shows a transformation not always resulting in an improvement. For this example the compacted \ac{trace} yield the best performance.
 
 \begin{table}[!ht]
   \centering
@@ -640,7 +640,7 @@ The results for the liveness interval length metric does not show any difference
 
 \section{Problem Statement}
 \begin{definition}[Problem statement]
-Given a \ac{trace} $T$ of load and store instructions find metrics that characterize the trace performance for a given cache model $C$ and implement an execution engine for computing their quantities.
+Given a \ac{trace} $T$ of load and store instructions find metrics that characterize the trace performance for a given cache $C$ and implement an execution engine for computing their quantities.
 \end{definition}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -665,9 +665,9 @@ We implemented a multistate offline approach to observe all the information as i
 
   \item[Preparation] Next is to obtain a \ac{trace} of load and store instruction on addresses. We use the Valgrind\cite{Valgrind} tool called \emph{Lackey} to obtain all the memory accesses of an x86\_64 executable. This represents the \ac{trace} of the benchmark which will be analyzed and transformed later on.
 
-  \item[Analysis] After the \ac{trace} has been obtained and before it is executed there is an analyzing step to observing the metrics explained in \Cref{sec:metrics}. This informations are partly used by some of the cache models presented by \Cref{sec:cache-models}.
+  \item[Analysis] After the \ac{trace} has been obtained and before it is executed there is an analyzing step to observing the metrics explained in \Cref{sec:metrics}. This informations are partly used by some of the caches presented by \Cref{sec:caches}.
 
-  \item[Execution \& Transformation] Finally the \ac{trace} can be executed to figure out its performance. During execution the \ac{trace} is transformed. An allocator is used to proceed the transformation into a single assignment \ac{trace}, or a compact \ac{trace}, or an identity \ac{trace}. This procedure requires to apply a cache model. In this work there are several cache models available which are presented by \Cref{sec:cache-models}. During execution the memory accesses are counted which are finally used to calculate the performance.
+  \item[Execution \& Transformation] Finally the \ac{trace} can be executed to figure out its performance. During execution the \ac{trace} is transformed. An allocator is used to proceed the transformation into a single assignment \ac{trace}, or a compact \ac{trace}, or an identity \ac{trace}. This procedure requires to apply a cache. In this work there are several caches available which are presented by \Cref{sec:caches}. During execution the memory accesses are counted which are finally used to calculate the performance.
 \end{description}
 
 \begin{figure}[!ht]
@@ -698,10 +698,20 @@ The single assignment allocator is used to illustrate the performance of never r
 
 The compacting allocators are used to illustrate the advantages and disadvantages of compaction. Compaction is achieved by using a free list. If the free list is empty the bump pointer is increased an the new variable is returned. Otherwise a variable of the free list is taken. The variable is removed from the list and return for usage. This work presents three different implementation of the compact allocator. These differ in the semantics of the free list, there is one implementation with \emph{stack} semantic, one with \emph{queue} semantic, and one with \emph{set} semantic. The stack semantic is equivalent with picking the most recently freed variable. In contract to the stack semantic there is the queue semantics which represents pick the least recently freed variable. And finally the set semantic represents picking a random variable of the freed ones.
 
-\section{Cache Models}\label{sec:cache-models}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Caches
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Caches}\label{sec:caches}
+
+
+
 \subsection{Belady Cache}\label{ssec:cache-belady}
+
 \subsection{Belady Cache with Liveness Information}\label{ssec:cache-belady-liveness}
+
 \subsection{Least Recently Used Cache}\label{ssec:cache-lru}
+
 \subsection{Least Recently Used Cache with Liveness Information}\label{ssec:cache-lru-liveness}
 
 
