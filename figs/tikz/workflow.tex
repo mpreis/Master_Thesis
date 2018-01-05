@@ -45,7 +45,7 @@
 %
 % transformed trace
 %
-\node (trt label)   [firstinnernode, below=of mat content.south]          {\trtLabel};
+\node (trt label)   [node distance=2.5cm, below=of mat content.south]          {\trtLabel};
 \node (trt content) [innernode,      below=of trt label]                  {\trtContent};
 \node (trt)         [stdnode, outernode, fit={(trt label) (trt content)}] {};
 
@@ -57,5 +57,5 @@
 
 \node [below=of bmk.south, yshift=0.7cm, xshift=1.5cm] {compilation};
 \node [below=of com.south, yshift=0.7cm, xshift=1.5cm] {preparation};
-\node [below=of mat.south, yshift=0.9cm, xshift=1.5cm] {execution \& \\ transformation};
+\node [below=of mat.south, yshift=0.9cm, xshift=1.5cm] {analysis \\ ~ \\ execution \& \\ transformation};
 \end{tikzpicture}

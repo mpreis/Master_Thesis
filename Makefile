@@ -15,7 +15,16 @@ compile: $(CLS).cls $(DOC).tex
 
 bib: $(DOC).aux
 	bibtex $(DOC).aux
+	bibtex $(DOC).aux
 
 clean:
-	rm -f *.aux *.bbl *.blg *.log *.loa *.lof *.lot *.out *.pdf *.toc *.xdy *.gnuplot
+	rm -f *.aux *.bbl *.blg *.log *.loa *.lof *.lot *.out *.pdf *.toc *.xdy *.idx *.gnuplot
 	rm -f $(FIGS)/*.pdf
+
+dummy:
+	pdflatex $(DOC)
+	bibtex $(DOC)
+	bibtex $(DOC)
+	bibtex $(DOC)
+	pdflatex $(DOC)
+	pdflatex $(DOC)

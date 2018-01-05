@@ -1,0 +1,27 @@
+\begin{tikzpicture}
+  \node [block                               ] (init)       {access variable};
+  \node [decision,        below=of init      ] (cached)     {cached?};
+  \node [block,           below=of cached    ] (cache-miss) {cache miss};
+  \node [block,           right=of cache-miss] (cache-hit)  {cache hit};
+  \node [decision,        below=of cache-miss] (cache-full) {cache-full?};
+  \node [block,           below=of cache-full] (eviction)   {eviction};
+  \node [block-mem-store, below=of eviction  ] (store)      {memory store};
+  \node [block-mem-load,  below=of store     ] (load)       {memory load};
+  \node [block,           below=of load      ] (access)     {execute access};
+
+  \node [corner,          left=of eviction   ] (c1) {};
+  \node [corner,          left=of load       ] (c2) {};
+
+  \path [line] (init)       -- (cached);
+  \path [line] (cache-miss) -- (cache-full);
+  \path [line] (cache-hit)  |- (access);
+  \path [line] (eviction)   -- (store);
+  \path [line] (store)      -- (load);
+  \path [line] (load)       -- (access);
+
+  \path [line] (cached)     -| node [below, near start] {yes} (cache-hit);
+  \path [line] (cached)     -- node [right, near start] {no}  (cache-miss);
+
+  \path [line] (cache-full) -- node [left,  near start] {yes} (eviction);
+  \path [line] (cache-full) -| node [below, near start] {no}  (c1.south) -- (c2.north) |- (load);
+\end{tikzpicture}

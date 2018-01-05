@@ -1,19 +1,24 @@
-\tikzset{%
-  block node/.style={rectangle,draw,align=center, minimum width=1.5cm, minimum height=1.0cm},
-  cpu node/.style={rectangle,draw,align=center, minimum width=1.5cm, minimum height=1.0cm, fill=black!30},
-  cache node/.style={rectangle,draw,align=center, minimum width=1.5cm, minimum height=1.0cm, fill=green!30},
-}
-
 \definecolor{red}{RGB}{221,17,68}
 \definecolor{orange}{RGB}{239,133,53}
 \definecolor{yellow}{RGB}{255,202,40}
 \definecolor{green}{RGB}{124,168,43}
 
-\tikzstyle{cache-load}=[draw=green, line width=0.5mm, rectangle, rounded corners=0.5mm, minimum size=4mm, scale=0.7]
-\tikzstyle{cache-store}=[fill=yellow, draw=yellow, line width=0.5mm, rectangle, rounded corners=0.5mm, minimum size=4mm, scale=0.7]
-\tikzstyle{memory-load}=[draw=orange, line width=0.5mm, circle, scale=0.7]
-\tikzstyle{memory-store}=[fill=red,draw=red, line width=0.5mm, circle, scale=0.7]
+\tikzstyle{cache-load}   = [draw=green, line width=0.5mm, rectangle, rounded corners=0.5mm,
+                            minimum size=4mm, scale=0.7]
+\tikzstyle{cache-store}  = [fill=yellow, draw=yellow, line width=0.5mm, rectangle,
+                            rounded corners=0.5mm, minimum size=4mm, scale=0.7]
+\tikzstyle{memory-load}  = [draw=orange, line width=0.5mm, circle, scale=0.7]
+\tikzstyle{memory-store} = [fill=red,draw=red, line width=0.5mm, circle, scale=0.7]
 
+\tikzstyle{stdnode}      = [rectangle, draw, rounded corners=0.5mm, thick]
+\tikzstyle{arrow}        = [thick,-stealth]
+\tikzstyle{line}         = [draw, thick, -latex']
 
-\tikzstyle{stdnode}=[rectangle, draw=black, rounded corners=0.5mm, thick]
-\tikzstyle{arrow}=[thick,-stealth]
+\tikzstyle{decision}        = [diamond, draw, thick, text width=4.5em, text badly centered, inner sep=0pt]
+\tikzstyle{block}           = [stdnode, text width=5em, text centered, rounded corners, minimum height=4em]
+\tikzstyle{block-mem-load}  = [stdnode, draw=orange, text width=5em, text centered, rounded corners, minimum height=4em]
+\tikzstyle{block-mem-store} = [stdnode, draw=red, text width=5em, text centered, rounded corners, minimum height=4em]
+\tikzstyle{block}           = [stdnode, text width=5em, text centered, rounded corners, minimum height=4em]
+\tikzstyle{inline-corner}   = [circle, fill, black, minimum height=4em, minimum height=0.25cm]
+\tikzstyle{corner}          = [stdnode, draw=black!0]
+\tikzstyle{done}            = [circle, fill=black, minimum height=0.75cm]

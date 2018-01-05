@@ -15,10 +15,10 @@
 \usepackage[nameinlink]{cleveref}
 \usepackage{listings}
 \usepackage{multirow}
+\usepackage[numbers]{natbib}
 \usepackage{tikz}
-\usetikzlibrary{arrows, positioning, fit}
+\usetikzlibrary{arrows, fit, positioning, shapes}
 \input{figs/tikz-settings}
-
 
 \hypersetup{
     colorlinks=false,
@@ -55,7 +55,6 @@ Towards cache-optimal address allocation:%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \chapter{Introduction}\label{cha:introduction}
 \torevise\\
 It is well know that there is a performance gap between CPU speed and memory access time. Obviously, accessing data stored on memory is a bottleneck by executing programs. Form an abstract point of view a program consists of a sequence of load and store operation. In between those operations the CPU executes some computations. The sequence of load and store operations is called a \emph{trace}. To improve the access time on memory \emph{caches} has been introduced.
@@ -104,7 +103,7 @@ The \emph{\ac{CPU}} is the core computational unit of computer systems. The purp
 For the purpose of this work only instructions reading or writing data are taken into account. To read data a so-called \emph{load} instruction is required. And to write data a so-call \emph{store} instructions is required. These two instructions access the data of a program stored at the main memory. E.g., for the purpose of computations which are done by the \ac{CPU} it might be necessary to save a result for later computations. Such data can be write to main memory by executing a store instruction. However, there are many more instructions available on modern computer systems, e.g., arithmetical operations.
 
 \subsection{Main Memory}
-The \emph{main memory} is a storage containing all data required to execute a program. Sometime the main memory is also called \ac{RAM}. In general the CPU has to load and store data from the main memory to process a program. Furthermore, even the program itself is stored at the main memory while its execution. Each instruction of a program has to be loaded before the \ac{CPU} is able to execute it. In case of an load instruction the \ac{CPU} first loads the instruction itself. Second the CPU interprets the instructions and finds out that is has to execute a load of data. And third the \ac{CPU} loads the actually required data into some of the available registers.
+The \emph{main memory} is a storage containing all data required to execute a program. Sometime the main memory is also called \emph{\ac{RAM}}. In general the CPU has to load and store data from the main memory to process a program. Furthermore, even the program itself is stored at the main memory while its execution. Each instruction of a program has to be loaded before the \ac{CPU} is able to execute it. In case of an load instruction the \ac{CPU} first loads the instruction itself. Second the CPU interprets the instructions and finds out that is has to execute a load of data. And third the \ac{CPU} loads the actually required data into some of the available registers.
 Further, the main memory is structured in equally sized chunks of memory, e.g., 8 byte which is called represents the size of something called a \emph{word}. Each such memory chunk can be accesses by the \ac{CPU} via an unique identifier, its \emph{physical address} or in short just \emph{address}. If the CPU needs data for, e.g., a computation data has to be loaded via the load instruction \texttt{load \&address}.
 
 \subsection{Cache}
@@ -633,12 +632,16 @@ The results for the liveness interval length metric does not show any difference
   \label{tab:summarizing-example-metrics-overview-liveness-interval-length}
 \end{table}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem Statement
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Problem Statement}
+\chapter{Problem Statement}\label{cha:problems-tatement}
 \begin{definition}[Problem statement]
 Given a \ac{trace} $T$ of load and store instructions find metrics that characterize the trace performance for a given cache $C$ and implement an execution engine for computing their quantities.
 \end{definition}
@@ -704,16 +707,70 @@ The compacting allocators are used to illustrate the advantages and disadvantage
 
 \section{Caches}\label{sec:caches}
 
+This section presents our implementations of caches. As explained by \Cref{sec:hardware-model} within the environment of computer where \ac{CPU} communicates with the main memory a cache is a hardware component. For the purpose of this work all caches simulated are implemented in software. This allows us to analyze multiple different caches. Obviously, we cannot measure real time for the execution of \ac{trace} because every component of our environment is implement in software. This is the reason why in \Cref{sec:performance} the performance is defined by the number of different memory accesses instead of using the total execution time of a benchmark as usually.
 
+Nevertheless, our cache implementations offer the most basic properties as configurable parameters.
+For all implementations the \emph{cache size} and the \emph{cache line size} is configurable.
+The \ac{LRU} caches offer several more configurable parameters.
+
+\begin{remark}
+Note that our cache implementations operate on variables rather than on addresses. This is because the applied allocator transforms the \ac{trace} of addresses into a \ac{trace} of variables.
+\end{remark}
+
+In our environment four caches are available. There two different eviction policies implemented. One using the classical \ac{LRU} algorithm to decide which item of the cache will be evicted. And the other one using an algorithm proposed by \Citeauthor{belady1966study} in his work \cite{belady1966study} from \citeyear{belady1966study} to decide on the item which will be evicted.
+
+For both algorithms used as eviction policy there is another implementation which has full information about the liveness intervals of all variables of a \ac{trace}. This enables further optimizations as explained below.
 
 \subsection{Belady Cache}\label{ssec:cache-belady}
+\todo{rewrite}
 
-\subsection{Belady Cache with Liveness Information}\label{ssec:cache-belady-liveness}
+This implementation of a cache is based on the algorithm proposed in \cite{belady1966study}. The basic idea behind \citeauthor{belady1966study}s algorithm is to evict the item within the cache which is not need for the longest time. More precise if there is a dead item in the cache evict it otherwise evict the item which is accessed again furthest in future. In praxis this algorithm is hard to apply, because it would require to know the future which is not the case in real systems. Nevertheless, analyzing an implementation of this approach is quite interesting, because the algorithm has been proofed to be the optimal eviction policy (\cite{mattson1970evaluation}, \cite{van2007short}, \cite{vogler2008another}, \cite{lee2016simple}). Even if this algorithm is hardly applicable in reality our environment offers all requirements. This is one advantage of the offline analysis of a \ac{trace}. All required information for the \citeauthor{belady1966study} algorithm is already available before the execution begins.
 
 \subsection{Least Recently Used Cache}\label{ssec:cache-lru}
 
-\subsection{Least Recently Used Cache with Liveness Information}\label{ssec:cache-lru-liveness}
+This implementation of a cache is based on the \ac{LRU} algorithm, which is part of the literature since years (\cite{johnson1994x3}, \cite{drepper2007every}, \cite{patterson2011computer}, \cite{jacob2010memory}, and many more). Different than \citeauthor{belady1966study}s algorithm the \ac{LRU} approach is widely used in praxis. Instead of caring about future access which are unknown in realty this approach takes a look at the pasted accesses. For this reason it is required to keep track of the accesses on the currently cache items. A \ac{LRU} cache decides based on its track information and always decided on the item in the cache which has not been accessed for the longest time. The is also the source of its name, \emph{least recently used}. The idea behind is that is an item has not been accessed for longer there is a possibility that it is not need anymore but still is in the cache. For the purpose of this work the \ac{LRU} cache implementation which comes with Valgrind is used.
 
+\subsection{Cache Proceeding}
+\subsubsection{Without Liveness Information}\label{ssec:cache-behavior}
+
+The proceeding of a cache without liveness information in general is identical for the \ac{LRU} implantation and the \Citeauthor{belady1966study} implementation. The only difference is in the chose of the eviction candidate.
+
+\begin{figure}[!ht]
+  \centering
+  \input{figs/tikz/cache-behavior}
+  \caption{Cache behavior without liveness information}
+  \label{fig:cache-behavior}
+\end{figure}
+
+\Cref{fig:cache-behavior} illustrates proceeding of the caches. Everything starts with the access on a variable. Right now it does not matter if the access is a load or a store instruction. At first it is checked if the accessed variable is currently in the cache. In case the variable is cached, this is a cache hit, we are done and the initial access could be executed without any further actions.
+Otherwise, if the accessed variable is not cached it is a cache miss. Such a case requires further action, namely the next step is to control if there is space for at least one more variable in the cache.
+
+If the cache is full it is required to make some space. This is archived by applying the eviction policy to decide on the variable which will be kicked out of the cache. The eviction candidates value has to be saved, for this reason its value is written back to main memory by a store instruction. Then, the accessed variables value can be loaded from main memory and finally the requested access can be executed.
+
+In case that the cache is not full we are able to skip the selection of an eviction candidate and of course it is not required to save its value in main memory, so also the store instruction is not needed. Such a situation allows to immediately load the value of the requested variable. In this case an expensive store instruction on the main memory is saved.
+
+Summarizing, in the worst case it is required to execute two expensive main memory instruction before the actual variable can be accessed. This is not optimal in comparison to the best case which does not require to access the main memory at all. However, as \Cref{fig:cache-behavior} illustrates there is the possibility get rid of at least one of the expensive instructions.
+
+\subsubsection{With Liveness Information}\label{ssec:cache-behavior-liveness}
+
+\Cref{ssec:cache-behavior} shows that there are certain cases in which the number of expensive main memory accesses can be reduced. This sections tries to minimize the number of main memory accesses by using the information about the liveness intervals of a \ac{trace}. Again the \ac{LRU} implementation and the \Citeauthor{belady1966study} implementation differ only by the selection of the eviction candidate.
+
+\begin{figure}[!ht]
+  \centering
+  \scalebox{0.8}{\input{figs/tikz/cache-behavior-liveness}}
+  \caption{Cache behavior with liveness information}
+  \label{fig:cache-behavior-liveness}
+\end{figure}
+
+\Cref{fig:cache-behavior-liveness} illustrates the proceeding for caches with liveness informations. Everything starts with the access on a variable. By now it does not matter which kind of access it is. In case it becomes relevant it will be discussed. As without liveness information the first thing to do is to check if the accessed variable is already in the cache. If this is the case it is a cache hit and we are done. The actual access can be executed directly on the cache.
+Otherwise, if the accessed variable is not in the cache yet, its a cache miss. A cache miss requires further steps to get the accessed variable into the cache.
+
+Next is to check either the cache is full or not. In case there is no more space in the cache for another variable it is necessary to evict one of the cached variables. The eviction candidate is chosen by the eviction policy of the cache, either via \ac{LRU} algorithm or via \Citeauthor{belady1966study}s algorithm. In proceeding a variable access, the selection of the eviction candidate is the only difference which might occur between the two available implementations which use liveness information. Next, we make use of the liveness information by proofing if the eviction candidate is live or dead. If the eviction candidate is still live, this means its liveness interval did not end yet, it is necessary to save the variables value. For this reason a store instruction on main memory is executed to save the eviction candidates value. If the variable chosen for eviction is dead it is not required to save its value, because it is not used anymore in future. This is why the store instruction on main memory can be skipped.
+If the cache is not full yet then the whole eviction procedure, selecting a variable to evict and saving its value if needed, can be skipped.
+
+After all the possible steps and opportunities so far the cache reached a state in which there is at least one free spot available for the accessed variable. Only question remaining is do we have to load the accessed variable from main memory? This is the point in the whole procedure where the type of access on the currently accessed variable matters. In case of a load an main memory load instruction is yield. This is required to load the value written by one of the previous accessed. In case of a store on the currently accessed variable, its previously stored value does not matter any because its overwritten anyway. For this reason the expensive load instruction on main memory can be skipped.
+
+And finally, we are able to execute the actual access on the variable directly on the cache.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Benchmarks
