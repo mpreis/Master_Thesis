@@ -21,6 +21,7 @@
 *.mtc
 *.mtc1
 *.out
+*converted*
 *.synctex.gz
 .example-thesis
 .DS_Store

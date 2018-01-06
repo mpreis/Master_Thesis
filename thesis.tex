@@ -722,7 +722,6 @@ In our environment four caches are available. There two different eviction polic
 For both algorithms used as eviction policy there is another implementation which has full information about the liveness intervals of all variables of a \ac{trace}. This enables further optimizations as explained below.
 
 \subsection{Belady Cache}\label{ssec:cache-belady}
-\todo{rewrite}
 
 This implementation of a cache is based on the algorithm proposed in \cite{belady1966study}. The basic idea behind \citeauthor{belady1966study}s algorithm is to evict the item within the cache which is not need for the longest time. More precise if there is a dead item in the cache evict it otherwise evict the item which is accessed again furthest in future. In praxis this algorithm is hard to apply, because it would require to know the future which is not the case in real systems. Nevertheless, analyzing an implementation of this approach is quite interesting, because the algorithm has been proofed to be the optimal eviction policy (\cite{mattson1970evaluation}, \cite{van2007short}, \cite{vogler2008another}, \cite{lee2016simple}). Even if this algorithm is hardly applicable in reality our environment offers all requirements. This is one advantage of the offline analysis of a \ac{trace}. All required information for the \citeauthor{belady1966study} algorithm is already available before the execution begins.
 
@@ -895,15 +894,199 @@ This section describes the subset of benchmarks of the Octane benchmark suite \c
 \end{description}
 \end{quote}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Experiments}\label{cha:experimetns}
-\section{8 Byte Cache Line Size}
-\section{64 Byte Cache Line Size}
+
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}[c]{lrrrr}
+    \hline
+    Benchmark & Size [MB] & Number of Instructions & Loads [\%] & Stores [\%] \tabularnewline
+    \hline
+    445.gobmk      & 1781.76 &  186740466 & 50.20 & 49.80 \tabularnewline
+    450.soplex     &  196.29 &   20582523 & 27.90 & 72.10 \tabularnewline
+    454.calculix   &  505.71 &   53027458 & 31.93 & 68.07 \tabularnewline
+    462.libquantum &  945.71 &   99165026 & 14.28 & 85.72 \tabularnewline
+    741.omnetpp    & 8069.12 & 8459396786 & 39.40 & 60.60 \tabularnewline
+    483.xalancbmk  & 1269.76 &  133660557 & 25.47 & 74.53 \tabularnewline
+    \hline
+    Richards       &  790.51 &   82890768 & 24.90 & 75.10 \tabularnewline
+    Raytrace       &  591.43 &   62015988 & 35.33 & 64.67 \tabularnewline
+    Deltablue      & 2590.72 &  272165756 & 25.62 & 74.38 \tabularnewline
+    \hline
+  \end{tabular}
+  \caption{Basic benchmark data}
+  \label{tab:basic-benchmark-data}
+\end{table}
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-445-gobmk.eps}
+    \subcaption{Types of memory operations}
+  \end{subfigure}%
+    \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-misses-445-gobmk.eps}
+    \subcaption{Cache misses and cache hits}
+  \end{subfigure}%
+  \caption{\todo{caption}}
+  \label{fig:todo}
+\end{figure}
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-450-soplex.eps}
+    \subcaption{Types of memory operations}
+  \end{subfigure}%
+    \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-misses-450-soplex.eps}
+    \subcaption{Cache misses and cache hits}
+  \end{subfigure}%
+  \caption{\todo{caption}}
+  \label{fig:todo}
+\end{figure}
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-454-calculix.eps}
+    \subcaption{Types of memory operations}
+  \end{subfigure}%
+    \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-misses-454-calculix.eps}
+    \subcaption{Cache misses and cache hits}
+  \end{subfigure}%
+  \caption{\todo{caption}}
+  \label{fig:todo}
+\end{figure}
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-462-libquantum.eps}
+    \subcaption{Types of memory operations}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-misses-462-libquantum.eps}
+    \subcaption{Cache misses and cache hits}
+  \end{subfigure}%
+  \caption{\todo{caption}}
+  \label{fig:todo}
+\end{figure}
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-471-omnetpp.eps}
+    \subcaption{Types of memory operations}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-misses-471-omnetpp.eps}
+    \subcaption{Cache misses and cache hits}
+  \end{subfigure}%
+  \caption{\todo{caption}}
+  \label{fig:todo}
+\end{figure}
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-483-xalancbmk.eps}
+    \subcaption{Types of memory operations}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-misses-483-xalancbmk.eps}
+    \subcaption{Cache misses and cache hits}
+  \end{subfigure}%
+  \caption{\todo{caption}}
+  \label{fig:todo}
+\end{figure}
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-deltablue.eps}
+    \subcaption{Types of memory operations}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-misses-deltablue.eps}
+    \subcaption{Cache misses and cache hits}
+  \end{subfigure}%
+  \caption{\todo{caption}}
+  \label{fig:todo}
+\end{figure}
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-raytrace.eps}
+    \subcaption{Types of memory operations}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-misses-raytrace.eps}
+    \subcaption{Cache misses and cache hits}
+  \end{subfigure}%
+  \caption{\todo{caption}}
+  \label{fig:todo}
+\end{figure}
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-richards.eps}
+    \subcaption{Types of memory operations}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/perf-misses-richards.eps}
+    \subcaption{Cache misses and cache hits}
+  \end{subfigure}%
+  \caption{\todo{caption}}
+  \label{fig:todo}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-445-gobmk.eps}
+    \subcaption{445.gobmk}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-450-soplex.eps}
+    \subcaption{450.soplex}
+  \end{subfigure}%
+  \qquad
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-454-calculix.eps}
+    \subcaption{454.calculix}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-462-libquantum.eps}
+    \subcaption{462.libquantum}
+  \end{subfigure}%
+  \qquad
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-471-omnetpp.eps}
+    \subcaption{462.libquantum}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-483-xalancbmk.eps}
+    \subcaption{483.xalancbmk}
+  \end{subfigure}%
+  \qquad
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-deltablue.eps}
+    \subcaption{Deltablue}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-raytrace.eps}
+    \subcaption{Raytrace}
+  \end{subfigure}%
+  \qquad
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-richards.eps}
+    \subcaption{Richards}
+  \end{subfigure}%
+%
+  \caption{Speedup of all benchmarks for all allocators and all caches.}
+  \label{fig:speedup-overview}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1502,12 +1685,12 @@ Again, the results for the V8 benchmarks Richards, Deltablue, and Raytrace are p
     \hline
     \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{SSA} & \textbf{CompactStack} & \textbf{CompactQueue} & \textbf{CompactRandom} & \textbf{CompactCached} \tabularnewline
     \hline \hline
-    1024  & 19906406 & 27186015 & 14288773 & 27185933 & 14659129 & 13501287 \tabularnewline   
-    2048  & 13348365 & 21797929 &  7037009 & 21797723 &  7436173 &  6334160 \tabularnewline  
-    4096  &  8502161 & 19039748 &  2529214 & 19038965 &  3015836 &  2094777 \tabularnewline  
-    8192  &  5997722 & 18550483 &  1587408 & 18548641 &  2135818 &  1263075 \tabularnewline  
-    16384 &  5278238 & 18315329 &  1128682 & 18305995 &  1707261 &   859009 \tabularnewline 
-    32768 &  5077416 & 18178226 &   857012 & 18080705 &  1449062 &   618508 \tabularnewline 
+    1024  & 19906406 & 27186015 & 14288773 & 27185933 & 14659129 & 13501287 \tabularnewline
+    2048  & 13348365 & 21797929 &  7037009 & 21797723 &  7436173 &  6334160 \tabularnewline
+    4096  &  8502161 & 19039748 &  2529214 & 19038965 &  3015836 &  2094777 \tabularnewline
+    8192  &  5997722 & 18550483 &  1587408 & 18548641 &  2135818 &  1263075 \tabularnewline
+    16384 &  5278238 & 18315329 &  1128682 & 18305995 &  1707261 &   859009 \tabularnewline
+    32768 &  5077416 & 18178226 &   857012 & 18080705 &  1449062 &   618508 \tabularnewline
     65536 &  4495702 & 18094113 &   677410 & 17684018 &  1262799 &   466934 \tabularnewline
     \hline
   \end{tabular}
