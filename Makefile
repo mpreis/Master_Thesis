@@ -6,7 +6,7 @@ FIGS = figs
 
 all: default
 
-default: compile bib
+default: plots compile bib
 	$(MAKE) compile
 	$(MAKE) compile
 
@@ -17,7 +17,11 @@ bib: $(DOC).aux
 	bibtex $(DOC).aux
 	bibtex $(DOC).aux
 
+plots:
+	sh figs/make-plots.sh
+
 clean:
+	rm -f ./figs/plots/*
 	rm -f *.aux *.bbl *.blg *.log *.loa *.lof *.lot *.out *.pdf *.toc *.xdy *.idx *.gnuplot
 	rm -f $(FIGS)/*.pdf
 
