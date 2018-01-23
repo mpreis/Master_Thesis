@@ -24,7 +24,7 @@ set datafile separator ","
 
 set output _outdir.'perf-misses-'._bmk.'.eps'
 # set title _bmk
-set ylabel "circles per access (CPA)\n(less is better)"
+set ylabel "Circles per Access (CPA)\n(less is better)"
 set yrange [0:_yrangemax]
 set ytics 5
 set key
@@ -34,20 +34,20 @@ yoffset = 0.025
 xoffset = 6
 
 plot \
-newhistogram "LRU",\
- _datafile using (column("LRU-hits") * column("LRU-cpa")):xtic(1) t "cache hits" fs pattern 2 lt rgb "#7ca82b",\
-  '' u (column("LRU-misses") * column("LRU-cpa")) t "cache misses" fs pattern 6 lt rgb "#dd1144",\
-  '' u 0:"LRU-cpa":(fn(column("LRU-cpa"))) with labels font ",12" center offset first xoffset*0, graph yoffset notitle,\
-newhistogram "LRU+Liveness",\
-  '' u (column("LRU+Liveness-hits") * column("LRU+Liveness-cpa")):xtic(1) notitle fs pattern 2 lt rgb "#7ca82b",\
-  '' u (column("LRU+Liveness-misses") * column("LRU+Liveness-cpa")) notitle fs pattern 6 lt rgb "#dd1144",\
-  '' u 0:"LRU+Liveness-cpa":(fn(column("LRU+Liveness-cpa"))) with labels font ",12" center offset first xoffset*1, graph yoffset notitle,\
 newhistogram "MIN",\
-  '' u (column("MIN-hits") * column("MIN-cpa")):xtic(1) notitle fs pattern 2 lt rgb "#7ca82b",\
+  _datafile u (column("MIN-hits") * column("MIN-cpa")):xtic(1) notitle fs pattern 2 lt rgb "#7ca82b",\
   '' u (column("MIN-misses") * column("MIN-cpa")) notitle fs pattern 6 lt rgb "#dd1144",\
-  '' u 0:"MIN-cpa":(fn(column("MIN-cpa"))) with labels font ",12" center offset first xoffset*2, graph yoffset notitle,\
+  '' u 0:"MIN-cpa":(fn(column("MIN-cpa"))) with labels font ",12" center offset first xoffset*0, graph yoffset notitle,\
 newhistogram "MIN+Liveness",\
   '' u (column("MIN+Liveness-hits") * column("MIN+Liveness-cpa")):xtic(1) notitle fs pattern 2 lt rgb "#7ca82b",\
   '' u (column("MIN+Liveness-misses") * column("MIN+Liveness-cpa")) notitle fs pattern 6 lt rgb "#dd1144",\
-  '' u 0:"MIN+Liveness-cpa":(fn(column("MIN+Liveness-cpa"))) with labels font ",12" center offset first xoffset*3, graph yoffset notitle,\
+  '' u 0:"MIN+Liveness-cpa":(fn(column("MIN+Liveness-cpa"))) with labels font ",12" center offset first xoffset*1, graph yoffset notitle,\
+newhistogram "LRU",\
+  '' u (column("LRU-hits") * column("LRU-cpa")):xtic(1) t "cache hits" fs pattern 2 lt rgb "#7ca82b",\
+  '' u (column("LRU-misses") * column("LRU-cpa")) t "cache misses" fs pattern 6 lt rgb "#dd1144",\
+  '' u 0:"LRU-cpa":(fn(column("LRU-cpa"))) with labels font ",12" center offset first xoffset*2, graph yoffset notitle,\
+newhistogram "LRU+Liveness",\
+  '' u (column("LRU+Liveness-hits") * column("LRU+Liveness-cpa")):xtic(1) notitle fs pattern 2 lt rgb "#7ca82b",\
+  '' u (column("LRU+Liveness-misses") * column("LRU+Liveness-cpa")) notitle fs pattern 6 lt rgb "#dd1144",\
+  '' u 0:"LRU+Liveness-cpa":(fn(column("LRU+Liveness-cpa"))) with labels font ",12" center offset first xoffset*3, graph yoffset notitle\
 ;

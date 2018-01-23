@@ -35,7 +35,7 @@ done
 # compaction
 for BMK in "445-gobmk" "450-soplex" "454-calculix" "462-libquantum" "471-omnetpp" "483-xalancbmk" "deltablue" "raytrace" "richards"
 do
-  YRANGE_MAX=40
+  YRANGE_MAX=42
   gnuplot -e "_bmk='$BMK'"\
           -e "_outdir='$OUTDIR'"\
           -e "_yrangemax=$YRANGE_MAX"\
@@ -69,13 +69,13 @@ done
 # correlation
 for CACHE in "MIN" "MIN+Liveness" "LRU" "LRU+Liveness"
 do
-  if [ $CACHE == "MIN" ] ; then
+  if [ $CACHE == "MIN+Liveness" ] ; then
     SPEEDUP=3
     COMPATION=4
-  elif [ $CACHE == "MIN+Liveness" ] ; then
+  elif [ $CACHE == "MIN" ] ; then
     SPEEDUP=12
     COMPATION=13
-  elif [ $CACHE == "LRU" ] ; then
+  elif [ $CACHE == "LRU+Liveness" ] ; then
     SPEEDUP=21
     COMPATION=22
   else
@@ -86,7 +86,7 @@ do
   do
     if [ $ALLOCATOR == "CompactStack" ] ; then
       COLOR="#7ca82b" # green
-    elif [ $ALLOCATOR == "CompactRandom" ] ; then
+    elif [ $ALLOCATOR == "CompactSet" ] ; then
       COLOR="#ffca28" # yellow
     elif [ $ALLOCATOR == "CompactQueue" ] ; then
       COLOR="#ef8535" # orange

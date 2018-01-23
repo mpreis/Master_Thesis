@@ -12,9 +12,12 @@
 %   - chapter headings to be on the next page or the next recto, verso page
 %     (openany, openright, openleft) (standard memoir option, passed through)
 \documentclass[onecolumn, openright, master, english, signatures]{dbrgrptt}
+\usepackage[round-precision=2,round-mode=places,scientific-notation=engineering]{siunitx}
 \usepackage[nameinlink]{cleveref}
 \usepackage{listings}
 \usepackage{multirow}
+\usepackage{csvsimple}
+\usepackage{rotating}
 \usepackage[numbers]{natbib}
 \usepackage{tikz}
 \usetikzlibrary{arrows, fit, positioning, shapes}
@@ -24,6 +27,8 @@
     colorlinks=false,
     pdfborder={0 0 0},
 }
+
+\input{masterthesis-cm/includes}
 
 \begin{document}
 
@@ -56,24 +61,20 @@ Towards cache-optimal address allocation:%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}\label{cha:introduction}
-\torevise\\
-It is well know that there is a performance gap between CPU speed and memory access time. Obviously, accessing data stored on memory is a bottleneck by executing programs. Form an abstract point of view a program consists of a sequence of load and store operation. In between those operations the CPU executes some computations. The sequence of load and store operations is called a \emph{trace}. To improve the access time on memory \emph{caches} has been introduced.
 
-A \emph{cache} is a small and super fast memory buffer. A cache holds temporarily blocks of data of the programs content of memory. All data required for the current computation of the CPU is called \emph{working set}~\cite{denning1968working}.
+It is well know that there is an increasing performance gap between CPU speed and memory access speed. Obviously, accessing data stored in the main memory is a bottleneck during program execution. According to the observations made by Computer Scientists analyzing real programs the concept of a \emph{cache} has been introduced. A \emph{cache} is a small and super fast memory unit. The purpose of a cache is to temporarily hold the blocks of data required for a programs execution. All data required for the current computations of the CPU is called \emph{working set}~\cite{denning1968working}.
 
-In general caches are much small than memory, the reason is money. Any storage system, e.g., a cache, or memory, or a disk, \dots, can be characterized by its access time and cost per bit. Usually storage systems with lower access time tend to higher costs per bit, and storage systems with lower costs per bit tend to higher access time.
+Since 30 year caches are based on two major observations: Data that is accessed once is likely (1) that nearby data is accessed in near future (\emph{spatial locality}~\cite{jacob2010memory}) and (2) that the same data is accessed again in near future (\emph{temporal locality}~\cite{jacob2010memory}). To address spatial locality so-called \emph{cache lines} have been introduced. A cache line is the smallest unit of data that can be loaded from the main memory. All cache lines of a cache are of same size and depending on there size the values of multiple addresses fit in one cache line. A program accesses the data stored in the main memory via \emph{addresses}. An address is a unique identifier for a certain amount of data, e.g. 8 byte are a common amount of data accessible by one address~\cite{patterson2011computer}.
 
-This is where another issue raises. Typically the working set does not completely fit into the cache. This leads to the situation that the cache is full but it is required to load data into it from memory. If data is accessed which is currently not in the cache, this is called a \emph{cache miss}. It is up to the cache to decide which data is kept and which one is \emph{evicted}. The decision is made by the so-called \emph{eviction policy}. Note, it is common to name a cache after its eviction policy, e.g., LRUCache for a cache which applies a least recently used strategy.
+There are to different types of memory accesses, reading and modifying. Reading data is realized by executing a \emph{load} instruction. A load instruction reads the data of an address and stores the read value into one of the \ac{CPU}s registers for further computations. The process of reading the data first tries to read the data from cache. If the data of the requested address is in the cache it is read from there. Otherwise the data has to be read from the main memory. Data is load from the main memory, stored in the cache, and finally loaded into one of the \ac{CPU}s registers. To modify data a \emph{store} instruction has to be executed. If the data to modify is already in the cache the main memory has not to be accessed. Otherwise, the data has to be loaded from the main memory into the cache first. If the accessed data is available in the cache this is called a \emph{cache hit}, otherwise when the data is not in the cache this is called a \emph{cache miss}, that is of independent of the access type executed.
 
-Although, caches are a good approach to address the performance gap, in case of a cache miss it yields a memory access which is expensive. A very common method to determine the performance of a cache is the \emph{miss rate}~\cite{patterson2011computer}. The miss rate is defined as \emph{cache misses per instruction}. Alternatively, the \emph{miss ratio} could be used, which is defined by \emph{cache misses per total number of memory accesses}. Because of the limited size and the prices for larger caches, cache misses have a significant influence on the execute time of a program. Reduce the number of caches misses became an interesting research topic.
+Since, a cache is limited in space and typically the working set is larger then the cache size, eventually the cache will run out of space. In the situation that the cache is full and an address is accessed that is not in the cache it is required to free up space. For this reason every cache implements an \emph{eviction police} to decide on an eviction candidate. The eviction candidate is written back to the main memory to make space for the requested data, it is \emph{evicted}. The chose of the eviction policy aim to satisfy temporal locality, e.g. a common eviction policy is to evict the least recently used cache line.
 
-For reducing the number of cache misses so-called \emph{cache lines} where introduced. The concept behind is based on observations made on programs. If a program accesses data once, it is likely to access data nearby in near future as well, \emph{spatial locality}~\cite{jacob2010memory}. Instead of load only the required data, also the data nearby is load into cache. How much data is load is defined by the cache line size. Each time a cache miss occurs a whole cache line is loaded. There was another observation which significantly influenced the design of caches. If a program accesses data once, it is likely to be accessed again in near future, \emph{temporal locality}~\cite{jacob2010memory}.
+Nevertheless, that data grouped together on a cache line influences the cache performance significantly. Assume iterating over an array. In such a case performance might be excellent, because these are perfect conditions for spatial locality and temporal locality. However, assume iterating over a dynamically allocated linked list. In difference to an array it is not ensured that the list elements are stored contiguous in memory. It is more likely that elements are distributed across the whole memory space. In a worst case scenario each iteration forces a cache miss. This issue is a consequence of \emph{memory layout} generated by the allocator through dynamic allocations.
 
-Nevertheless, which data is grouped together on a cache line influences the cache performance significantly. Assume iterating over an array. In such a case performance will be excellent, because this are perfect conditions for spatial locality and temporal locality. However, assume iterating over a dynamically allocated linked list. In difference to an array it is not ensured that the list elements are stored contiguous in memory. It's more likely that elements are distributed over the whole memory space. In a worst case scenario each iteration forces a cache miss. This issue is a consequence of \emph{memory layout} generated by the allocator through dynamic allocations. For improving the memory layout further information about the data is required, the \emph{liveness}.
+For the purpose of this work we focus on the sequence of load and store instructions of a program, the so-called \emph{memory access trace} (short \emph{trace}). Our further analysis are executed based on the traces of the analyzed benchmarks, SPEC 2006 and Octane. We aim to find metrics of a trace that characterize its performance. We apply four metrics: (1) the \emph{Accesses} represents the number of accesses on an address, (2) the \emph{Access Distance} illustrates number of access on other addresses between to accesses on the same address, (3) the \emph{Liveness Interval Length} represents the timespan an address is in use, and (4) the \emph{Overlapping Liveness} shows the number of overlapping liveness intervals at a certain point of the execution. In this work each store instruction indicates the beginning of a liveness interval. A liveness interval ends with the last load instruction before the next store instruction, i.e. an address might consist of multiple liveness intervals.
 
-Data is called \emph{live} by the first time it is written, and \emph{dead} after the last time it is accessed. The period from being live until data is dead is named \emph{liveness interval}. With the information about the liveness of data another opportunity of improvement appears, \emph{memory reuse}. The idea is to reuse dead data in memory as quickly as possible to store new live data. An obvious advantage of memory reuse is that less memory is required. Further, it improve the probability that reused memory is already cached when the new data goes live. Especially, latter one could reduce the number of cache misses.
-
-Our conjecture is that quicker memory reuse dominates location of data in overall performance impact. We are convinced that caches maybe more effective if memory is reused quickly, independently of where data is located. We are  working on a number of micro benchmarks that allow us to reuse memory close to optimality.
+Our conjecture is that the four metrics \emph{Accesses}, \emph{Access Distance}, \emph{Liveness Interval Length}, and \emph{Overlapping Liveness} characterize the performance of an program. Furthermore, we are convinced that caches maybe more effective if memory is reused quickly, independently of where data is located. We are simulate an environment that analysis the traces of our benchmarks and allows us to apply different types of allocators that reuses memory in certain ways.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,7 +89,7 @@ Our conjecture is that quicker memory reuse dominates location of data in overal
 
 \section{Hardware Model}\label{sec:hardware-model}
 
-This section deals with the hardware model applied. The used model is reduced to the minimal required core components of a modern computer system. It consists of three components as illustrated by \Cref{fig:hardware-model}. The three components are the central processing unit, a cache, and the main memory, namely.
+This section deals with the applied hardware model. The model used is reduced to the minimal required core components of a modern computer system. It consists of three components as illustrated in \Cref{fig:hardware-model}. The three components are the central processing unit, a cache, and the main memory.
 
 \begin{figure}[!ht]
   \centering
@@ -98,25 +99,25 @@ This section deals with the hardware model applied. The used model is reduced to
 \end{figure}
 
 \subsection{Central Processing Unit}
-The \emph{\ac{CPU}} is the heart of a computer systems. The purpose of a \ac{CPU} is to process and execute a given program. A \emph{program} consists of a sequence of instructions which operate on data. A program is processed sequentially instruction by instruction. Further, an \emph{instruction} is a command with the purpose to perform some specific action, e.g, to add two numbers or to modify data. \emph{Data} is the information required by a program for its execution, e.g., values for computations. The \ac{CPU} consists of a limited number of so-called \emph{registers}. A \emph{register} is a extremely small and extremely fast memory unit which allows the \ac{CPU} to execute computations. Registers are the only memory unit where the \ac{CPU} is able to apply arithmetic operations. The actual size of a single register and the number of registers available for computations depends on the architecture of the hardware.
+The \emph{\ac{CPU}} is the heart of a computer system. The purpose of a \ac{CPU} is to process and execute a given program. A \emph{program} consists of a sequence of instructions which operate on data. It is processed sequentially, that is, instruction by instruction. An \emph{instruction} is a command with the purpose to perform a specific action, e.g. to add two numbers or to modify data. \emph{Data} is the information required by a program that is necessary for its execution, e.g. values for computations. The \ac{CPU} consists of a limited number of so-called \emph{registers}. A \emph{register} is an extremely small and extremely fast memory unit which allows the \ac{CPU} to execute computations. Registers are the only memory unit where the \ac{CPU} is able to apply arithmetic operations. The actual size of a single register and the number of registers available for computations depend on the architecture of the hardware.
 
-For the purpose of this work only instructions reading or writing data are taken into account. To read data a \emph{load} instruction is required and to write data a \emph{store} instructions is applied. These two instructions access the data of a program stored at the main memory, e.g., for the purpose of a calculation it might be necessary to get some data from main memory and save its result at main memory for later usage. Such data can be accessed by executing a load or store instruction on main memory. However, there are many more instructions available on modern computer systems, e.g., arithmetical operations.
+For the purpose of this work, only instructions reading or writing data are taken into account. In order to read data, a \emph{load} instruction is required; in order to write data, a \emph{store} instructions is applied. These two instructions access the data of a program stored at the main memory, e.g. for the purpose of a calculation it might be necessary to get some data from the main memory and save its result at the main memory for later usage. Such data can be accessed by executing a load or store instruction on main memory. However, there are several more instructions available on modern computer systems, e.g. arithmetical operations.
 
 \subsection{Main Memory}
-The \emph{main memory} is a storage containing all data required to execute a program. In general the CPU has to load data from main memory and store data to main memory to process a program. Furthermore, even the program itself is stored at the main memory while its execution. Each instruction of a program has to be loaded before the \ac{CPU} is able to execute it. In case of an load instruction the \ac{CPU} first loads the instruction itself. Second the CPU interprets the instruction to find out what to do, e.g., execute a load of data. And third the \ac{CPU} execution the instruction, e.g., it loads the actually required data into some of the available registers.
+The \emph{main memory} is a storage containing all data required to execute a program. In general, the \ac{CPU} has to load data from the main memory and store data in main memory to process a program. Furthermore, even the program itself is stored at the main memory during its execution. Each instruction of a program has to be loaded before the \ac{CPU} is able to execute it. In case of a load instruction, the \ac{CPU} first loads the instruction itself. Then the CPU interprets the instruction to find out what to do, e.g. execute a load of data. Last the \ac{CPU} execution the instruction, e.g. it loads the actually required data into some of the available registers.
 
-The main memory is structured in equally sized chunks of memory, e.g., 8 byte which is called represents the size of something called a \emph{word}. Each such memory chunk can be accesses by the \ac{CPU} via an unique identifier, its \emph{physical address}. To simplify a programmers life and make programs easier portable \emph{virtual addresses} have been introduced. A virtual address (short \emph{address}) maps a to exactly one physical address. Each program on an computer gets its own virtual address space which starts at address 0, this is an important assumptions. In praxis the first physical address of a program is very unlikely to be 0. This mapping of physical addresses to virtual addresses which always start at address 0 makes programs easier portable. For the purpose of this work it is important to keep in mind that load and store instruction operate on addresses, e.g., \texttt{load \&address} where \texttt{\&address} represents the address of the data to load.
+The main memory is structured in equally sized chunks of memory, that are for example the size of 8 byte. These are then called a \emph{word}. Each of these memory chunks can be accesses by the \ac{CPU} via a unique identifier, its \emph{physical address}. To simplify a programmers life and make programs easier portable, \emph{virtual addresses} have been introduced. A virtual address (short \emph{address}) maps a physical address. Each program on a computer is given its own virtual address space which starts at address 0; this is an important assumption. In reality the first physical address of a program is very unlikely to be 0. This mapping of physical addresses to virtual addresses which always start at address 0 makes programs easier portable. For the purpose of this work, it is important to keep in mind that load and store instruction operate on addresses, e.g. \texttt{load \&address} where \texttt{\&address} represents the address of the data that is to be loaded.
 
 \subsection{Cache}
-A \emph{cache} is a small, high-speed memory which temporarily holds data of the addresses used by the currently processed program. The concept of caches has been introduced by Smith in his work \cite{smith1982cache}.
+A \emph{cache} is a small high-speed memory which temporarily holds data of the addresses used by the currently processed program. The concept of caches has been introduced by Smith \cite{smith1982cache}.
 
-Caches are based on two major observation. \emph{Temporal locality}, if data is accessed it is likely that the same data is accessed again in the near future. \emph{Spatial locality}, if data is accessed it is likely that other data near by is also accessed in the near future. Speaking about \emph{accessing an address} is equivalent with \emph{accessing data stored at an address in the main memory}. Same for cached addresses. For the \ac{CPU} a cache is invisible. Independent if there is a cache or not the \ac{CPU} always just wants to access a certain address. If there is cache present it simply takes less time to load the value of an address into the \ac{CPU}s register. This is because caches are high-speed memory units.
+Caches are based on two major observations, namely \emph{Temporal locality} and \emph{Spatial locality}.\emph{Temporal locality} means that if data is accessed it is likely that the same data is accessed again in the near future. \emph{Spatial locality} means that if data is accessed it is likely that other data near by is also accessed in the near future. Speaking about \emph{accessing an address} is equivalent with \emph{accessing data stored at an address in the main memory}. The same accounts for cached addresses. For the \ac{CPU} a cache is invisible. Regardless of whether or there is a cache or not the \ac{CPU} always just wants to access a certain address. If there is cache present it simply takes less time to load the value of an address into the \ac{CPU}s register. This is because caches are high-speed memory units.
 
-A \emph{cache hit} occurs whenever the CPU wants to access an address which is already in the cache. In such a cache no main memory access is required. The data is directly accessed via cache.
+A \emph{cache hit} occurs whenever the \ac{CPU} wants to access an address which is already in the cache. Then no main memory access is required. The data is directly accessed via cache.
 
-A \emph{cache miss} occurs whenever \ac{CPU} wants to access an address which is not currently in the cache. Such a situation requires to load the data of the requested address from main memory into the cache. Before the value stored at this address is loaded into one of the registers. Such an operation is expensive as explained in \Cref{sec:performance}.
+A \emph{cache miss} occurs whenever the \ac{CPU} wants to access an address that is not currently in the cache. Such a situation requires to load the data of the requested address from the main memory into the cache. Before the value stored at this address is loaded into one of the registers. Such an operation is expensive as explained in \Cref{sec:performance}.
 
-The \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory to free up some space. Since caches are limited in the number of addresses which could be temporarily stored a cache will eventually run out of space. In case the cache is full and a cache miss occurs it is required to make some space to load the requested address. There are many different algorithms trying to make a good chose on the address to evict, e.g., \ac{LRU}. For more details see \Cref{sec:caches}
+The \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory in order to make free space available. Since caches are limited in the number of addresses that can be temporarily, stored a cache will eventually run out of space. In case the cache is full and a cache miss occurs it is required to make space available to load the requested address. There are different algorithms trying to make an appropriate chose of the address that is to be evicted. For more details see \Cref{sec:caches}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Memory Access Trace
@@ -124,9 +125,9 @@ The \emph{cache policy} decides which address has to be \emph{evicted}, i.e., wh
 
 \section{Memory Access Trace}\label{sec:memory-access-trace}
 
-The \emph{\ac{trace}} represents all memory accesses for a given program. More precise the \ac{trace} is a sequence load and store instructions observed by analyzing a given program. Furthermore, for the purpose of this work is does not matter which value is store at a certain address. For this reason the stored values are all dropped. This results in a sequence of tuples consisting of the instruction type, which is either \emph{load} or \emph{store}, and an address. \Cref{fig:mat-example-trace} shows an example of a \ac{trace}, addresses are annotated with a \texttt{\&} known from languages like C.
+The \emph{\ac{trace}} represents all memory accesses for a given program. More precisely, the \ac{trace} is a sequence of load and store instructions observed by analyzing a given program. Furthermore, for the purpose of this work is does not matter which value is stored at a certain address. Therefore, the stored values are all dropped. This results in a sequence of tuples consisting of the instruction type, which is either \emph{load} or \emph{store}, and an address. \Cref{fig:mat-example-trace} shows an example of a \ac{trace}, addresses are annotated with \texttt{\&} known from programming languages like C.
 
-\Cref{fig:mat-example-c-code} shows a simple C program which is sums up three numbers. At first all used variables are declared. Afterwards the variables \texttt{sum}, \texttt{x}, and \texttt{y} are initialized with the values \texttt{0}, \texttt{1}, and \texttt{2}. Followed by the first computation, the value of \texttt{x} is added to \texttt{sum}s value and stored in \texttt{sum}. Next the variable \texttt{z} is initialized with value \texttt{3}. Then \texttt{sum} is increased by the value of \texttt{y}. Finally the computation is completed by adding the value of \texttt{z} to \texttt{sum}.
+\Cref{fig:mat-example-c-code} shows a simple C program which sums up three numbers. First, all used variables are declared. Afterwards, the variables \texttt{sum}, \texttt{x}, and \texttt{y} are initialized with the values \texttt{0}, \texttt{1}, and \texttt{2}. Followed by the first computation, the value of \texttt{x} is added to \texttt{sum}s value and stored in \texttt{sum}. Next, the variable \texttt{z} is initialized with value \texttt{3}. Then, \texttt{sum} is increased by the value of \texttt{y}. Finally, the computation is completed by adding the value of \texttt{z} to \texttt{sum}.
 
 \begin{figure}[!ht]
   \centering
@@ -137,9 +138,9 @@ The \emph{\ac{trace}} represents all memory accesses for a given program. More p
   \label{fig:mat-example-c-code}
 \end{figure}
 
-\Cref{fig:mat-example-assembly-code} shows a snipped of assembly code generated by compiling the code of \Cref{fig:mat-example-c-code}. For compilation GCC 4.8.5 on Ubuntu 16.04 for AMD Opteron\texttrademark Processor 6376 with x86\_64 Architecture has been used. Since the declaration of the variables is only important for the compiler there has been no assembly code generated for these. For this reason the first line of assembly code shown in \Cref{fig:mat-example-assembly-code} represents the code generated for the C code \texttt{sum = 0;}. Other than expected the compiler has not generated a store operation instead the following code appears \texttt{movl \$0, -16(\%rbp)}.
+\Cref{fig:mat-example-assembly-code} shows a snippet of assembly code generated by compiling the code of \Cref{fig:mat-example-c-code}. For compilation GCC 4.8.5 on Ubuntu 16.04 for AMD Opteron\texttrademark Processor 6376 with x86\_64 Architecture has been used. Since the declaration of the variables is only important for the compiler, no assembly code is generated for: \texttt{int sum, x, y, z;}. Therefore, the first line of assembly code shown in \Cref{fig:mat-example-assembly-code} represents the code generated for the C code \texttt{sum = 0;}. However, the compiler has not generated a store operation, instead the following code appears \texttt{movl \$0, -16(\%rbp)}.
 
-For explanation this assembly instruction consists of three parts. The first part shows the instruction which should be executed. In the example above \texttt{movl} represents this instruction. \texttt{movl} moves a \emph{long} value into a register. A long value is on the x86\_64 architecture of size 32 bit. The second part represents the value which should be moved. In the example from above a constant value is moved. That \texttt{0} is a constant value is indicated by the \texttt{\$} character. The third part represents the address where the value should be moved to. In the example from above the target address is \texttt{-16(\%rbp)}. In this case \texttt{rbp} is an register as indicated by the \texttt{\%} character. Further, \texttt{\%rbp} is a so-called \emph{general-purpose} register of size 64 bit. By now it is enough to know that this register hold a memory address which is used as base to compute the actual target address. \texttt{-16} is the offset used to compute the actual target address.
+This assembly instruction consists of three parts. The first part shows the instruction that should be executed. In the example above \texttt{movl} represents this instruction. \texttt{movl} moves a \emph{long} value into a register. A long value is on the x86\_64 architecture the size of 32 bit. The second part represents the value that should be moved. In the example from above a constant value is moved. The fact that \texttt{0} is a constant value is indicated by the \texttt{\$} character. The third part represents the address to which the value should be moved to. In the example from above the target address is \texttt{-16(\%rbp)}. In this case, \texttt{rbp} is a register indicated by the \texttt{\%} character. Further, \texttt{\%rbp} is a so-called \emph{general-purpose} register of size 64 bit. By now it is enough to know that this register holds a memory address which is used as base to compute the actual target address. \texttt{-16} is the offset used to compute the actual target address.
 \Cref{fig:mat-example-assembly-code} only consists of two different types of instructions. The \texttt{movl} instruction is explained above. The other operation is used as follows \texttt{addl \%eax -16(\%rbp)}. The meaning of this instruction is to add the value stored at \texttt{-16(\%rbp)} to the value currently stored at the register \texttt{\%eax} and store the result at \texttt{\%eax}. As indicated by the \texttt{l} character at the and of the instruction name, this instruction operates on value of size 32 bit.
 
 \begin{figure}[!ht]
@@ -909,10 +910,244 @@ This section describes the subset of benchmarks of the Octane benchmark suite \c
 
 This chapter presents an experiment executed by our environment. For this experiment the benchmarks presented by \Cref{sec:benchmarks} are analyzed. For each benchmark its \ac{trace} is observed using Valgrind Lackey. During this experiment the \ac{trace} of each benchmark is applied to all five allocators available. In the following section the resulting \ac{trace}s are named \emph{Identity}, representing the \ac{trace} generated by the identity allocator, \emph{CompactStack}, representing a compact \ac{trace} using a free list with stack semantic, \emph{CompactQueue}, representing a compact \ac{trace} using a free list with queue semantic, \emph{CompactSet} representing a compact \ac{trace} using a free list with set semantic, and \emph{SingleAssignment} representing the \ac{trace} generated by the single assignment allocator. Each one of the allocators is applied on each available cache presented by \Cref{sec:caches}. In the following section the caches are named \emph{\ac{MIN}}, \emph{\ac{MIN}+Liveness}, \emph{\ac{LRU}}, and \emph{\ac{LRU}+Liveness}. The suffix \emph{+Liveness} indicates that the cache makes use of the liveness information of a \ac{trace}. Furthermore, all caches of this experiment are configured for cache size of 32 kilobyte and cache line size of 64 byte. These values are chosen to represent a realistic cache.
 
+\begin{remark}
+When speaking about an allocator this is equivalent with speaking about the transformed \ac{trace} resulting by applying this allocator.
+\end{remark}
+
+\section{Speedup \& Compaction}
+\label{sec:exp-speedup-compaction}
+
+This section presents the results about speedup and compaction of our allocators. The speedup describes the relation of an allocators \ac{CPA} and the \ac{CPA} of the Identity allocator. The \ac{CPA} of all allocators is computed as \Cref{equ:performance-cpa} illustrates. The speedup is calculated as follows:
+$$Speedup(Allocator, Cache) = \frac{CPA(Identity, Cache)}{CPA(Allocator, Cache)}$$
+
+The compaction describes the memory used of a \ac{trace} generated by one of our allocators. More precise compaction shows how much less variables an allocator uses in comparison to the Identity allocator. The number of variables used by an allocator on a given cache is indicated by $\#Addresses(Allocator, Cache)$. The compaction is computed as follows:
+$$Compaction(Allocator, Cache) = \frac{\#Addresses(Identity, Cache)}{\#Addressed(Allocator, Cache)}$$
+
+At the figures below on the y-axis the speedup is displayed and on the x-axis the compaction is presented. Values greater than one represent an improvement, values less than one represent a weakening, and values equal to one represent same performance or compaction than the Identity allocator. For this reason we are aiming for values within the right upper corner, because values in this area represent an improvement in performance and compaction. At the opposition there is the left lower corner where we would not like to see values, because values in this area represent a weakening in performance and compaction. The remaining two areas represent either an improvement in performance and a weakening in compaction or vice versa.
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN-CompactStack.eps}
+    \caption{CompactStack}
+    \label{fig:correlation-min-compactstack}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN-CompactSet.eps}
+    \caption{CompactSet}
+    \label{fig:correlation-min-compactset}
+  \end{subfigure}%
+  \qquad
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN-CompactQueue.eps}
+    \caption{CompactQueue}
+    \label{fig:correlation-min-compactqueue}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN-SingleAssignment.eps}
+    \caption{SingleAssignment}
+    \label{fig:correlation-min-singleassignment}
+  \end{subfigure}%
+  \caption{Correlation of Speedup and Compaction: \ac{MIN}}
+  \label{fig:correlation-min}
+\end{figure}
+
+\Cref{fig:correlation-min} illustrates the results of all benchmark and allocator combinations applied on the \ac{MIN} cache.
+
+\Cref{fig:correlation-min-compactstack} shows the results of the CompactStack allocator in combination with the \ac{MIN} cache for all available benchmarks. Obviously, for the CompactStack allocator all benchmarks require less variables than used by the Identity allocator. Further, the results of all benchmark are within or at least are close to the right upper quarter. Most interesting results are those of the 445.gobmk, 471.omnetpp, and 454.calculix. The 445.gobmk benchmark presents the most speedup of all benchmarks. Further, it uses only the half of the variables used by the Identity allocator. Nevertheless, there are benchmarks with much better compaction. The 471.omnetpp benchmark presents by far the best compaction result, with nearly equivalent speedup as the Identity allocator. The 483.xalancbmk presents the worst speedup of all benchmarks. Further, its compaction result is also one of the worst ones, even with an improvement.
+
+\Cref{fig:correlation-min-compactset} presents the results of the CompactSet allocator in combination with the \ac{MIN} cache for all available benchmarks. In comparison to the CompactStack allocators results the results of the CompactSet allocator slight worse. Especially, in terms of speedup there is a significant weakening observable. The most outstanding benchmarks are again 445.gobmk, 471.omnetpp, and 454.calculix. The results of 445.gobmk and 471.omnetpp are quit similar to those of the CompactStack. The result of the 483.xalancbmk is clearly different for the result archive with the CompactStack allocator. The speedup of the 454.calculix benchmark significantly decreased.
+
+\Cref{fig:correlation-min-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{MIN} cache for all available benchmarks. Obviously, using the CompactQueue allocator is not beneficial for most benchmarks in terms of speedup. Nevertheless, the 445.gobmk still archive a performance improvement by a similar compaction as for the CompactStack and CompactSet allocators. Also the 471.omnetpp benchmark presents quit identical results for speedup and compaction. All other benchmarks show a decrease in speedup. Furthermore, for this allocator 454.calculix is not the allocator with the worst speedup, it is 483.xalancbmk.
+
+\Cref{fig:correlation-min-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{MIN} cache for all available benchmarks. Without any detailed explanation it is clear that the SingleAssignment allocator presents the worst results of all four allocators. Obviously, in terms of compaction this allocator is not able to archive any improvement by definition. Using a new variable for each store instruction inevitably yields in more or at least the same number of variable than used by the Identity allocator. As expected all data points are within the left half of the figure. Unfortunately, non of the benchmarks is able to least archive the same performance as the Identity allocator. Only the 445.gobmk benchmark is close to one. Note that the 471.omnetpp benchmark, which archived the best compaction for the other three allocators, now presents the worst compaction. And additionally it also offers the worst speedup.
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN+Liveness-CompactStack.eps}
+    \caption{CompactStack}
+    \label{fig:correlation-min-liveness-compactstack}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN+Liveness-CompactSet.eps}
+    \caption{CompactSet}
+    \label{fig:correlation-min-liveness-compactset}
+  \end{subfigure}%
+  \qquad
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN+Liveness-CompactQueue.eps}
+    \caption{CompactQueue}
+    \label{fig:correlation-min-liveness-compactqueue}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN+Liveness-SingleAssignment.eps}
+    \caption{SingleAssignment}
+    \label{fig:correlation-min-liveness-singleassignment}
+  \end{subfigure}%
+  \caption{Correlation of Speedup and Compaction: \ac{MIN}+Liveness}
+  \label{fig:correlation-min-liveness}
+\end{figure}
+
+\Cref{fig:correlation-min-liveness} illustrates the results of all benchmark and allocator combinations applied on the \ac{MIN}+Liveness cache. According the to proceeding presented by \Cref{ssec:cache-behavior-liveness} the compaction is not influence of using the liveness information. For this reason we can focus on performance while comparing the caches based on \citeauthor{belady1966study}s algorithm (\ac{MIN}).
+
+\Cref{fig:correlation-min-liveness-compactstack} presents the results of the CompactStack allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks. The relations between the benchmarks are quite similar to those of the \ac{MIN} cache. As mentioned above compaction is not influence by using the liveness information. This is why the 471.omnetpp benchmark still shows the most compaction and 445.gobmk is still one of the benchmarks with the least improvement in compaction. Even with the least improvement the 445.gobmk benchmark uses only half of the addresses required by the Identity allocator. In terms of performance the 445.gobmk benchmark remains as the benchmarks with the most speedup. In general the speedup for the \ac{MIN}+Liveness cache is slightly worse than for the \ac{MIN} cache. The reason is that also the performance of the Identity allocator improves by using the \ac{MIN}+Liveness cache. Hence, the gap shrinks and the speedup decrease.
+
+\Cref{fig:correlation-min-liveness-compactset} presents the results of the CompactSet allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks. For the CompactSet allocator the differences to the \ac{MIN} cache without liveness information are hard to see on this figure. The details for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk are presented by \Cref{fig:speedup-compaction-445-gobmk,fig:speedup-compaction-471-omnetpp,fig:speedup-compaction-483-xalancbmk}.
+
+\Cref{fig:correlation-min-liveness-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks. Unfortunately, the \ac{MIN}+Liveness cache is not able to push the results up into the right upper corner. Hence, the benchmarks performance worse using the CompactionQueue allocator than using the Identity allocator. Nevertheless, there is an improvement observable in comparison it the \ac{MIN} cache.
+
+\Cref{fig:correlation-min-liveness-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks. The usage of liveness information has an positive influence on the speedup of the benchmarks. Nevertheless, the this influence is to small to push the results into an area which is more beneficial.
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU-CompactStack.eps}
+    \caption{CompactStack}
+    \label{fig:correlation-lru-compactstack}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU-CompactSet.eps}
+    \caption{CompactSet}
+    \label{fig:correlation-lru-compactset}
+  \end{subfigure}%
+  \qquad
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU-CompactQueue.eps}
+    \caption{CompactQueue}
+    \label{fig:correlation-lru-compactqueue}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU-SingleAssignment.eps}
+    \caption{SingleAssignment}
+    \label{fig:correlation-lru-singleassignment}
+  \end{subfigure}%
+  \caption{Correlation of Speedup and Compaction: LRU}
+  \label{fig:correlation-lru}
+\end{figure}
+
+\Cref{fig:correlation-lru} illustrates the results of all benchmark and allocator combinations applied on the \ac{LRU} cache. Obviously, the algorithm to decided on an eviction candidate has an enormous influence.
+
+\Cref{fig:correlation-lru-compactstack} presents the results of the CompactStack allocator in combination with the \ac{LRU} cache for all benchmarks. This figure present a quite different result an shown by \Cref{fig:correlation-min-compactstack}. In an overall view the speedup is much worse for most of the benchmark in comparison to the \ac{MIN} caches. Nevertheless, there are still three outstanding benchmarks to discuss. (1) The 471.omnetpp benchmark remains the benchmark with the most compaction. (2) The 483.xalancbmk benchmark presents the most decrease in performance. For the \ac{MIN} caches this benchmark already shows a poor speedup, but with the \ac{LRU} cache it becomes the benchmark with the least speedup. (3) The 445.gobmk benchmark and the 462.libquantum benchmark. As for the \ac{MIN} caches the 445.gobmk benchmark remains the benchmark with the most speedup. Furthermore, the 462.libquantum benchmark shows a significant improvement in speedup with the \ac{LRU} cache.
+
+\Cref{fig:correlation-lru-compactset} presents the results of the CompactSet allocator in combination with the \ac{LRU} cache for all benchmarks. In an overall perspective also the CompactSet allocator is not able to archive that much speedup using the \ac{LRU} cache than a \ac{MIN} cache. Most of the benchmarks present a weakening in performance which results in less speedup. Nevertheless, two benchmarks present a speedup larger than one 445.gobmk and 462.libquantum, namely. The 485.xalancbmk presents again the least speedup of all benchmarks and the 471.omnetpp remains the benchmark with most compaction.
+
+\Cref{fig:correlation-lru-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{LRU} cache for all benchmarks. The CompactQueue allocator presents a similar behavior as the CompactStack and CompactSet allocators. Most of the data points show a weakening in speedup. The CompactQueue allocator has in an overall perspective the worst speedup results of all four allocators. In detail there are two quite interesting things to observe. First the 445.gobmk for the first time shows a speedup less than one. While 462.libquantum remains the only benchmark with a speedup greater than one. Second 483.xalancbmk is for this allocator not the benchmark with the worst speedup. The benchmark with the worst speedup is the richards benchmark.
+
+\Cref{fig:correlation-lru-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{LRU} cache for all benchmarks. As expected the results of the SingleAssignment allocator occur in the left lower corner. In comparison to the \ac{MIN}+Liveness cache the speedups vary more. Unexpectedly the 445.gobmk presents a speedup greater than one for the first time for this allocator.
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU+Liveness-CompactStack.eps}
+    \caption{CompactStack}
+    \label{fig:correlation-lru-liveness-compactstack}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU+Liveness-CompactSet.eps}
+    \caption{CompactSet}
+    \label{fig:correlation-lru-liveness-compactset}
+  \end{subfigure}%
+  \qquad
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU+Liveness-CompactQueue.eps}
+    \caption{CompactQueue}
+    \label{fig:correlation-lru-liveness-compactqueue}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU+Liveness-SingleAssignment.eps}
+    \caption{SingleAssignment}
+    \label{fig:correlation-lru-liveness-singleassignment}
+  \end{subfigure}%
+  \caption{Correlation of Speedup and Compaction: LRU+Liveness}
+  \label{fig:correlation-lru-liveness}
+\end{figure}
+
+\Cref{fig:correlation-lru-liveness} illustrates the results of all benchmark and allocator combinations applied on the \ac{LRU}+Liveness cache.
+
+\Cref{fig:correlation-lru-liveness-compactstack} presents the results of the CompactStack allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks. The presented speedup results are quite similar to those of the \ac{LRU} cache without liveness information. Nevertheless, one thing is still worth mentioning the 462.libquantum significantly improves its speedup. It reaches a speedup close 445.gobmk benchmark.
+
+\Cref{fig:correlation-lru-liveness-compactset} presents the results of the CompactSet allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks. The CompactSet allocators show as the CompactStack allocator only minimal improvements. Except of the 462.libquantum benchmark which improves its speedup significantly. All other benchmarks remain as before within the right left corner. This indicates a good compaction and a poor speedup.
+
+\Cref{fig:correlation-lru-liveness-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks. For the CompactQueue allocator in combination with the \ac{LRU} algorithm as base of the eviction policy is seams that the liveness information has no significant influence.
+
+\Cref{fig:correlation-lru-liveness-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks. Similar to the CompactQueue allocator also for the SingleAssignment allocator is seams that the liveness information does not improve the speedup significantly.
+
+\subsection{445.gobmk}
+
+In this section we take a closer look at the speedup and compaction of the 445.gobmk benchmark. \Cref{fig:speedup-compaction-445-gobmk-speedup} presents an overview of the speedup results of the 445.gobmk benchmark of all allocators and caches applied.
+
+A speedup below indicates that the performance of this allocator is worse than the performance of the Identity allocator by using the same cache. In case of the 445.gobmk there are 4 such scenarios in which an allocator performance worse than the Identity allocator.
+
+For the \ac{MIN} cache the SingleAssignment allocators presents a speedup of $0.71$ which means that its performance is 29\% slower in comparison to the Identity allocator. For the \ac{MIN}+Liveness allocator also the SingleAssignment allocator performance worst. As expected the usage of the liveness information yields an improvement, the performance decreases by 14\%. Since the SingleAssignment allocator uses many more variables than the other allocators its results are not surprising.
+
+For the more realistic cache implementations based on the \ac{LRU} algorithm the SingleAssignment allocator performs better and present a speedup above one. Nevertheless, there is another allocator which does not perform well on the \ac{LRU} caches, the CompactQueue. The CompactQueue allocator shows a speedup of $0.29$ for the \ac{LRU} cache and $0.34$ for the \ac{LRU} cache using liveness information. Again the liveness information has a significant influence. Nevertheless, the performance of the CompactQueue allocator is 64\%-71\% worse than the performance of the Identity allocator.
+
+However, the CompactStack allocator is for each cache the allocator with the highest speedup. The most impressive speedup is shown for the \ac{LRU} cache, in this scenario the CompactStack allocator reaches a speedup of $4.37$. Also the CompactSet allocator presents good results overall caches.
+
+The compaction shown by \Cref{fig:speedup-compaction-445-gobmk-compaction} is for all compacting allocators identical, which is as expecting according to the workflow presented by \Cref{fig:cache-behavior-liveness}. Its worth mentioning that all three compacting allocators are able to use $2.78$ times less variables than the Identity allocator does. Furthermore, it is not surprising that the SingleAssignment allocators requires that many more variables than the Identity allocator.
+
+\begin{figure}[!ht]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-445-gobmk.eps}
+    \subcaption{Speedup}
+  \label{fig:speedup-compaction-445-gobmk-speedup}
+  \end{subfigure}%
+    \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/compaction-445-gobmk.eps}
+    \subcaption{Compaction}
+  \label{fig:speedup-compaction-445-gobmk-compaction}
+  \end{subfigure}%
+  \caption{Speedup \& Compaction: 445.gobmk}
+  \label{fig:speedup-compaction-445-gobmk}
+\end{figure}
+
+\subsection{471.omnetpp}
+
+\Cref{fig:speedup-compaction-471-omnetpp} presents the results of the 471.omnetpp benchmark in detail.
+
+\Cref{fig:speedup-compaction-471-omnetpp-speedup} shows the speedup of all allocators and caches of the 471.omnetpp benchmark. Obviously, the speedup results of the 471.omnetpp benchmark are significant worse than those of the 445.gobmk benchmark. Just for the two caches \ac{MIN} and \ac{MIN}+Liveness the 471.omnetpp benchmark is able to archive a speedup greater than one at all. And for these caches only the compacting allocators are slightly greater than one. The results for the \ac{LRU} caches are dramatically worse. For the \ac{LRU} caches non of the allocators is able to archive a speedup close to one. However, the CompactionStack allocator presents the best results o all allocators and again the CompactQueue allocators shows the worst results.
+
+\Cref{fig:speedup-compaction-471-omnetpp-compaction} presents the compaction of the 471.omnetpp benchmark. As the previous figures suggested the compaction of the 471.omnetpp benchmark is extremely high. All compacting allocators require $39.76$ times less variables than the Identity allocator does. Furthermore, the compaction of the SingleAssignment allocator is quite interesting, because it indicates that the \ac{trace} consists of many store instructions which lead to a compaction of $0.004$.
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-471-omnetpp.eps}
+    \subcaption{Speedup}
+    \label{fig:speedup-compaction-471-omnetpp-speedup}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/compaction-471-omnetpp.eps}
+    \subcaption{Compaction}
+    \label{fig:speedup-compaction-471-omnetpp-compaction}
+  \end{subfigure}%
+  \caption{Speedup \& Compaction: 471.omnetpp}
+  \label{fig:speedup-compaction-471-omnetpp}
+\end{figure}
+
+\subsection{483.xalancbmk}
+
+\Cref{fig:speedup-compaction-483-xalancbmk} presents the results of the 483.xalancbmk benchmark in detail.
+
+\Cref{fig:speedup-compaction-483-xalancbmk-speedup} shows the speedup results of the 483.xalancbmk. Unfortunately, the presented results show only two scenarios for which a speedup greater than one can be archived. Namely, this scenarios are the CompactStack allocator in combination with the \ac{MIN} cache and the CompactStack allocator in combination with the \ac{MIN}+Liveness cache. The CompactSet allocator is close to one but stays below even if a cache uses the liveness information. On the \ac{LRU} caches non of the presented allocators is able to archive a speedup above $0.15$. Which means that all allocators show a performance at least 85\% worse than the Identity allocators performance.
+
+However, \Cref{fig:speedup-compaction-483-xalancbmk-compaction} presents quite good results for the compaction. The compacting allocators are able to use $7.14$ times less variables than the Identity allocators does.
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/speedup-483-xalancbmk.eps}
+    \subcaption{Speedup}
+    \label{fig:speedup-compaction-483-xalancbmk-speedup}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/plots/compaction-483-xalancbmk.eps}
+    \subcaption{Compaction}
+    \label{fig:speedup-compaction-483-xalancbmk-compaction}
+  \end{subfigure}%
+  \caption{Speedup \& Compaction: 483.xalancbmk}
+  \label{fig:speedup-compaction-483-xalancbmk}
+\end{figure}
 
 \section{Performance}\label{sec:experiment-performance}
 
-This section presents the performance of the benchmarks. The performance is computed as explained by \Cref{sec:performance}. All figures of this section show the \ac{CPA} on the y-axis, computed as illustrated by \Cref{equ:performance-cpa}, on the x-axis the allocators are shown in groups of the applied cache. Additional to the performance we take a look at the distribution of cache misses and caches hits and influences of the different kinds of memory accesses. By now we focus on the benchmarks, \emph{445.gobmk}, \emph{471.omnetpp}, and \emph{483.xalancbmk}, namely. The remaining figures can be found at \Cref{app:experiment-performance}. For each benchmark two figures are presented. Both figures show the performance in \ac{CPA}, but the figure on the left hand-side additionally presents the distribution of cache misses and cache hits and the figure on the right hand-side illustrates the different kinds of memory accesses.
+This section presents the performance of the benchmarks. The performance is computed as explained by \Cref{sec:performance}. All figures of this section show the \ac{CPA} on the y-axis, computed as illustrated by \Cref{equ:performance-cpa}, on the x-axis the allocators are shown in groups of the applied cache. Additional to the performance we take a look at the distribution of cache misses and caches hits and influences of the different kinds of memory accesses. By now we focus on the benchmarks, \emph{445.gobmk}, \emph{471.omnetpp}, and \emph{483.xalancbmk}, namely. The remaining figures can be found at \Cref{app:experiment}. For each benchmark two figures are presented. Both figures show the performance in \ac{CPA}, but the figure on the left hand-side additionally presents the distribution of cache misses and cache hits and the figure on the right hand-side illustrates the different kinds of memory accesses.
 
 \subsection{445.gobmk}
 \Cref{fig:performance-445-gobmk} presents the results of the 445.gobmk benchmark. For each group of allocators, e.g., the five allocators Identity, CompactStack, CompactSet, CompactQueue, and SingleAssignment of the \ac{LRU} group, the results of Identity represent the baseline. Lets stick with the first group the baseline is a CPA of $15.22$. The allocators CompactStack, CompactSet, and SingleAssignment perform better than the Identity. This means the performance of the original \ac{trace} offers potential of improvement, as shown by these three allocators. However, not all of them show an improvement. The CompactQueue allocators presents a dramatically worse performance than Identity. Nevertheless, we observe that the \ac{CPA} of the CompactQueue presented by the \ac{LRU} cache is the worst. For the other cache implementation its performance is significant better. In more detail the CompactQueue performs much better on the MIN caches than on the \ac{LRU} caches. For the MIN caches the performance of the SingleAssignment approach is the worst. For completeness the CompactStack performance best on all cache implementations. This nicely illustrates the influence of the underlining cache. It seams that all allocators benefit from the usage of liveness information. Not surprisingly the MIN cache is beatifically for all allocators.
@@ -956,7 +1191,6 @@ Summarizing the \Cref{fig:performance-445-gobmk} illustrate that there is potent
 \subsection{483.xalancbmk}
 \Cref{fig:performance-483-xalancbmk} illustrates the performance of the 483.xalancbmk. The most obvious observation is that the performance gap of the \ac{LRU} cache implementations and the \ac{MIN} implementations is dramatical. Hence, the \ac{LRU} cache is not the optimal cache for our compacting allocators. In a worst case our transformations yield approximately a 10 times worse \ac{CPA} than the Identity. The source of this poor performance seams to be that the compaction increases the number of cache misses. Unfortunately, many of the cache misses yield a main memory access, as illustrated by \Cref{fig:performance-483-xalancbmk-memops}. Peeking CompactQueue as out standing example the number of cache misses is nearly identical with the number of main memory access which leads to its poor performance. As expected the implementation of the \ac{LRU} cache which uses the liveness information is able a better \ac{CPA} for all allocators. But even those results are far from good. However, the results for the \ac{MIN} caches are much better than those of the \ac{LRU} caches. Even though the performance of the \ac{MIN} caches is much better there is only one allocator which is able to improve the performance in comparison to the Identity allocator, CompactStack namely. CompactSet is close to the original performance but the other tow CompactQueue, and SingleAssignment do not perform as well.
 
-
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
     \includegraphics[width=\textwidth]{figs/plots/perf-misses-483-xalancbmk.eps}
@@ -972,149 +1206,10 @@ Summarizing the \Cref{fig:performance-445-gobmk} illustrate that there is potent
   \label{fig:performance-483-xalancbmk}
 \end{figure}
 
-
-% ----------------------- %
-% Conclusion: Performance %
-% ----------------------- %
-\subsection{Conclusion}
-This section presents the performance of three benchmarks with quite different results. The 445.gobmk presents that there is potential for performance improvement by picking the right allocator. In this case CompactStack and CompactSet, namely. Further, it also illustrates that performance can become much worse than the base line performance by deciding on the wrong allocator. For this benchmark CompactQueue offers the worst performance results.
-
-The 471.omnetpp benchmark presents less potential for performance improvement. Nevertheless, with the \ac{MIN} caches we and up with quite close to the optimal \ac{CPA}. Which is quite impressive facing that small margin of improvement potential. Unfortunately, non of our allocator is able to result in a better performance than Identity applying any of the \ac{LRU} caches. Note, also for this benchmark the CompactQueue allocators offers the worst performance.
-
-The 483.xalancbmk present a hugh gap between \ac{LRU} and \ac{MIN} cache implementations. Furthermore, the CompactStack allocator is the only implementation which is able to perform better than the original \ac{trace}. As for the other two benchmarks CompactQueue offers the worst performance.
-
-Intuitively, the CompactQueue implementation picks always the variable which has been freed least recently (longest ago). While the stack implementation of the free list enables the CompactStack to pick the most recently freed variable (shortest ago). Obviously, the most recently freed variable has a high probability to still be in the cache than the variable least recently freed.
-
-\section{Speedup \& Compaction}
-
-\begin{figure}[!ht]
-  \centering
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/speedup-445-gobmk.eps}
-    \subcaption{Speedup}
-  \end{subfigure}%
-    \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/compaction-445-gobmk.eps}
-    \subcaption{Compaction}
-  \end{subfigure}%
-  \caption{Speedup \& Compaction: 445.gobmk}
-  \label{fig:speedup-compaction-445-gobmk}
-\end{figure}
-
-\begin{figure}[!ht]
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/speedup-471-omnetpp.eps}
-    \subcaption{Speedup}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/compaction-471-omnetpp.eps}
-    \subcaption{Compaction}
-  \end{subfigure}%
-    \caption{Speedup \& Compaction: 471.omnetpp}
-  \label{fig:speedup-compaction-471-omnetpp}
-\end{figure}
-
-\begin{figure}[!ht]
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/speedup-483-xalancbmk.eps}
-    \subcaption{Speedup}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/compaction-483-xalancbmk.eps}
-    \subcaption{Compaction}
-  \end{subfigure}%
-    \caption{Speedup \& Compaction: 483.xalancbmk}
-  \label{fig:speedup-compaction-483-xalancbmk}
-\end{figure}
-
-\section{Correlation of Speedup \& Compaction}
-
-\begin{figure}[!ht]
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN-CompactStack.eps}
-    \caption{CompactStack}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN-CompactSet.eps}
-    \caption{CompactSet}
-  \end{subfigure}%
-  \qquad
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN-CompactQueue.eps}
-    \caption{CompactQueue}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN-SingleAssignment.eps}
-    \caption{SingleAssignment}
-  \end{subfigure}%
-  \caption{Correlation of Speedup and Compaction: Belady}
-\end{figure}
-
-\begin{figure}[!ht]
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN+Liveness-CompactStack.eps}
-    \caption{CompactStack}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN+Liveness-CompactSet.eps}
-    \caption{CompactSet}
-  \end{subfigure}%
-  \qquad
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN+Liveness-CompactQueue.eps}
-    \caption{CompactQueue}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-MIN+Liveness-SingleAssignment.eps}
-    \caption{SingleAssignment}
-  \end{subfigure}%
-  \caption{Correlation of Speedup and Compaction: Belady+Liveness}
-\end{figure}
-
-\begin{figure}[!ht]
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU-CompactStack.eps}
-    \caption{CompactStack}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU-CompactSet.eps}
-    \caption{CompactSet}
-  \end{subfigure}%
-  \qquad
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU-CompactQueue.eps}
-    \caption{CompactQueue}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU-SingleAssignment.eps}
-    \caption{SingleAssignment}
-  \end{subfigure}%
-  \caption{Correlation of Speedup and Compaction: LRU}
-\end{figure}
-
-\begin{figure}[!ht]
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU+Liveness-CompactStack.eps}
-    \caption{CompactStack}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU+Liveness-CompactSet.eps}
-    \caption{CompactSet}
-  \end{subfigure}%
-  \qquad
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU+Liveness-CompactQueue.eps}
-    \caption{CompactQueue}
-  \end{subfigure}%
-  \begin{subfigure}[b]{0.5\textwidth}%
-    \includegraphics[width=\textwidth]{figs/plots/correlation-LRU+Liveness-SingleAssignment.eps}
-    \caption{SingleAssignment}
-  \end{subfigure}%
-  \caption{Correlation of Speedup and Compaction: LRU+Liveness}
-\end{figure}
-
-
 \section{Statistical Analysis}
+\label{sec:experiment-statistical-analysis}
+
+This section presents the statistical analysis on the benchmarks according to the metrics presented in \Cref{sec:metrics}. The metrics presented are observed from the Identity allocator. More details and further tables can be found in \Cref{app:experiment}.
 
 \begin{table}[!ht]
   \centering
@@ -1122,1138 +1217,128 @@ Intuitively, the CompactQueue implementation picks always the variable which has
     \hline
     Benchmark & Size [MB] & Number of Instructions & Loads [\%] & Stores [\%] \tabularnewline
     \hline
-    445.gobmk      & 1781.76 &  186740466 & 50.20 & 49.80 \tabularnewline
-    450.soplex     &  196.29 &   20582523 & 27.90 & 72.10 \tabularnewline
-    454.calculix   &  505.71 &   53027458 & 31.93 & 68.07 \tabularnewline
-    462.libquantum &  945.71 &   99165026 & 14.28 & 85.72 \tabularnewline
-    741.omnetpp    & 8069.12 & 8459396786 & 39.40 & 60.60 \tabularnewline
-    483.xalancbmk  & 1269.76 &  133660557 & 25.47 & 74.53 \tabularnewline
-    \hline
-    Richards       &  790.51 &   82890768 & 24.90 & 75.10 \tabularnewline
-    Raytrace       &  591.43 &   62015988 & 35.33 & 64.67 \tabularnewline
-    Deltablue      & 2590.72 &  272165756 & 25.62 & 74.38 \tabularnewline
+    445.gobmk      & 1781.76 &  \num{186740466} & 50.20 & 49.80 \tabularnewline
+    450.soplex     &  196.29 &   \num{20582523} & 27.90 & 72.10 \tabularnewline
+    454.calculix   &  505.71 &   \num{53027458} & 31.93 & 68.07 \tabularnewline
+    462.libquantum &  945.71 &   \num{99165026} & 14.28 & 85.72 \tabularnewline
+    741.omnetpp    & 8069.12 & \num{8459396786} & 39.40 & 60.60 \tabularnewline
+    483.xalancbmk  & 1269.76 &  \num{133660557} & 25.47 & 74.53 \tabularnewline
+    richards       &  790.51 &   \num{82890768} & 24.90 & 75.10 \tabularnewline
+    raytrace       &  591.43 &   \num{62015988} & 35.33 & 64.67 \tabularnewline
+    deltablue      & 2590.72 &  \num{272165756} & 25.62 & 74.38 \tabularnewline
     \hline
   \end{tabular}
   \caption{Basic benchmark data}
   \label{tab:basic-benchmark-data}
 \end{table}
 
+\Cref{tab:basic-benchmark-data} shows the most basic data for all benchmarks analyzed. According to the size of a benchmark the number of instructions varies. The column \emph{Number of Instructions} shows the total number of load and store instructions. The columns \emph{Loads} and \emph{Store} present the distribution of loads and stores in percentage. Most of the listed benchmarks are store-intensive, consists of more store instructions than load instructions. Except the 445.gobmk benchmark that presents a distribution of $50.20$ percent loads and $49.8$ percent stores. 462.libquantum consists of $85.72$ percent stores which is the maximum for all benchmarks listed.
 
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}{lrrr}
+    \hline
+     & 445.gobmk & 471.omnetpp & 483.xalancbmk\\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-address-accesses-3.csv}%
+    {1=\collabel, 2=\colgobmk, 3=\colomnetpp, 4=\colxalancbmk}%
+    {\collabel & \num{\colgobmk} & \num{\colomnetpp} & \num{\colxalancbmk}}%
+    \hline
+  \end{tabular}
+  \caption{Metric: Accesses}
+  \label{tab:metric-accesses-3}
+\end{table}
+
+\Cref{tab:metric-accesses-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-accesses-all} presents the results for all benchmarks. \emph{Count} represents the number of different variables used. The arithmetic mean shows that a variables of 445.gobmk are accessed $111.56$ times in average, variables of 471.omnetpp are accessed $859.89$ times in average, and variable of 483.xalancbmk are accessed $155.57$ times in average. Clearly the variables of the 471.omnetpp benchmarks are accessed most in average. \emph{Minimum} and \emph{maximum} show that there exists at least one variable that is accessed only once and that there is at least on variable with is accessed $12057070$, $19444797$, and $2416458$ for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. Investigating the results of the percentiles shows that the \emph{average} is misleading. For the 445.gobmk the 95\% percentile presents a value of $23$. Hence, 95\% of all variables are accessed at most 23 times. This indicates that the remaining 5\% of the variables are accessed significantly more often. Otherwise the \emph{average} would not result in a value that high. These values indicate that half of the variables are accessed with high frequency. The 25\% percentile shows that there variables which are accessed with even higher frequency. The 445.gobmk benchmark presents a 25\% percentile of $3$. On the opposite the results of the 445.gobmk benchmark for the 95\% percentile illustrate that 5\% of the variables used are accessed with large distances, a low frequency. For the benchmarks 471.omnetpp and 483.xalancbmk the 95\% percentile is significantly larger then the 75\% percentile that show the same behavior as for the 445.gobmk benchmark. However, the increase is significantly less than for the 445.gobmk. The 471.omnetpp benchmark presents a similar behavior as the 445.gobmk benchmark. The most significant difference is that the variable are in general accessed more often, this is observable for example from the 50\% percentile. The 483.xalancbmk shows a significant gap between 75\% percentile and 95\% percentile. Indicating that 25\% of the used variables are accessed significantly more often that the others.
+
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}{lrrr}
+    \hline
+     & 445.gobmk & 471.omnetpp & 483.xalancbmk\\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-access-distances-3.csv}%
+    {1=\collabel, 2=\colgobmk, 3=\colomnetpp, 4=\colxalancbmk}%
+    {\collabel & \num{\colgobmk} & \num{\colomnetpp} & \num{\colxalancbmk}}%
+    \hline
+  \end{tabular}
+  \caption{Metric: Access Distance}
+  \label{tab:metric-access-distance-3}
+\end{table}
+
+\Cref{tab:metric-access-distance-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-access-distance-all} presents the results for all benchmarks. \emph{Count} represents the number of different access distances observed for a benchmark. This table shows a large gap between \emph{minimum} and \emph{maximum} access distance. The table show that the \emph{minimum} is $1$ for all benchmarks that indicates that at least one variable is accessed twice without accessing another variable in between. The \emph{maximum} indicates for all three benchmarks that there is at least one variable with is accessed rarely. The \emph{average} access distance is significantly smaller than the \emph{maximum}. The percentiles offer a deeper knowledge about the actual access distances. The $50$\% percentile is identical to the \emph{median}. It shows for the 445.gobmk benchmark that $50$\% of the used variables have an access distance of less equal to $73$. That is several magnitudes less than the average. For the other two benchmarks the situation is similar, 471.omnetpp presents an 50\% percentile of $41$ and the 483.xalancbmk show a value of $394$.
+
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}{lrrr}
+    \hline
+     & 445.gobmk & 471.omnetpp & 483.xalancbmk\\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-live-addresses-3.csv}%
+    {1=\collabel, 2=\colgobmk, 3=\colomnetpp, 4=\colxalancbmk}%
+    {\collabel & \num{\colgobmk} & \num{\colomnetpp} & \num{\colxalancbmk}}%
+    \hline
+  \end{tabular}
+  \caption{Metric: Overlapping Liveness}
+  \label{tab:metric-overlapping-liveness-3}
+\end{table}
+
+\Cref{tab:metric-overlapping-liveness-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-overlapping-liveness-all} presents the results for all benchmarks. \emph{Count} represents the number of overlapping liveness intervals. The table shows that for the 445.gobmk benchmark at least $67$ variables are live at the same time,  $83$ at the 471.omnetpp, and $75$ at the 283.xalancbmk. The 5\% percentile for all three benchmarks shows that during execution there are significantly more variables live at the same time. This indicates that the working set of these three benchmarks definitely does not fit into the cache for this experiment.
+
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}{lrrr}
+    \hline
+     & 445.gobmk & 471.omnetpp & 483.xalancbmk\\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-liveness-length-3.csv}%
+    {1=\collabel, 2=\colgobmk, 3=\colomnetpp, 4=\colxalancbmk}%
+    {\collabel & \num{\colgobmk} & \num{\colomnetpp} & \num{\colxalancbmk}}%
+    \hline
+  \end{tabular}
+  \caption{Metric: Liveness Interval Length}
+  \label{tab:metric-liveness-length-3}
+\end{table}
+
+\Cref{tab:metric-liveness-length-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-liveness-interval-length-all} presents the results for all benchmarks. \emph{Count} represents the number of different liveness interval lengths. The results of the 445.gobmk benchmark indicate that most variables have short liveness intervals. This is indicated by the percentiles 5\%, 25\%, 50\%, and 75\%, which all present value $0$. In this context $0$ means that a variable is live for exactly one access. Hence, 75\% of the variables of the 445.gobmk benchmark are accessed only once. By the delta of the 75\% percentile and 95\% percentile we know that 20\% percent of the used variables are have a liveness interval of a length up to $156$. In combination with the fact that all variables used accumulate to an average liveness interval length of $1402011.75$, this implies that 5\% of the variables used by 445.gobmk consists of a significantly longer liveness interval. The results of the 471.omnetpp benchmark and the 483.xalancbmk benchmark indicate that there is a small amount of variables that significantly longer than the majority of the used variables.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Related Work}\label{cha:related-work}
+% \chapter{Related Work}\label{cha:related-work}
+% \torevise\\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Conclusion}\label{cha:conclusion}
+\chapter{Conclusion \& Future Work}\label{cha:conclusion}
+
+In this work we have analyzed the memory access traces of 9 benchmarks taken from two different benchmark suits, SPEC 2006 and Octane. We have transformed and have investigated the traces of all 9 benchmarks by using the using the allocators Identity, CompactStack, CompactSet, CompactQueue, and SingleAssignment. Each of the transformed traces has been applied on 4 different caches. These 4 caches use 2 different algorithms to decide on an eviction candidate, \ac{LRU} and \citeauthor{belady1966study} namely. For each algorithm there is on version without using liveness information and one version that uses liveness information.
+
+\Cref{cha:experiment} presents an experiment based on our environment to illustrate the difference of our cache implementations, of our allocator implementations, and the used benchmarks.
+The correlation of speedup and compaction presents that there are several benchmarks that show an outstanding good results: 445.gobmk, 471.omnetpp, and 483.xalancbmk.
+
+The 445.gobmk benchmark presents that there is potential for performance improvement by picking the appropriate allocator. In this case CompactStack and CompactSet, namely. Further, it also illustrates that the performance can become significantly worse than the base line performance by deciding on one of the other allocators. For this benchmark the CompactQueue allocators presents the worst performance results. The 445.gobmk benchmark is characterized by few accesses and extremely short liveness intervals for most of the used variables, that yields in a significant performance improvement indicated by the speedup.
+
+The 471.omnetpp benchmark presents less potential for performance improvement. Nevertheless, with the \ac{MIN} caches end up with quite close to the optimal \ac{CPA}. That is quite impressive facing that small margin of improvement potential. Unfortunately, non of our allocators is able to result in a speedup greater than one. However, the 471.omnetpp benchmark presents a remarkable compaction. Using one of our compacting allocators reduced the necessary memory nearly by 40 times. The 471.omnetpp benchmark is characterized by short access distances and short liveness intervals for most of the used variables, that yields in a dramatical reduction for the memory required to execute this benchmark.
+
+The 483.xalancbmk present a significant gap in terms of performance for the \ac{LRU} and \ac{MIN} cache implementations. Further, the CompactStack allocator is the only implementation that is able to perform better than the original \ac{trace}. As for the benchmarks 445.gobmk and 471.omnetpp the CompactQueue allocator presents the worst performance. The 483.xalancbmk benchmark is characterized by few accesses and long liveness intervals for most of the used variables, that indicates that long liveness intervals are not beneficial for the performance.
+
+In most of our experiments the results of the CompactQueue allocator have been outperformed by the CompactStack allocator, or the CompactSet allocator, or both. Intuitively, the CompactQueue implementation picks always the variable which has been freed least recently (longest ago). While the stack implementation of the free list enables the CompactStack to pick the most recently freed variable (shortest ago). Obviously, the most recently freed variable has a high probability to still be in the cache than the variable least recently freed.
+
+For future work remains to implement more sophisticate allocators to improve the quality of the trace transformations. Further, the set of caches available could be extended by implementing additional eviction policies. Furthermore, other benchmark suites could be integrated and analyzed. The additional data could lead to further metrics, which might reveal new characteristics.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\chapter{Future Work}\label{cha:future-work}
-
-% \todo{Figure: Overview - CUP <-> Cache <-> Memory}
-
-% \section{Allocators}
-% \todo{Define: Allocator}
-% \todo{Define: Free list}
-
-% \subsection{Original Allocator}
-% \subsection{Single Assignment Allocator}
-% \todo{Define: Single Assignment}
-
-% \subsection{Compacting Allocator}
-% \todo{Define: Compaction}
-% \subsubsection{Compacting Allocator with Stack Semantic Free List}
-% \subsubsection{Compacting Allocator with Queue Semantic Free List}
-% \subsubsection{Compacting Allocator with Set Semantic Free List}
-
-% \subsection{Own Implementation}
-% \todo{Pick one or two of our own improvement ideas.}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \chapter{Benchmarks}
-
-% \section{\todo{HEADLINE}}
-% \todo{For each benchmark: Description and Statistical Characteristic}
-
-% \subsection{SPEC 2006 Benchmarks \cite{henning2006spec}}
-% \todo{Benchmark description see paper above.}
-% \subsubsection{445 gobmk}
-% \subsubsection{445 gobmk 3}
-% \subsubsection{445 gobmk 5}
-% \subsubsection{445 gobmk 6}
-% \subsubsection{450 soplex}
-% \subsubsection{454 calculix}
-% \subsubsection{462 libquantum}
-% \subsubsection{471 omnetpp}
-% \subsubsection{483 xalancbmk}
-
-% \subsection{Google JavaScript Engine (V8) Benchmarks}
-% \subsubsection{Richards}
-% \subsubsection{Raytrace}
-% \subsubsection{Deltablue}
-
-
-
-% \section{Benchmark analysis}
-
-% \section{Trace generation (Valgrind / Cachegrind)}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \chapter{Experiments}
-% \section{8 Byte Cache Line Size}
-% \section{64 Byte Cache Line Size}
 
 \backmatter%
 
 \input{postface}%
 
 \end{document}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-\chapter{Introduction}
-\section{Definitions - V1}
-\subsection{General definitions}
-\begin{definition}[Command]
-A command is an instruction with the purpose to perform some specific action, e.g, to add two numbers.
-\end{definition}
-
-\begin{definition}[Data]
-Data is the information required by a program for its execution, e.g., values for computations.
-\end{definition}
-
-\begin{definition}[Program]
-A program consists of a sequence of commands which operate on the programs data.
-\end{definition}
-
-\begin{definition}[CPU]
-The CPU (central processing unit) executes a program, i.e., command by command is processed.
-\end{definition}
-
-\begin{definition}[Main Memory (in short: memory)]
-Main Memory is a physical storage. It is structured in chunks of same size. During execution of a program the main memory stores the programs data and the program itself.
-\end{definition}
-
-\begin{definition}[Address]
-A physical address is an unique identifier of a single memory chunk.
-\end{definition}
-
-%  chunk             address
-%  M +-------------+ m
-%    &     ...     |
-%    &     ...     |
-%    &     ...     |
-%  J +-------------+ j
-%    &    Data     |
-%    + - - - - - - +
-%    &   Program   |
-%  I +-------------+ i
-%    &     ...     |
-%    &     ...     |
-%    &     ...     |
-%  0 +-------------+ 0
-
-\begin{definition}[Allocator]
-An allocator maintains a specific part of a programs data, the so-called \textit{heap}. The purpose of an allocator is to keep track about the addresses which are currently in use by the program (\textit{allocated}) and which are not (\textit{free}).
-\end{definition}
-
-%  M +-------------+     /  J +-------------+ address j
-%    &     ...     &    /     &    Stack    |
-%    &     ...     &   /      + ~ ~ ~ ~ ~ ~ + (*)
-%    &     ...     &  /       & Free memory |
-%  J +-------------+          + ~ ~ ~ ~ ~ ~ + (*)
-%    &    Data     &          &             |
-%  K + - - - - - - +          &    Heap     |
-%    &   Program   &          &             |
-%  I +-------------+          +-------------+
-%    &     ...     &  \       &  Constants  |
-%    &     ...     &   \    K + - - - - - - +
-%    &     ...     &    \     &   Program   |
-%  0 +-------------+     \  I +-------------+ address i
-%  (*) Dynamic bound: Grows and shrinks during program execution.
-
-\begin{definition}[Memory layout]
-A memory layout describes which data is stored at which address. The memory layout is determined by the allocator.
-\end{definition}
-
-\begin{example}
-Following example shows two possible memory layouts for the \texttt{data 0-10}. 
-%  J +-------------+ j   /  + ~ ~ ~ ~ ~ ~ +  + ~ ~ ~ ~ ~ ~ +
-%    &    Stack    &    /   &   data 00   &  &   data 10   &  address (k + 10)
-%    + ~ ~ ~ ~ ~ ~ +   /    &   data 01   &  &   data 09   &  address (k + 9)
-%    & Free memory &  /     &   data 02   &  &   data 08   &  address (k + 8)
-%    + ~ ~ ~ ~ ~ ~ +        &   data 03   &  &   data 07   &  address (k + 7)
-%    &             &        &   data 04   &  &   data 06   &  address (k + 6)
-%    &    Heap     &        &   data 05   &  &   data 05   &  address (k + 5)
-%    &             &        &   data 06   &  &   data 04   &  address (k + 4)
-%  K +-------------+ k      &   data 07   &  &   data 03   &  address (k + 3)
-%    &  Constants  &  \     &   data 08   &  &   data 02   &  address (k + 2)
-%    + - - - - - - +   \    &   data 09   &  &   data 01   &  address (k + 1)
-%    &   Program   &    \   &   data 10   &  &   data 00   &  address (k + 0)
-%  I +-------------+ i   \  +-------------+  +-------------+
-\end{example}
-
-\begin{definition}[Register]
-A register is a unit of memory directly accessed by the CPU. The CPU disposes over a limited number of register to process the commands of a program. Registers store commands, addresses of data or data.
-\end{definition}
-
-%  +---------------------+   +----------------------+ 
-%  & Processor           &   & Memory               |
-%  & +-----+-----------+ &   & +-----------+------+ |
-%  & | CPU & Registers & <---> & Addresses & Data & |
-%  & +-----+-----------+ &   & +-----------+------+ |
-%  +---------------------+   +----------------------+
-
-\begin{definition}[Data access]
-A data access is a command aiming on processing data of a program. 
-There are two \textit{access types}:
-1. \textit{read} data: load the value stored at an address into a register
-2. \textit{write} data: store the value of a register at an address
-
-In general a data access consists of 3 components: (1) an access type, (2) an address, and (3) a register. For our purpose we don't care about the register. Hence, a data access is a tuple $(t, a)$ where $t$ is an access type and $a$ is an address (within the bounds of the program).
-\end{definition}
-
-\begin{definition}[Data access time]
-The data access time is the amount of time it takes to data between a register and memory or vice versa.
-\end{definition}
-
-\begin{definition}[Trace]
-The trace $T$ of a program $P$ is the sequence of data accesses $((t_0, a_0), (t_1, a_1), .. (t_{N-1}, a_{N-1}))$ of $P$, with $N > 0$ and $N =|T| \leq |P|$.
-\end{definition}
-
-\begin{definition}[Liveness interval of an address]
-Assume a trace $T$ which contains an address $a$. The liveness interval of $a$ begins with the first data access on $a$ and ends with the last data access on $a$.
-
-Assume tuple $(i,j)_a$ represents the liveness interval of an address $a$ of a trace $T$, $a \in T$ with $|T| = N$ and $0 \leq i,k \leq j,l < N$, then 
- - $(t_i, a_i) \in T$ s.t. $\not\exists k < i: (t_k, a) \wedge a_i = a$, and
- - $(t_j, a_j) \in T$ s.t. $\not\exists l > j: (t_l, a) \wedge a_j = a$.
-\end{definition}
-
-\begin{definition}[Cache]
-A cache is a buffer which stores data currently used by the CPU. To be more precise if there is a data access on an address, this address and its data is temporally store within the cache.
-\end{definition}
-
-\begin{quote}
-\textit{Note:} Caches where introduced, because the offer a smaller data access time than main memory does. This is beneficial for the total execution time of a program.
-
-%  +---------------------+ +---------------------------+ +----------------------+
-%  & Processor           & & Cache                     & & Memory               |
-%  & +-----+-----------+ & & +----------------+------+ & & +-----------+------+ |
-%  & | CPU & Registers & <-> & Some Addresses & Data & <-> & Addresses & Data & |
-%  & +-----+-----------+ & & +----------------+------+ & & +-----------+------+ |
-%  +---------------------+ +---------------------------+ +----------------------+
-\end{quote}
-
-\begin{definition}[Cache hit]
-If the CPU processes a data access on an address which is already stored in the cache, this is called a \textit{cache hit}.
-\end{definition}
-
-\begin{definition}[Cache miss]
-If the CPU processes a data access on an address which is not yet stored in the cache, this is called a \textit{cache miss}.
-\end{definition}
-
-\begin{definition}[Eviction strategy]
-In case of a cache miss it is required make space for the requested address and its data. The \textit{eviction strategy} decides which address is evicted from the cache, i.e., the data of this address is written back to main memory.
-\end{definition}
-
-\subsection{Performance}
-\begin{definition}[Program performance]
-The performance of a program is the time (milliseconds) it take the CPU to process all commands, this is called \textit{total execution time}.
-\end{definition}
-
-\begin{definition}[Allocator performance]
-The performance of an allocator is the number of cache misses yield by a programs trace.
-\end{definition}
-
-\subsection{Definitions required to transform a trace $T$ into single-assignment form}
-\begin{definition}[Variable]
-A variable $v$ is a unique identifier of the single-assignment form. 
-\end{definition}
-
-\begin{definition}[Assignment of a variable]
-Each time an data access $(t, a)$ occurs in $T$, where $t$ is a \textit{write} access a new variable $v$ is chosen to replace $a$ for this data access and all following data accesses which are of type \textit{read}. (If address $a$ of trace $T$ is written multiple times each time an new variable is used.)
-\end{definition}
-
-\begin{definition}[Static-single-assignment form (SSA)]
-A program is in single-assignment form if every variable has exactly one assignment.
-\end{definition}
-
-
-\section{Definitions - V2}
-
-\subsection{The Memory Hierarchy}
-
-% +-----+ cache store  +-------+ memory store  +-------------+
-% |     |------------->|       |-------------->|             |
-% | CPU |              |  SPM  |               | Main Memory |
-% |     |<-------------|       |<--------------|             |
-% +-----+  cache load  +-------+  memory load  +-------------+
-
-\subsubsection{About Access Times}
-
-Wikipedia 'Cache hierarchy'\footnote{\url{https://en.wikipedia.org/wiki/Cache\_hierarchy\#Properties}} describes several properties of caches that influence cache behaviour and access times:
-\begin{itemize}
-  \item Banked (separation of data and instruction caches) vs unified
-  \item Inclusion vs exclusion vs non-inclusive non-exclusive: Defines whether data of lower caches is duplicated in higher caches.
-  \item Write through vs write back: Defines whether data is written immediately or on eviction
-  \item Write allocate vs write no-allocate: Defines whether data is fetched from memory on a write miss or not.
-\end{itemize}
-
-What every programmer should know about memory\cite{drepper2007every} has these numbers for access times:
-
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|}
-    \hline
-    To Where & Cycles & Factor to lower memory \tabularnewline
-    \hline \hline
-    Register & $\leq$  1 &     - \tabularnewline
-    L1d      &       \~3 &     3 \tabularnewline
-    L2       &      \~14 &  4.67 \tabularnewline
-    RAM      &     \~240 & 17.14 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:def-access-times-1}
-\end{table}
-
-The 7zip benchmark pages\footnote{\url{http://www.7-cpu.com/cpu/Skylake.html}} has cycle time numbers for modern processors. 
-For example for a Intel i7-6700 (Skylake):
-
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|}
-    \hline
-    To Where & Latency & Factor to lower memory \tabularnewline
-    \hline \hline
-    L1d &                          4 or 5 cycles &  5.0 \tabularnewline
-    L2  &                              12 cycles &  2.4 \tabularnewline
-    L3  &                        38 or 42 cycles &  3.5 \tabularnewline
-    RAM & 42 cycles + 51 ns (= 246 cycles @4GHz) & 5.86 \tabularnewline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:def-access-times-2}
-\end{table}
-
-\subsection{The Model}
-
-\begin{definition}[trace]
-A trace is a sequence of instructions.
-\end{definition}
-
-\begin{definition}[instruction]
-An instruction is an access to an address given by the tupel $(t, a)$ with $t$ in ${Read, Write}$ and $a$ an address in main memory.
-\end{definition}
-
-\begin{definition}[Address]
-A location in the memory that one variable can occupy for a certain period of time.
-\end{definition}
-
-\begin{definition}[Variable]
-A value that can change overtime. In this context, a variable is a name that represents a data used by the trace. it can change according to the trace transformations.
-\end{definition}
-
-\begin{definition}[Single assignment form (SA)]
-A trace is in single assignment form if every variable has exactly one assignment. \cite{rosen1988global} \cite{alpern1988detecting}
-\end{definition}
-
-
-\begin{definition}[Trace transformation]
-Trace transformation
-\end{definition}
-
-\begin{definition}[Initial trace]
-The initial trace $T$ of a program $P$ is the sequence of 'data' accesses $((t_0, a_0), (t_1, a_1), \dots (t_{N-1}, a_{N-1}))$ of $P$, with $N > 0$ and $N = |T| \leq |P|$.
-\end{definition}
-
-\begin{definition}[Data]
-A data is an information processed or stored by a computer.
-\end{definition}
-
-\begin{definition}[Variable]
-A variable $v$ is a unique identifier of the single-assignment form.
-\end{definition}
-
-\begin{definition}[Assignment of a variable]
-Each time an data access $(t, a)$ occurs in $T$, where $t$ is a \textit{write} access a new variable $v$ is chosen to replace $a$ for this data access and all following data accesses which are of type \textit{read}. (If address $a$ of trace $T$ is written multiple times each time an new variable is used.)
-\end{definition}
-
-\begin{definition}[Canonical Form]
-A canonical form trace is the trace obtained after the single Assignment transformation.
-\end{definition}
-
-\begin{definition}[Liveness interval of a variable]
-The liveness interval of a variable is the continuous period of time where the variable is occupying an addresse. (the change of the addresse occupied implies a new liveness interval / "continous" means no other variable was placed in this address during this time period).
-\end{definition}
-
-% +------------+                                     +------------+
-% | Trace file |                                     | Single     |
-% |            | ----------------------------------> | Assignment |
-% | (.trace)   |  Single Assignment Transformation   | Trace      |
-% +------------+                                     +------------+
-
-\begin{definition}[Allocator]
-An allocator maintains a specific part of a programs data, the so-called \textit{heap}. The purpose of an allocator is to keep track about the addresses which are currently in use by the program (\textit{allocated}) and which are not (\textit{free}).
-\end{definition}
-
-\begin{definition}[Allocator Trace]
-Allocator Trace
-\end{definition}
-
-\begin{definition}[Memory layout]
-A memory layout describes which data is stored at which address. The memory layout is determined by the allocator.
-\end{definition}
-
-\begin{definition}[Address]
-A location in the memory that one variable can occupy for a certain period of time.
-\end{definition}
-
- %  chunk             address
- % M +-------------+ m
- %   |     ...     |
- %   |     ...     |
- %   |     ...     |
- % J +-------------+ j
- %   |    Data     |
- %   + - - - - - - +
- %   |   Program   |
- % I +-------------+ i
- %   |     ...     |
- %   |     ...     |
- %   |     ...     |
- % 0 +-------------+ 0
-
-\begin{definition}[Physical Address]
-A physical address is an unique identifier of a single memory chunk.
-\end{definition}
-
-\begin{definition}[Virtual Address]
-A virtual address is an unique identifier of a physical address in the context of a program, i.e., there is only one virtual address 0 within a program but multiple programs might make use of an virtual address 0.
-\end{definition}
-
-\begin{definition}[Trace allocator]
-The initial trace $T$ of a program $P$ is the sequence of 'addresses' accesses $((t_0, a_0), (t_1, a_1), \dots (t_{N-1}, a_{N-1}))$ of $P$, with $N > 0$ and $N = |T| \leq |P|$.
-\end{definition}
-
-\begin{definition}[Memory layout]
-A memory layout describes which data is stored at which address. The memory layout is determined by the allocator.
-\end{definition}
-
-% +------------+   +-----------+   +-----------+
-% | Single     |   |           |   | Allocator |
-% | Assignment | + | Allocator | = | Trace     |
-% | Trace      |   |           |   |           |
-% +------------+   +-----------+   +-----------+
-
-\begin{definition}[Memory Model]
-Memory Model
-\end{definition}
-
-\begin{definition}[Performance]
-Performance
-\end{definition}
-
-\begin{definition}[Cache]
-A cache is a buffer which stores data currently used by the CPU. To be more precise if there is a data access on an address, this address and its data is temporally store within the cache.
-\end{definition}
-
-% +---------------------+ +---------------------------+ +----------------------+
-% | Processor           | | Cache                     | | Memory               |
-% | +-----+-----------+ | | +----------------+------+ | | +-----------+------+ |
-% | | CPU | Registers | <-> | Some Addresses | Data | <-> | Addresses | Data | |
-% | +-----+-----------+ | | +----------------+------+ | | +-----------+------+ |
-% +---------------------+ +---------------------------+ +----------------------+
-
-\begin{definition}[Address Spaces]
-The address space is the set of addresses in the memory that will be used by the trace.
-\end{definition}
-
-\begin{definition}[Register]
-A register is a unit of memory directly accessed by the CPU. The CPU disposes over a limited number of register to process the commands of a program. Registers store commands, addresses of data or data.
-\end{definition}
-
-% +---------------------+   +----------------------+
-% | Processor           |   | Memory               |
-% | +-----+-----------+ |   | +-----------+------+ |
-% | | CPU | Registers | <---> | Addresses | Data | |
-% | +-----+-----------+ |   | +-----------+------+ |
-% +---------------------+   +----------------------+
-
-\begin{definition}[Main Memory]
-Main Memory is a physical storage. It is structured in chunks of same size. During execution of a program the main memory stores the programs data and the program itself.
-\end{definition}
-
-\begin{example}
-Following example shows two possible memory layouts for the `data 0-10`.
-% J +-------------+ j   /  + ~ ~ ~ ~ ~ ~ +  + ~ ~ ~ ~ ~ ~ +
-%   |    Stack    |    /   |   data 00   |  |   data 10   |  address (k + 10)
-%   + ~ ~ ~ ~ ~ ~ +   /    |   data 01   |  |   data 09   |  address (k + 9)
-%   | Free memory |  /     |   data 02   |  |   data 08   |  address (k + 8)
-%   + ~ ~ ~ ~ ~ ~ +        |   data 03   |  |   data 07   |  address (k + 7)
-%   |             |        |   data 04   |  |   data 06   |  address (k + 6)
-%   |    Heap     |        |   data 05   |  |   data 05   |  address (k + 5)
-%   |             |        |   data 06   |  |   data 04   |  address (k + 4)
-% K +-------------+ k      |   data 07   |  |   data 03   |  address (k + 3)
-%   |  Constants  |  \     |   data 08   |  |   data 02   |  address (k + 2)
-%   + - - - - - - +   \    |   data 09   |  |   data 01   |  address (k + 1)
-%   |   Program   |    \   |   data 10   |  |   data 00   |  address (k + 0)
-% I +-------------+ i   \  +-------------+  +-------------+
-\end{example}
-
-\begin{definition}[CPU]
-The CPU (central processing unit) executes a program, i.e., command by command is processed.
-\end{definition}
-
-\begin{definition}[Data access]
-A data access is a command aiming on processing data of a program. There are two \textit{access types}:
-\begin{enumerate}
-  \item \textit{read} data: load the value stored at an address into a register
-  \item \textit{write} data: store the value of a register at an address
-\end{enumerate}
-In general a data access consists of 3 components: (1) an access type, (2) an address, and (3) a register. For our purpose we don't care about the register. Hence, a data access is a tuple $(t, a)$ where $t$ is an access type and $a$ is an address (within the bounds of the program).
-\end{definition}
-
-\begin{definition}[Data access time]
-The data access time is the amount of time it takes to data between a register and memory or vice versa.
-\end{definition}
-
-\begin{definition}[Cache Hit]
-If the CPU processes a data access on an address which is already stored in the cache, this is called a \textit{cache hit}.
-\end{definition}
-
-\begin{definition}[Cache Miss]
-If the CPU processes a data access on an address which is not yet stored in the cache, this is called a \textit{cache miss}.
-\end{definition}
-
-\begin{definition}[Eviction strategy]
-In case of a cache miss it is required make space for the requested address and its data. The \textit{eviction strategy} decides which address is evicted from the cache, i.e., the data of this address is written back to main memory.
-\end{definition}
-
-\subsection{Performance}
-\begin{definition}[Program performance]
-The performance of a program is the time it take the CPU to process all commands, this is called \textit{total execution time}
-\end{definition}
-
-\begin{definition}[Allocator performance]
-The performance of an allocator is the number of cache misses yield by a programs trace.
-\end{definition}
-
-% +-----------+   +--------+
-% | Allocator |   | Memory |
-% | Trace     | + | Model  | = Performance metric
-% |           |   |        |
-% +-----------+   +--------+
-
-\subsection{The Allocators}
-
-\subsubsection{SingleAssignmentAllocator}
-\subsubsection{IdentityAllocator}
-\subsubsection{CompactStackAllocator}
-\subsubsection{CompactQueueAllocator}
-\subsubsection{CompactSetAllocator}
-
-\subsection{The Caches}
-\subsubsection{BeladyCache}
-\subsubsection{OPTCache}
-\subsubsection{ValgrindCache}
-\subsubsection{ValgrindLivenessCache}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\chapter{Experiments}
-
-\section{Compact Allocators}
-
-\begin{quote}
-For a given trace, can I get a better (the optimal) performance simply by changing addresses?
-\end{quote}
-
-\subsection{Previous Work}
-
-The last reports have shown that in the context of scratchpad memory and with full knowledge about the liveness of addresses the number of memory accesses is independent of the memory layout. The number of misses, however, is influenced by it.
-The plots suggest that a compacting allocator which reuses cached dead items gives a transformation that is minimal in the number of misses when using a scratchpad memory model.
-
-\begin{quote}
-Given a trace $T$, liveness information of addresses of $T$, a scratchpad memory and a scratchpad strategy based on $T$. Then, a compacting allocator that reuses cached dead items when possible gives the transformed trace $T'$ that is optimal in the number of misses.
-\end{quote}
-
-This report compares several implementations of compacting allocators.
-
-\subsection{Methodology}
-
-We compare the following allocators.
-\begin{enumerate}
-  \item \textbf{Identity} Addresses are unchanged from the identity \ac{trace}.
-  \item \textbf{SSA} Addresses are not reused.
-  \item \textbf{CompactStack} Bump pointer allocator with a free list with stack semantics. Freed addresses are appended at the end and popped from the end on allocation.
-  \item \textbf{CompactQueue} Bump pointer allocator with a free list with queue semantics. Freed addresses are appended at the end and taken from the beginning on allocation.
-  \item \textbf{CompactSet} Bump pointer allocator with a free list where free addresses are chosen at random on allocation.
-  \item \textbf{CompactCached} Bump pointer allocator that reuses a freed, cached address if there is one or a stack-like free list otherwise.
-\end{enumerate}
-
-The memory model is again a scratchpad memory with 8-byte lines and an increasing size.
-
-Again, the results for the V8 benchmarks Richards, Deltablue, and Raytrace are plotted.
-
-\subsection{Results}
-
-\subsubsection{Richards - misses}
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{SSA} & \textbf{CompactStack} & \textbf{CompactQueue} & \textbf{CompactSet} & \textbf{CompactCached} \tabularnewline
-    \hline \hline
-    1024  & 19906406 & 27186015 & 14288773 & 27185933 & 14659129 & 13501287 \tabularnewline
-    2048  & 13348365 & 21797929 &  7037009 & 21797723 &  7436173 &  6334160 \tabularnewline
-    4096  &  8502161 & 19039748 &  2529214 & 19038965 &  3015836 &  2094777 \tabularnewline
-    8192  &  5997722 & 18550483 &  1587408 & 18548641 &  2135818 &  1263075 \tabularnewline
-    16384 &  5278238 & 18315329 &  1128682 & 18305995 &  1707261 &   859009 \tabularnewline
-    32768 &  5077416 & 18178226 &   857012 & 18080705 &  1449062 &   618508 \tabularnewline
-    65536 &  4495702 & 18094113 &   677410 & 17684018 &  1262799 &   466934 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-compact-richards-misses}
-\end{table}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width = .75\textwidth]{plots/compact-richards.png}
-  \caption{Misses of Richards benchmark}
-  \label{fig:experiment-compact-richards-misses}
-\end{figure}
-
-\subsubsection{DeltaBlue - misses}
-
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{SSA} & \textbf{CompactStack} & \textbf{CompactQueue} & \textbf{CompactSet} & \textbf{CompactCached} \tabularnewline
-    \hline \hline
-    1024  & 77146231 & 98768459 & 52700195 & 98768383 & 53306777 & 50758432 \tabularnewline
-    2048  & 53120872 & 79005685 & 28072125 & 79005479 & 28715840 & 25892998 \tabularnewline
-    4096  & 41637998 & 70953742 & 16673778 & 70952971 & 17370985 & 14835627 \tabularnewline
-    8192  & 28707195 & 65036775 &  7392572 & 65035091 &  8198850 &  6270975 \tabularnewline
-    16384 & 23906668 & 62731219 &  3346997 & 62714931 &  4278582 &  2612975 \tabularnewline
-    32768 & 20440744 & 62151273 &  2151620 & 62022996 &  3109816 &  1576686 \tabularnewline
-    65536 & 20079036 & 61858627 &  1516174 & 61517639 &  2497068 &  1043268 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-compact-deltablue-misses}
-\end{table}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width = .75\textwidth]{plots/compact-deltablue.png}
-  \caption{Misses of DeltaBlue benchmark}
-  \label{fig:experiment-compact-deltablue-misses}
-\end{figure}
-
-\subsubsection{Raytrace - misses}
-
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{SSA} & \textbf{CompactStack} & \textbf{CompactQueue} & \textbf{CompactSet} & \textbf{CompactCached} \tabularnewline
-    \hline \hline
-    1024  & 17020972 & 24944756 & 11379998 & 24944674 & 11800338 & 10296539 \tabularnewline
-    2048  & 14440844 & 23046938 &  8474762 & 23046732 &  8923334 &  7499105 \tabularnewline
-    4096  & 12541349 & 21674551 &  6328499 & 21673768 &  6803800 &  5444919 \tabularnewline
-    8192  & 10856047 & 20607354 &  4517425 & 20605669 &  5020860 &  3757431 \tabularnewline
-    16384 &  9491867 & 19882091 &  3159250 & 19876330 &  3705843 &  2531928 \tabularnewline
-    32768 &  8906151 & 19497833 &  2429807 & 19478760 &  2996836 &  1877661 \tabularnewline
-    65536 &  8218054 & 19236973 &  1910619 & 19173814 &  2483494 &  1421185 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-compact-raytrace-misses}
-\end{table}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width = .75\textwidth]{plots/compact-raytrace.png}
-  \caption{Misses of Raytrace benchmark}
-  \label{fig:experiment-compact-raytrace-misses}
-\end{figure}
-
-\subsubsection{Navier-Stokes - misses}
-
-From Chromium Blog\footnote{\url{https://blog.chromium.org/2012/03/v8-benchmark-suite-extended-with.html}}
-\begin{quote}
-  This new version adds Oliver Hunt's 2D Navier-Stokes fluid dynamic simulation, which stresses intense double array computations. These complex double array computations are today common in games, graphic and scientific applications.
-\end{quote}
-
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{SSA} & \textbf{CompactStack} & \textbf{CompactQueue} & \textbf{CompactSet} & \textbf{CompactCached} \tabularnewline
-    \hline \hline
-    1024  & 151591543 & 197638846 & 122279178 & 197638770 & 124040970 & 120281818 \tabularnewline
-    2048  & 126350972 & 173010778 &  96389043 & 173010573 &  98196415 &  94309498 \tabularnewline
-    4096  & 123796035 & 170945407 &  93487986 & 170944635 &  95316020 &  91414571 \tabularnewline
-    8192  & 121982315 & 169615053 &  91176334 & 169613376 &  93022611 &  89148010 \tabularnewline
-    16384 & 118622912 & 167610304 &  87596431 & 167604544 &  89467888 &  85647336 \tabularnewline
-    32768 & 114717104 & 163980384 &  81473478 & 163960984 &  83360157 &  79583462 \tabularnewline
-    65536 & 106277710 & 156998071 &  70413666 & 156881332 &  72288424 &  68566643 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-compact-navier-stokes-misses}
-\end{table}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width = .75\textwidth]{plots/compact-navier-stokes.png}
-  \caption{Misses of Navier-Stokes benchmark}
-  \label{fig:experiment-compact-navier-stokes-misses}
-\end{figure}
-
-\subsection{Conclusion}
-
-The plots show that CompactCached has the fewest misses of all implemented compacting allocators.
-Also, CompactStack has a comparable number of misses.
-Interestingly also CompactSet comes close.
-We will examine if this is because of a flawed implementation or actual legit behavior.
-
-While the plots suggest that CompactCached is better than any other examined allocator we still need solid evidence for this property.
-
-
-\section{8th June, 2017 and 13th June, 2017}
-\begin{quote}[Research question]
-Can I get the optimal performance by changing the addresses used by a given trace $T$?
-\end{quote}
-
-\subsection{What is this report about?}
-The purpose of this experiment is to show that under certain assumptions the memory layout has no impact on the number of memory accesses.
-
-\subsection{Experimental setup}
-\subsubsection{Definitions}
-
-\begin{definition}[Instruction] 
-An instruction is the pair $(t, a)$ where $t \in {R, W}$ denotes read and write access and $a$ the address being accessed.
-\end{definition}
-
-\begin{definition}[Trace] 
-A trace is a sequence $((t_0, a_0), (t_1, a_1), ..., (t_{n-1}, a_{n-1}))$ of pairs with $0 \leq i < n$ where $t_i \in {R, W}$ denotes read or write access and $a_i$ the address being accessed.
-\end{definition}
-
-\begin{definition}[Liveness interval] 
-A liveness interval is defined as the interval between a write to an address and the final access before the next write to the same address or the end of the trace.
-\end{definition}
-
-\begin{definition}[Trace transformation] 
-We define a transformation between traces $T$ and $T'$ as a renaming of addresses such that liveness intervals are unchanged.
-\end{definition}
-
-\begin{definition}[Scratchpad memory (SPM)] 
-A scratchpad memory is an application controlled, fast memory. A subset of addresses in main memory.
-\end{definition}
-
-% +-----+ store  +-------+ store  +-----+
-% &     |------->|       |------->|     |
-% & CPU &        &  SPM  &        & RAM |
-% &     |<-------|       |<-------|     |
-% +-----+  load  +-------+  load  +-----+
-
-\begin{definition}[Memory accesses] 
-A store or a load between scratchpad memory and main memory.
-\end{definition}
-
-\begin{definition}[Miss] 
-Whenever the accesses item is not in the SPM it is a \textit{miss}, other wise it is a \textit{hit}.
-\end{definition}
-
-\begin{definition}[Performance] 
-Performance is defined as the number of memory accesses during the the execution of a trace $T$.
-\end{definition}
-
-\begin{definition}[Optimal Performance] 
-The optimal performance is the minimal number of memory accesses of all possible transformations of a trace $T$.
-\end{definition}
-
-\begin{definition}[The minimum heap size] 
-Let $n_i$ $0 \leq i \leq N$ be the numbers of overlapping intervals at instruction $i$ of the trace. The minimum heap size is: $n_max * word_size$ where $n_max = \max{n_i, 0 \leq i \leq N}$.
-\end{definition}
-
-\subsection{Hypothesis}
-
-Given a trace $T$, a scratchpad memory, liveness intervals of $T$, then the number of memory accesses is constant for any memory layout.
-
-\subsection{Experiments}
-
-The tiny experiment is repeated on traces of V8 benchmarks for an SPM size of $2^10$ bytes to $2^16$ bytes. Shown in this table is the number of memory accesses for each allocator as well as the average and standard deviation across all allocators.
-
-Benchmark description taken from Chromium Blog (\url{https://blog.chromium.org/2010/10/v8-benchmark-suite-updated.html}).
-
-\subsubsection{Tiny Example}
-
-Take an example trace (all accesses are 8 bytes):
-
-\begin{lstlisting}
-0: W 8
-1: W 16
-2: W 24
-3: R 16
-4: R 8
-5: W 32
-6: R 24
-7: R 32
-8: R 24
-9: R 16
-\end{lstlisting}
-
-We compute the misses and memory accesses of four allocators (= trace transformations):
-\begin{enumerate}
-\item \textbf{Identity:} Addresses are unchanged
-\item \textbf{Compact:} Bump pointer allocator with a free stack
-\item \textbf{Random:} Random addresses
-\item \textbf{SSA:} Bump pointer without reusing of addresses
-\end{enumerate}
-
-The SPM has a size of 16 bytes and lines of 8 bytes.
-
-Let us look at a few situations:
-\begin{enumerate}
-\item At instruction 2 there is a write access to address 24, the SPM contains 8 and 16. Both items in SPM are live. The item which access is the furthest in the future is chosen to be stored to main memory and replaced by the new item (see Belady's algorithm \cite{belady1966study}). This is 8 in this case. Since the new item is written to there is no need to load its content from main memory. This instruction therefore results in 1 memory access.
-\item At instruction 4 there is a read request to address 8, the SPM contains 16 and 24. According to Belady 16 is selected for eviction and stored to main memory. The new item is read, therefore its content has to be loaded from main memory. This instruction results in 2 memory access.
-\item At instruction 9 the address 16 is read. Both items in the SPM are dead, therefore they do not have to stored back to main memory for eviction. Regardless of the eviction choice, only the read item has to be loaded from main memory, resulting in 1 memory access for this instruction.
-\end{enumerate}
-
-The experiment is run with \texttt{semloc} and these parameters:
-
-\begin{lstlisting}
-bin/semloc -c 4 -C 4 -l 8 -L 8 -a 3 -A 3 traces/spm-example.trace 
-\end{lstlisting}
-
-The results are
-
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|c|c|}
-    \hline
-    \textbf{Allocator} & \textbf{Misses} & \textbf{Memory Accesses} \tabularnewline
-    \hline\hline
-    Identity & 6 & 4 \tabularnewline
-    Compact  & 5 & 4 \tabularnewline
-    Random   & 6 & 4 \tabularnewline
-    SSA      & 6 & 4 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-2017-june-8}
-\end{table}
-
-The trace results in 4 memory access for all allocators. This suggests that memory accesses in the context of SPM are indeed independent of memory layout.
-
-The Compact allocator has 5 misses, as opposed to all other which have 6 misses: At instruction 5 the new address 32 is written to. At this point, address 8 is dead and in the SPM. The Compact allocator reuses address 8, thus resulting in a hit. Other allocators do not exploit this possibility and have a miss at this instruction.
-
-% \subsection{Conclusion}
-% We presented the hypothesis that the memory layout does not matter for scratchpad memories, which know the trace T and liveness intervals of T. For illustrations we discussed a small example which confirms our hypothesis.
-
-% In our example the Belady eviction policy in combination with liveness intervals make sure that memory accesses and misses remain minimal. The compact allocator only has a chance to get below that number of misses, because it turns a miss into a hit. At allocation time he can immediately achieve this by reusing a dead address in SPM.
-
-% To conclude, this small example nicely illustrations that for systems which has certain information about there applications the memory layout has no influence.
-
-
-\subsubsection{V8 benchmark: Richards}
-
-Operating system kernel simulation benchmark originally written in BCPL by Martin Richards. The Richards benchmark effectively measures how fast the JavaScript engine is at accessing object properties, calling functions, and dealing with polymorphism. It is a standard benchmark that has been successfully used to measure the performance of many modern programming language implementations.
-
-Trace size: 83M instructions
-
-Memory accesses:
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{Compact} & \textbf{Random} & \textbf{SSA} & \textbf{Average} \tabularnewline
-    \hline \hline
-    1024  & 18654262 & 18654262 & 18654262 & 18654262 & 18654262 \tabularnewline
-    2048  &  7878090 &  7878090 &  7878090 &  7878090 &  7878090 \tabularnewline
-    4096  &  2361728 &  2361728 &  2361728 &  2361728 &  2361728 \tabularnewline
-    8192  &  1383198 &  1383198 &  1383198 &  1383198 &  1383198 \tabularnewline
-    16384 &   912890 &   912890 &   912890 &   912890 &   912890 \tabularnewline
-    32768 &   638684 &   638684 &   638684 &   638684 &   638684 \tabularnewline
-    65536 &   470458 &   470458 &   470458 &   470458 &   470458 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-2017-june-8-richards-mem}
-\end{table}
-
-
-Misses:
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{Compact} & \textbf{Random} & \textbf{SSA}  \tabularnewline
-    \hline \hline
-    1024  & 19906406 & 14288773 & 27186015 & 27186015 \tabularnewline
-    2048  & 13348365 &  7037009 & 21797929 & 21797929 \tabularnewline
-    4096  &  8502161 &  2529214 & 19039748 & 19039748 \tabularnewline
-    8192  &  5997722 &  1587408 & 18550483 & 18550483 \tabularnewline
-    16384 &  5278242 &  1128682 & 18315329 & 18315329 \tabularnewline
-    32768 &  5077416 &   857012 & 18178226 & 18178226 \tabularnewline
-    65536 &  4495702 &   677410 & 18094113 & 18094113 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-2017-june-8-richards-misses}
-\end{table}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width = .75\textwidth]{plots/2017-06-13-richards-misses.png}
-  \caption{Misses of Richards benchmark}
-  \label{fig:experiment-2017-june-8-richards-misses}
-\end{figure}
-
-\subsubsection{V8 benchmark: Deltablue}
-
->One-way constraint solver, originally written in Smalltalk by John Maloney and Mario Wolczko. The DeltaBlue benchmark is written in an object-oriented style with a multi-level class hierarchy. As such it measures how fast the JavaScript engine is at running well-structured applications with many objects and small functions.
-
-Trace size: 272M instructions
-
-Memory accesses:
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{Compact} & \textbf{Random} & \textbf{SSA} & \textbf{Average} \tabularnewline
-    \hline \hline
-    1024  & 74897566 & 74897566 & 74897566 & 74897566 & 74897566 \tabularnewline
-    2048  & 35372018 & 35372018 & 35372018 & 35372018 & 35372018 \tabularnewline
-    4096  & 19268132 & 19268132 & 19268132 & 19268132 & 19268132 \tabularnewline
-    8192  &  7434198 &  7434198 &  7434198 &  7434198 &  7434198 \tabularnewline
-    16384 &  2823086 &  2823086 &  2823086 &  2823086 &  2823086 \tabularnewline
-    32768 &  1663194 &  1663194 &  1663194 &  1663194 &  1663194 \tabularnewline
-    65536 &  1077902 &  1077902 &  1077902 &  1077902 &  1077902 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-2017-june-8-deltablue-mem}
-\end{table}
-
-Misses:
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{Compact} & \textbf{Random} & \textbf{SSA}  \tabularnewline
-    \hline \hline
-    1024  & 77146231 & 52700195 & 98768459 & 98768459 \tabularnewline
-    2048  & 53120872 & 28072125 & 79005685 & 79005685 \tabularnewline
-    4096  & 41637998 & 16673778 & 70953742 & 70953742 \tabularnewline
-    8192  & 28707195 &  7392572 & 65036775 & 65036775 \tabularnewline
-    16384 & 23906672 &  3346997 & 62731219 & 62731219 \tabularnewline
-    32768 & 20440744 &  2151620 & 62151273 & 62151273 \tabularnewline
-    65536 & 20079036 &  1516174 & 61858627 & 61858627 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-2017-june-8-deltablue-misses}
-\end{table}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width = .75\textwidth]{plots/2017-06-13-deltablue-misses.png}
-  \caption{Misses of Deltablue benchmark}
-  \label{fig:experiment-2017-june-8-deltablue-misses}
-\end{figure}
-
-\subsubsection{V8 benchmark: Raytrace}
-
-Ray tracer benchmark based on code by Adam Burmister. The benchmark measures floating-point computations where the object structure is constructed using the Prototype JavaScript library.
-
-Trace size: 62M instructions
-
-Memory accesses:
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{Compact} & \textbf{Random} & \textbf{SSA} & \textbf{Average} \tabularnewline
-    \hline \hline
-    1024  & 12897373 & 12897373 & 12897373 & 12897373 & 12897373 \tabularnewline
-    2048  &  9101737 &  9101737 &  9101737 &  9101737 &  9101737 \tabularnewline
-    4096  &  6356963 &  6356963 &  6356963 &  6356963 &  6356963 \tabularnewline
-    8192  &  4222569 &  4222569 &  4222569 &  4222569 &  4222569 \tabularnewline
-    16384 &  2772043 &  2772043 &  2772043 &  2772043 &  2772043 \tabularnewline
-    32768 &  2003527 &  2003527 &  2003527 &  2003527 &  2003527 \tabularnewline
-    65536 &  1481807 &  1481807 &  1481807 &  1481807 &  1481807 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-2017-june-8-raytrace-mem}
-\end{table}
-
-Misses:
-\begin{table}
-  \centering
-  \begin{tabular}[c]{|l|r|r|r|r|}
-    \hline
-    \textbf{SPM size in bytes} & \textbf{Identity} & \textbf{Compact} & \textbf{Random} & \textbf{SSA}  \tabularnewline
-    \hline \hline
-    1024  & 17020972 & 11379998 & 24944756 & 24944756 \tabularnewline
-    2048  & 14440844 &  8474762 & 23046938 & 23046938 \tabularnewline
-    4096  & 12541349 &  6328499 & 21674551 & 21674551 \tabularnewline
-    8192  & 10856047 &  4517425 & 20607354 & 20607354 \tabularnewline
-    16384 &  9491871 &  3159250 & 19882091 & 19882091 \tabularnewline
-    32768 &  8906151 &  2429807 & 19497833 & 19497833 \tabularnewline
-    65536 &  8218054 &  1910619 & 19236973 & 19236973 \tabularnewline
-    \hline
-  \end{tabular}
-  \caption{\todo{add caption}}
-  \label{tab:experiment-2017-june-8-raytrace-misses}
-\end{table}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width = .75\textwidth]{plots/2017-06-13-raytrace-misses.png}
-  \caption{Misses of Raytrace benchmark}
-  \label{fig:experiment-2017-june-8-raytrace-misses}
-\end{figure}
-
-\subsection{Conclusion}
-We presented the hypothesis that the memory layout does not matter for scratchpad memories, which know the trace T and liveness intervals of T. For illustrations we discussed a small example which confirms our hypothesis.
-
-In our example, the Belady eviction policy in combination with liveness intervals makes sure that memory accesses and misses remain minimal. The compact allocator only has a chance to get below that number of misses, because it turns a miss into a hit. At allocation time he can immediately achieve this by reusing a dead address in SPM.
-
-To conclude, this small example nicely illustrations that for systems which have certain information about their applications the memory layout has no influence.
-
-\subsection{Further steps}
-In this (mini) report we have shown empirically that memory access is constant for all memory layouts. next, we have to prove that a compact allocator as we described in the conclusion is optimal with regards to cache misses in this SPM environment.
-
-\section{27th July, 2017}
-
-\subsection{Experiment: \textit{Bug fix}}
-\begin{itemize}
-  \item Rerun the experiments of this report, because of the counting bug fix of the LRU caches.
-  \item \textit{Expectations:} The number of cycles per instruction for both LRU caches will shrink. Still we expect at both LRU implementations perform worse than OPTCache and BeladyCache.
-\end{itemize}
-
-\subsection{Experiment: \textit{Compact-Random-Allocator performance robustness}}
-\begin{itemize}
-  \item Find a trace optimized for the Compact-Queue-Allocator (Compact-Queue-Allocator performs better than the Compact-Stack-Allocator)
-  \item Find a trace optimized for the Compact-Stack-Allocator (Compact-Stack-Allocator performs better than the Compact-Queue-Allocator)
-  \item \textit{Expectations:} A good/an interesting result would be if the Compact-Random-Allocator performs (nearly) as good as the Compact-Stack-Allocator, and Compact-Queue-Allocator, respectively.
-  \item \textit{Notes}
-  \begin{itemize}
-    \item 2017-07-31: Right now we think that it is not possible with a free list implementation based on a queue to outperform an stack implementation.
-    \begin{itemize}
-      \item Either the \textit{most-recently-freed} address is not in the cache anymore, then both implementations force a \textit{cache miss}.
-      \item Or the \textit{most-recently-freed} address is still in the cache, then the stack implementation results in a \textit{cache hit} and the queue implementation results in a \textit{cache miss}.
-    \end{itemize}
-    \item Intuitively by counter-example. Assume high enough associativity. Assume CompactQueue is better than CompactStack in the same situation (same access, same state of free list), i.e. allocation  to address $a$ using CompatQueue results in a cache hit and to address $b$ with CompactStack in a cache miss. Order in free list $a < \dots < b$ and $a \not= b$. Since a free is an access this means that the last access of $a$ was before $b$. Since we have an LRU cache this would imply that $b$ was evicted before $a$, contradicting the access order.
-  \end{itemize}
-\end{itemize}
-
-\subsection{Experiment: \textit{Associativity influence on LRU caches}}
-\begin{itemize}
-  \item Pick one of the experiments above, namely Richards.
-  \item Pick one fixed cache size 
-  \begin{itemize}
-    \item either 1024 bytes (very small -> a lot of loads/stores)
-    \item or 32KB (more realistic: l1d size of big-iron8 and MacBook Pro)
-  \end{itemize}
-  \item Run this experiment for different associativities of the LRU caches, e.g, 4, 8, 16, 32, fully
-  \item \textit{Expectations:} The number of cycles per instruction should be identical for all associativities of the LRU caches to show that these are independent of the associativity.
-\end{itemize}
-
-\subsection{Experiment: \textit{Equally weight stores and loads (cache)}}
-\begin{itemize}
-  \item Generate some of the performance-indexed-figures with different weight for load and store operations.
-  \item Pick two fixed cache sizes, namely 1KB and 64KB.
-  \item Pick all 4 experiments from above.
-  \item Pick the store-weights as multiples of the load-weights (based on the cache-loads, and cache-stores figures), e.g, 2, 3, 5, 10, ...
-  \item \textit{Expectations:} The influence of the store-weight should become recognizable for unrealistic are values. To conclude it is reasonable to weight loads and stores the same.
-\end{itemize}
-
-\subsection{Experiment: \textit{Equally weight stores and loads (memory)}}
-\begin{itemize}
-  \item Same as for the cache loads and stores.
-\end{itemize}
-
-\subsection{Experiment: \textit{New benchmarks}}
-\begin{itemize}
-  \item Find new benchmarks apart of the V8 benchmarks (Richards, Raytrace, Deltablue, and Navier-stroke).
-  \item Based on the Scalloc paper try to get access to the SPEC CPU2006 benchmarks.
-  \begin{itemize}
-    \item Generate traces.
-    \item Rerun SemanticLocality with the new traces.
-    \item Generate performance-indexed-figures.
-  \end{itemize}
-  \item \textit{Expectations:} Either confirmation of your previous results or new deep knowledge of the behavior of the caches and allocators, respectively.
-\end{itemize}
-
-\section{4th August, 2017}
-\subsection{Bubble Pie Chart}
-
-Colors
-\begin{itemize}
-  \item Hits in green, misses in red
-  \item Cache loads, cache store, memory store, memory loads in green, yellow, orange, and red
-  \item "Less is better" instead of "Lower is better"
-  \item Relative and absolute number of trace reads and writes (= cache stores and loads) in legend of the plot
-\end{itemize}
-
-\subsection{Associativity Experiment}
-Absolute numbers are enough
-
-\subsection{Line Size}
-\begin{itemize}
-  \item Try 2 words
-  \item A compacting allocator with a \textit{spatial locality threshold} $c$: The allocator remembers the last original address $a$. If a new address for $a+n$ is requested with $n \leq c$, then the allocator looks at the top 2 elements in the free stack and returns the one that is on the same cache line as the address for $a$, or any of the two if there is none.
-  \item Change Belady for multi-word lines (next access data structure)
-  \item Line size as CLI argument (no range, just a single value)
-\end{itemize}
-
-\subsection{Bar chart for number of addresses for all allocators}
-Number of different addresses is print as a new column in the experiment results
-
-\subsection{Workload for poor performance of CompactSet}
-\todo{no signs of interests in this direction by Christoph}
-
-\subsection{Description why CompactQueue can never be better than CompactStack}
-Intuitively by counter-example. Assume high enough associativity. Assume CompactQueue is better than CompactStack in the same situation (same access, same state of free list), i.e. allocation  to address $a$ using CompatQueue results in a cache hit and to address b with CompactStack in a cache miss. Order in free list $a < \dots < b$ and $a \not= b$. Since $a$ free is an access this means that the last access of $a$ was before $b$. Since we have an LRU cache this would imply that $b$ was evicted before $a$, contradicting the access order.
-
-\todo{copy paste old content}

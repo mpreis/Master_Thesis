@@ -24,7 +24,7 @@ set datafile separator ","
 
 set output _outdir.'compaction-'._bmk.'.eps'
 # set title _bmk
-set ylabel "compaction (more is better)\n(#variables of transformed trace) / (#variables of identity trace)"
+set ylabel "Compaction (more is better)\n#Addresses(Identity, Cache) / #Addresses(Allocator, Cache)\n"
 set yrange [0:_yrangemax]
 set ytics 5
 

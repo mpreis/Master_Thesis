@@ -24,7 +24,7 @@ set datafile separator ","
 
 set output _outdir.'/perf-'._bmk.'.eps'
 # set title _bmk
-set ylabel "circles per access (CPA)\n(less is better)"
+set ylabel "Circles per Access (CPA)\n(less is better)"
 set yrange [0:_yrangemax]
 set ytics 5
 
@@ -35,29 +35,28 @@ yoffset = 0.025
 xoffset = 6
 
 plot \
-newhistogram "LRU",\
- _datafile using (column("LRU-cl") * column("LRU-cpa")):xtic(1) t "Cache Load" fs pattern 1 lt rgb "#7ca82b",\
-              '' u (column("LRU-cs") * column("LRU-cpa")) t "Cache Store"      fs pattern 2 lt rgb "#ffca28",\
-              '' u (column("LRU-ml") * column("LRU-cpa")) t "Memory Load"      fs pattern 6 lt rgb "#ef8535",\
-              '' u (column("LRU-ms") * column("LRU-cpa")) t "Memory Store"     fs pattern 7 lt rgb "#dd1144",\
-              '' u 0:"LRU-cpa":(fn(column("LRU-cpa"))) with labels font ",12" center offset first xoffset*0, graph yoffset notitle,\
-newhistogram "LRU+Liveness",\
-              '' u (column("LRU+Liveness-cl") * column("LRU+Liveness-cpa")):xtic(1) notitle fs pattern 1 lt rgb "#7ca82b",\
-              '' u (column("LRU+Liveness-cs") * column("LRU+Liveness-cpa")) notitle         fs pattern 2 lt rgb "#ffca28",\
-              '' u (column("LRU+Liveness-ml") * column("LRU+Liveness-cpa")) notitle         fs pattern 6 lt rgb "#ef8535",\
-              '' u (column("LRU+Liveness-ms") * column("LRU+Liveness-cpa")) notitle         fs pattern 7 lt rgb "#dd1144",\
-              '' u 0:"LRU+Liveness-cpa":(fn(column("LRU+Liveness-cpa"))) with labels font ",12" center offset first xoffset*1, graph yoffset notitle,\
 newhistogram "MIN",\
-              '' u (column("MIN-cl") * column("MIN-cpa")):xtic(1) notitle fs pattern 1  lt rgb "#7ca82b",\
-              '' u (column("MIN-cs") * column("MIN-cpa")) notitle         fs pattern 2  lt rgb "#ffca28",\
-              '' u (column("MIN-ml") * column("MIN-cpa")) notitle         fs pattern 6  lt rgb "#ef8535",\
-              '' u (column("MIN-ms") * column("MIN-cpa")) notitle         fs pattern 7  lt rgb "#dd1144",\
-              '' u 0:"MIN-cpa":(fn(column("MIN-cpa"))) with labels font ",12" center offset first xoffset*2, graph yoffset notitle,\
+  _datafile u (column("MIN-cl") * column("MIN-cpa")):xtic(1) notitle fs pattern 1  lt rgb "#7ca82b",\
+  '' u (column("MIN-cs") * column("MIN-cpa")) notitle         fs pattern 2  lt rgb "#ffca28",\
+  '' u (column("MIN-ml") * column("MIN-cpa")) notitle         fs pattern 6  lt rgb "#ef8535",\
+  '' u (column("MIN-ms") * column("MIN-cpa")) notitle         fs pattern 7  lt rgb "#dd1144",\
+  '' u 0:"MIN-cpa":(fn(column("MIN-cpa"))) with labels font ",12" center offset first xoffset*0, graph yoffset notitle,\
 newhistogram "MIN+Liveness",\
-              '' u (column("MIN+Liveness-cl") * column("MIN+Liveness-cpa")):xtic(1) fs pattern 1  notitle lt rgb "#7ca82b",\
-              '' u (column("MIN+Liveness-cs") * column("MIN+Liveness-cpa"))         fs pattern 2  notitle lt rgb "#ffca28",\
-              '' u (column("MIN+Liveness-ml") * column("MIN+Liveness-cpa"))         fs pattern 6  notitle lt rgb "#ef8535",\
-              '' u (column("MIN+Liveness-ms") * column("MIN+Liveness-cpa"))            notitle lt rgb "#dd1144",\
-              '' u 0:"MIN+Liveness-cpa":(fn(column("MIN+Liveness-cpa"))) with labels font ",12" center offset first xoffset*3, graph yoffset notitle,\
+  '' u (column("MIN+Liveness-cl") * column("MIN+Liveness-cpa")):xtic(1) fs pattern 1  notitle lt rgb "#7ca82b",\
+  '' u (column("MIN+Liveness-cs") * column("MIN+Liveness-cpa"))         fs pattern 2  notitle lt rgb "#ffca28",\
+  '' u (column("MIN+Liveness-ml") * column("MIN+Liveness-cpa"))         fs pattern 6  notitle lt rgb "#ef8535",\
+  '' u (column("MIN+Liveness-ms") * column("MIN+Liveness-cpa"))            notitle lt rgb "#dd1144",\
+  '' u 0:"MIN+Liveness-cpa":(fn(column("MIN+Liveness-cpa"))) with labels font ",12" center offset first xoffset*1, graph yoffset notitle,\
+newhistogram "LRU",\
+  '' u (column("LRU-cl") * column("LRU-cpa")):xtic(1) t "Cache Load" fs pattern 1 lt rgb "#7ca82b",\
+  '' u (column("LRU-cs") * column("LRU-cpa")) t "Cache Store"      fs pattern 2 lt rgb "#ffca28",\
+  '' u (column("LRU-ml") * column("LRU-cpa")) t "Memory Load"      fs pattern 6 lt rgb "#ef8535",\
+  '' u (column("LRU-ms") * column("LRU-cpa")) t "Memory Store"     fs pattern 7 lt rgb "#dd1144",\
+  '' u 0:"LRU-cpa":(fn(column("LRU-cpa"))) with labels font ",12" center offset first xoffset*2, graph yoffset notitle,\
+newhistogram "LRU+Liveness",\
+  '' u (column("LRU+Liveness-cl") * column("LRU+Liveness-cpa")):xtic(1) notitle fs pattern 1 lt rgb "#7ca82b",\
+  '' u (column("LRU+Liveness-cs") * column("LRU+Liveness-cpa")) notitle         fs pattern 2 lt rgb "#ffca28",\
+  '' u (column("LRU+Liveness-ml") * column("LRU+Liveness-cpa")) notitle         fs pattern 6 lt rgb "#ef8535",\
+  '' u (column("LRU+Liveness-ms") * column("LRU+Liveness-cpa")) notitle         fs pattern 7 lt rgb "#dd1144",\
+  '' u 0:"LRU+Liveness-cpa":(fn(column("LRU+Liveness-cpa"))) with labels font ",12" center offset first xoffset*3, graph yoffset notitle\
 ;
-

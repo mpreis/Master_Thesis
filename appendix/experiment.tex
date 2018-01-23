@@ -2,8 +2,6 @@
 
 This section presents all additional figures of \Cref{cha:experiment}.
 
-\subsection{Performance}\label{app:experiment-performance}
-
 \begin{figure}[!ht]
     \begin{subfigure}[b]{0.5\textwidth}%
     \includegraphics[width=\textwidth]{figs/plots/perf-misses-450-soplex.eps}
@@ -82,8 +80,6 @@ This section presents all additional figures of \Cref{cha:experiment}.
   \label{fig:performance-richards}
 \end{figure}
 
-\subsection{Speedup \& Compaction}\label{app:experiment-speedup-compaction}
-
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
     \includegraphics[width=\textwidth]{figs/plots/speedup-450-soplex.eps}
@@ -161,3 +157,116 @@ This section presents all additional figures of \Cref{cha:experiment}.
   \caption{Speedup \& Compaction: richards}
   \label{fig:speedup-compaction-richards}
 \end{figure}
+
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}{lrrrr}
+    \hline
+    Benchmark & Count & Average & Minimum & Maximum\\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-address-accesses.csv}
+    {1=\colbmk, 2=\colcount, 3=\colmean, 4=\colstd, 5=\colvar, 6=\colmin, 7=\colmax, 8=\colpera,
+     9=\colperb, 10=\colperc, 11=\colperd, 12=\colpere}
+    {\colbmk & \num{\colcount} & \num{\colmean} & \num{\colmin} & \num{\colmax}}
+    \hline
+  \end{tabular}
+  \\~\\
+  \begin{tabular}{lrrrrr}
+    \hline
+    \multirow{2}{*}{Benchmark} & \multicolumn{5}{c}{Percentile} \\
+     & 5\% & 25\% & 50\% & 75\% & 95\% \\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-address-accesses.csv}
+    {1=\colbmk, 2=\colcount, 3=\colmean, 4=\colstd, 5=\colvar, 6=\colmin, 7=\colmax, 8=\colpera,
+     9=\colperb, 10=\colperc, 11=\colperd, 12=\colpere}
+    {\colbmk & \num{\colpera} & \num{\colperb} & \num{\colperc} & \num{\colperd} & \num{\colpere}}
+    \hline
+  \end{tabular}
+  \caption{Metric: Accesses}
+  \label{tab:metric-accesses-all}
+\end{table}
+
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}{lrrrr}
+    \hline
+    Benchmark & Count & Average & Minimum & Maximum\\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-access-distances.csv}
+    {1=\colbmk, 2=\colcount, 3=\colmean, 4=\colstd, 5=\colvar, 6=\colmin, 7=\colmax, 8=\colpera,
+     9=\colperb, 10=\colperc, 11=\colperd, 12=\colpere}
+    {\colbmk & \num{\colcount} & \num{\colmean} & \num{\colmin} & \num{\colmax}}
+    \hline
+  \end{tabular}
+  \\~\\
+  \begin{tabular}{lrrrrr}
+    \hline
+    \multirow{2}{*}{Benchmark} & \multicolumn{5}{c}{Percentile} \\
+     & 5\% & 25\% & 50\% & 75\% & 95\% \\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-access-distances.csv}
+    {1=\colbmk, 2=\colcount, 3=\colmean, 4=\colstd, 5=\colvar, 6=\colmin, 7=\colmax, 8=\colpera,
+     9=\colperb, 10=\colperc, 11=\colperd, 12=\colpere}
+     {\colbmk & \num{\colpera} & \num{\colperb} & \num{\colperc} & \num{\colperd} & \num{\colpere}}
+    \hline
+  \end{tabular}
+  \caption{Metric: Access Distance}
+  \label{tab:metric-access-distance-all}
+\end{table}
+
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}{lrrrr}
+    \hline
+    Benchmark & Count & Average & Minimum & Maximum\\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-live-addresses.csv}
+    {1=\colbmk, 2=\colcount, 3=\colmean, 4=\colstd, 5=\colvar, 6=\colmin, 7=\colmax, 8=\colpera,
+     9=\colperb, 10=\colperc, 11=\colperd, 12=\colpere}
+     {\colbmk & \num{\colcount} & \num{\colmean} & \num{\colmin} & \num{\colmax}}
+    \hline
+  \end{tabular}
+  \\~\\
+  \begin{tabular}{lrrrrr}
+    \hline
+    \multirow{2}{*}{Benchmark} & \multicolumn{5}{c}{Percentile} \\
+     & 5\% & 25\% & 50\% & 75\% & 95\% \\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-live-addresses.csv}
+    {1=\colbmk, 2=\colcount, 3=\colmean, 4=\colstd, 5=\colvar, 6=\colmin, 7=\colmax, 8=\colpera,
+     9=\colperb, 10=\colperc, 11=\colperd, 12=\colpere}
+    {\colbmk & \num{\colpera} & \num{\colperb} & \num{\colperc} & \num{\colperd} & \num{\colpere}}
+    \hline
+  \end{tabular}
+  \caption{Metric: Overlapping Liveness}
+  \label{tab:metric-overlapping-liveness-all}
+\end{table}
+
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}{lrrrrrr}
+    \hline
+    Benchmark & Count & Average & Minimum & Maximum\\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-liveness-length.csv}
+    {1=\colbmk, 2=\colcount, 3=\colmean, 4=\colstd, 5=\colvar, 6=\colmin, 7=\colmax, 8=\colpera,
+     9=\colperb, 10=\colperc, 11=\colperd, 12=\colpere}
+    {\colbmk & \num{\colcount} & \num{\colmean} & \num{\colmin} & \num{\colmax}}
+    \hline
+  \end{tabular}
+  \\~\\
+  \begin{tabular}{lrrrrr}
+    \hline
+    \multirow{2}{*}{Benchmark} & \multicolumn{5}{c}{Percentile} \\
+     & 5\% & 25\% & 50\% & 75\% & 95\% \\
+    \hline
+    \csvreader[late after line=\\]{figs/statistical-analysis-data/prepared-liveness-length.csv}
+    {1=\colbmk, 2=\colcount, 3=\colmean, 4=\colstd, 5=\colvar, 6=\colmin, 7=\colmax, 8=\colpera, 9=\colperb, 10=\colperc, 11=\colperd, 12=\colpere}
+    {\colbmk & \num{\colpera} & \num{\colperb} & \num{\colperc} & \num{\colperd} & \num{\colpere}}
+    \hline
+  \end{tabular}
+  \caption{Metric: Liveness Interval Length}
+  \label{tab:metric-liveness-interval-length-all}
+\end{table}
+
+

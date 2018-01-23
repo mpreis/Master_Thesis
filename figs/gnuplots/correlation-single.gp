@@ -1,8 +1,8 @@
 set terminal postscript "Times-Roman" eps color
 set datafile separator ","
 
-set xlabel "compaction (more is better)\n(#variables of transformed trace) / (#variables of identity trace)\n"
-set ylabel "speedup (more is better)\n(CPA of transformed trace) / (CPA of identity trace)"
+set xlabel "Compaction (more is better)\n#Addresses(Identity, Cache) / #Addresses(Allocator, Cache)\n"
+set ylabel "Speedup (more is better)\nCPA(Identity, Cache) / CPA(Allocator, Cache)"
 
 set output _outdir.'correlation-'._cache.'-'._allocator.'.eps'
 
@@ -32,15 +32,16 @@ f(x) = x
 set arrow 1 from 1,0.01 to 1,100 nohead lt rgb "#cccccc" lw 0.75
 
 plot\
-  '<(grep '._allocator.' '.df_gobmk     .')' u _compaction:_speedup lt rgb _color lw 5 t '445.gobmk'      ,\
-  '<(grep '._allocator.' '.df_soplex    .')' u _compaction:_speedup lt rgb _color lw 5 t '450.soplex'     ,\
-  '<(grep '._allocator.' '.df_calculix  .')' u _compaction:_speedup lt rgb _color lw 5 t '454.calculix'   ,\
-  '<(grep '._allocator.' '.df_libquantum.')' u _compaction:_speedup lt rgb _color lw 5 t '462.libquantum' ,\
-  '<(grep '._allocator.' '.df_omnetpp   .')' u _compaction:_speedup lt rgb _color lw 5 t '471.omnetpp'    ,\
-  '<(grep '._allocator.' '.df_xalancbmk .')' u _compaction:_speedup lt rgb _color lw 5 t '483.xalancbmk'  ,\
-  '<(grep '._allocator.' '.df_deltablue .')' u _compaction:_speedup lt rgb _color lw 5 t 'deltablue'      ,\
-  '<(grep '._allocator.' '.df_raytrace  .')' u _compaction:_speedup lt rgb _color lw 5 t 'raytrace'       ,\
-  '<(grep '._allocator.' '.df_richards  .')' u _compaction:_speedup lt rgb _color lw 5 t 'richards'       ,\
-  f(x) lt rgb "#cccccc" notitle, \
-  1 lt rgb "#cccccc" notitle\
+'<(grep '._allocator.' '.df_gobmk     .')' u _compaction:_speedup lt rgb _color lw 5 t '445.gobmk'      ,\
+'<(grep '._allocator.' '.df_soplex    .')' u _compaction:_speedup lt rgb _color lw 5 t '450.soplex'     ,\
+'<(grep '._allocator.' '.df_calculix  .')' u _compaction:_speedup lt rgb _color lw 5 t '454.calculix'   ,\
+'<(grep '._allocator.' '.df_libquantum.')' u _compaction:_speedup lt rgb _color lw 5 t '462.libquantum' ,\
+'<(grep '._allocator.' '.df_omnetpp   .')' u _compaction:_speedup lt rgb _color lw 5 t '471.omnetpp'    ,\
+'<(grep '._allocator.' '.df_xalancbmk .')' u _compaction:_speedup lt rgb _color lw 5 t '483.xalancbmk'  ,\
+'<(grep '._allocator.' '.df_deltablue .')' u _compaction:_speedup lt rgb _color lw 5 t 'deltablue'      ,\
+'<(grep '._allocator.' '.df_raytrace  .')' u _compaction:_speedup lt rgb _color lw 5 t 'raytrace'       ,\
+'<(grep '._allocator.' '.df_richards  .')' u _compaction:_speedup lt rgb _color lw 5 t 'richards'       ,\
+1 lt rgb "#cccccc" notitle\
 ;
+  # f(x) lt rgb "#cccccc" notitle, \
+

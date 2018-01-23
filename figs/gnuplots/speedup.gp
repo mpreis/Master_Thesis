@@ -24,7 +24,7 @@ set datafile separator ","
 
 set output _outdir.'/speedup-'._bmk.'.eps'
 # set title _bmk
-set ylabel "speedup (more is better)\n(CPA of transformed trace) / (CPA of identity trace)"
+set ylabel "Speedup (more is better)\nCPA(Identity, Cache) / CPA(Allocator, Cache)"
 set yrange [0:_yrangemax]
 set ytics 0.5
 
@@ -33,12 +33,12 @@ yoffset = 0.025
 xoffset = 6
 
 plot \
-newhistogram "MIN+Liveness",\
-  _datafile using "MIN+Liveness-speedup":xtic(1) notitle lt rgb "#7ca82b",\
-         '' u 0:"MIN+Liveness-speedup":(fn(column("MIN+Liveness-speedup"))) with labels font ",12" center offset first xoffset*0, graph yoffset,\
 newhistogram "MIN",\
-         '' u "MIN-speedup":xtic(1) notitle lt rgb "#ffca28",\
-         '' u 0:"MIN-speedup":(fn(column("MIN-speedup"))) with labels font ",12" center offset first xoffset*1, graph yoffset,\
+  _datafile using "MIN-speedup":xtic(1) notitle lt rgb "#7ca82b",\
+         '' u 0:"MIN-speedup":(fn(column("MIN-speedup"))) with labels font ",12" center offset first xoffset*0, graph yoffset,\
+newhistogram "MIN+Liveness",\
+         '' u "MIN+Liveness-speedup":xtic(1) notitle lt rgb "#ffca28",\
+         '' u 0:"MIN+Liveness-speedup":(fn(column("MIN+Liveness-speedup"))) with labels font ",12" center offset first xoffset*1, graph yoffset,\
 newhistogram "LRU",\
          '' u "LRU-speedup":xtic(1) notitle lt rgb "#ef8535",\
          '' u 0:"LRU-speedup":(fn(column("LRU-speedup"))) with labels font ",12" center offset first xoffset*2, graph yoffset,\
