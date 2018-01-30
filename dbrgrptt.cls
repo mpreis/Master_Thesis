@@ -455,7 +455,7 @@
     % header
 
     \makepagestyle{plushf}%
-    \makeoddhead{plushf}{}{\includegraphics[height=58pt]{\@logo}}{}%
+    % \makeoddhead{plushf}{}{\includegraphics[height=58pt]{\@logo}}{}%
     % footer
     \makeoddfoot{plushf}{}{%
       \centering
@@ -463,9 +463,9 @@
 
       \@university{}
 
-      Jakob-Haringer-Stra{\ss}e 2 $\bullet$ A-5020 Salzburg $\bullet$ +43 (0) 662 8044-6328
+      Jakob-Haringer-Stra{\ss}e 2 $\bullet$ A-5020 Salzburg% $\bullet$ +43 (0) 662 8044-6328
 
-      www.cosy.sbg.ac.at
+      \url{informatik.uni-salzburg.at}
     }{}%
     \makefootrule{plushf}{\textwidth}{.25pt}{\footruleskip}%
     \aliaspagestyle{titlingpage}{plushf}%
