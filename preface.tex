@@ -33,19 +33,14 @@ Abschließend möchte ich mich noch bei \emph{Thomas Hütter} bedanken, für die
 \abstract{%
 % motivation
 A known problem in computer systems is the latency of accessing data stored in the main memory.
-Computer architects analyzed real programs to determine a sophisticate solution to reduce the memory access time and they introduced the concept of a \emph{cache}.
-Nowadays the perspective changed, scientists analyze the behavior of caches to push a programs performance to its maximum.
 % problem statement
 The question is, can we find metrics that characterize the performance of a program for a given cache.
-% methods, approach
-We analyze the sequence of \emph{load} and \emph{store} instructions, the memory access trace, of well known benchmark suites, SPEC 2006 and Octane, about there characteristics.
-In this work we use four metrics: (1) the number of accesses on an address (\emph{Accesses}), (2) the distance between two accesses on the same address (\emph{Access Distance}), (3) the timespan an address is in use (\emph{Liveness Interval Length}), and (4) the number of overlapping liveness intervals at a certain point of the execution (\emph{Overlapping Liveness}).
-We transform the observed traces into semantically equivalent traces and executed the on different cache simulations to find potential performance improvements.
-% results
-Our experiments show that traces with extremely short liveness intervals for most addresses and few accesses on those provide the highest potential for improving the performance significantly.
-Traces with short access distances and short liveness intervals for most addresses provide the highest potential for reducing the total number of addresses used.
-% conclusion
-In this works we show that the trace of a program characterizes its performance. Further, our analysis show that the trace of a program reveals a programs potential for improvement in terms of memory access performance and memory usage.
+% methods & approach
+We analyze the sequence of \emph{load} and \emph{store} instructions, the \emph{memory access trace}, of well known benchmark suites, SPEC 2006 and Octane, about there characteristics.
+For our analysis about the potential for performance improvement we modify the addresses used by a memory access trace.
+% results & conclusion
+Our analysis illustrate that the memory access trace of a program reveals a programs potential for improvement in terms of memory access performance and memory usage.
+Nonetheless, the chose metrics illustrate tendencies for improvement rather than unique characteristics.
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
