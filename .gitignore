@@ -25,3 +25,5 @@
 *.synctex.gz
 .example-thesis
 .DS_Store
+*.pdf
+figs/plots
