@@ -1392,20 +1392,28 @@ Obviously, the most recently freed variable has a high probability to still be i
 
 \chapter{Conclusion \& Future Work}\label{cha:conclusion}
 
-In this work we have analyzed the memory access traces of 9 benchmarks taken from two different benchmark suits, SPEC 2006 and Octane. We have transformed and have investigated the traces of all 9 benchmarks by using the using the allocators Identity, CompactStack, CompactSet, CompactQueue, and SingleAssignment. Each of the transformed traces has been applied on 4 different caches. These 4 caches use 2 different algorithms to decide on an eviction candidate, \ac{LRU} and \citeauthor{belady1966study} namely. For each algorithm there is on version without using liveness information and one version that uses liveness information.
+% what we did
+In this work we have analyzed the memory access traces of 9 benchmarks taken from 2 different benchmark suits, SPEC 2006 and Octane.
+We have transformed the observed traces of all benchmarks by using the allocators: Identity, CompactStack, CompactSet, CompactQueue, and SingleAssignment.
+Each of the transformed traces has been executed on 4 different caches to observe data about it performance and memory usage.
+These 4 caches use 2 different algorithms to decide on an eviction candidate, \ac{LRU} and \citeauthor{belady1966study} namely.
+For each eviction policy there is one version that uses the liveness information of a trace and a second one that proceeds without using liveness information.
+To reason about the performance and memory usage results we analyzed the observed memory access trace according to the four metrics: Accesses, Access Distance, Liveness Interval Length, and Overlapping Liveness Intervals.
+% results
+The presented experiment illustrates that the analyzed memory access traces have potential for improvement.
+Our extremely simple allocators used for transformation reveal that each \ac{trace} uses at least twice the memory than necessary.
+However, the drawback of these extremely simple allocators is shown in the performance results, most benchmarks archive a worse performance after transformation.
+The defined metrics used to reason about performance and memory usage illustrate tendencies for improvement rather than unique characteristics.
+% conclustions
+We were able to show that even moder computer programs have not reached there limits yet, there is still space for improvement.
+Unfortunately, the chose metrics are not that expressive than we would like them to be.
 
-\Cref{cha:experiment} presents an experiment based on our environment to illustrate the difference of our cache implementations, of our allocator implementations, and the used benchmarks.
-The correlation of speedup and compaction presents that there are several benchmarks that show an outstanding good results: 445.gobmk, 471.omnetpp, and 483.xalancbmk.
-
-The 445.gobmk benchmark presents that there is potential for performance improvement by picking the appropriate allocator. In this case CompactStack and CompactSet, namely. Further, it also illustrates that the performance can become significantly worse than the base line performance by deciding on one of the other allocators. For this benchmark the CompactQueue allocators presents the worst performance results. The 445.gobmk benchmark is characterized by few accesses and extremely short liveness intervals for most of the used variables, that yields in a significant performance improvement indicated by the speedup.
-
-The 471.omnetpp benchmark presents less potential for performance improvement. Nevertheless, with the \ac{MIN} caches end up with quite close to the optimal \ac{CPA}. That is quite impressive facing that small margin of improvement potential. Unfortunately, non of our allocators is able to result in a speedup greater than one. However, the 471.omnetpp benchmark presents a remarkable compaction. Using one of our compacting allocators reduced the necessary memory nearly by 40 times. The 471.omnetpp benchmark is characterized by short access distances and short liveness intervals for most of the used variables, that yields in a dramatical reduction for the memory required to execute this benchmark.
-
-The 483.xalancbmk present a significant gap in terms of performance for the \ac{LRU} and \ac{MIN} cache implementations. Further, the CompactStack allocator is the only implementation that is able to perform better than the original \ac{trace}. As for the benchmarks 445.gobmk and 471.omnetpp the CompactQueue allocator presents the worst performance. The 483.xalancbmk benchmark is characterized by few accesses and long liveness intervals for most of the used variables, that indicates that long liveness intervals are not beneficial for the performance.
-
-In most of our experiments the results of the CompactQueue allocator have been outperformed by the CompactStack allocator, or the CompactSet allocator, or both. Intuitively, the CompactQueue implementation picks always the variable which has been freed least recently (longest ago). While the stack implementation of the free list enables the CompactStack to pick the most recently freed variable (shortest ago). Obviously, the most recently freed variable has a high probability to still be in the cache than the variable least recently freed.
-
-For future work remains to implement more sophisticate allocators to improve the quality of the trace transformations. Further, the set of caches available could be extended by implementing additional eviction policies. Furthermore, other benchmark suites could be integrated and analyzed. The additional data could lead to further metrics, which might reveal new characteristics.
+% future work
+For future work remains to implement more sophisticate allocators to improve the quality of the trace transformations.
+Further, the set of caches available could be extended by implementing additional eviction policies.
+Furthermore, other benchmark suites could be integrated and analyzed.
+The additional data could lead to further metrics, that allow stronger statements or
+ reveal new characteristics.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
