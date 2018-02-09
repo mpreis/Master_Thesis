@@ -1348,6 +1348,35 @@ This section presents the statistical analysis on the benchmarks according to th
 
 \Cref{tab:metric-liveness-length-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-liveness-interval-length-all} presents the results for all benchmarks. \emph{Count} represents the number of different liveness interval lengths. The results of the 445.gobmk benchmark indicate that most variables have short liveness intervals. This is indicated by the percentiles 5\%, 25\%, 50\%, and 75\%, which all present value $0$. In this context $0$ means that a variable is live for exactly one access. Hence, 75\% of the variables of the 445.gobmk benchmark are accessed only once. By the delta of the 75\% percentile and 95\% percentile we know that 20\% percent of the used variables are have a liveness interval of a length up to $156$. In combination with the fact that all variables used accumulate to an average liveness interval length of $1402011.75$, this implies that 5\% of the variables used by 445.gobmk consists of a significantly longer liveness interval. The results of the 471.omnetpp benchmark and the 483.xalancbmk benchmark indicate that there is a small amount of variables that significantly longer than the majority of the used variables.
 
+\section{Conclusion}\label{sec:exp-conclusion}
+
+\Cref{cha:experiment} presents an experiment based on our environment to illustrate the difference of our cache implementations, of our allocator implementations, and the used benchmarks.
+The correlation of speedup and compaction presents that there are several benchmarks that show an outstanding good results: 445.gobmk, 471.omnetpp, and 483.xalancbmk.
+
+The 445.gobmk benchmark presents that there is potential for performance improvement by picking the appropriate allocator.
+In this case CompactStack and CompactSet, namely.
+Further, it also illustrates that the performance can become significantly worse than the base line performance by deciding on one of the other allocators.
+For this benchmark the CompactQueue allocators presents the worst performance results.
+The 445.gobmk benchmark is characterized by few accesses and extremely short liveness intervals for most of the used variables, that yields in a significant performance improvement indicated by the speedup.
+
+The 471.omnetpp benchmark presents less potential for performance improvement.
+Nevertheless, with the \ac{MIN} caches end up with quite close to the optimal \ac{CPA}.
+That is quite impressive facing that small margin of improvement potential.
+Unfortunately, non of our allocators is able to result in a speedup greater than one.
+However, the 471.omnetpp benchmark presents a remarkable compaction.
+Using one of our compacting allocators reduced the necessary memory nearly by 40 times.
+The 471.omnetpp benchmark is characterized by short access distances and short liveness intervals for most of the used variables, that yields in a dramatical reduction for the memory required to execute this benchmark.
+
+The 483.xalancbmk present a significant gap in terms of performance for the \ac{LRU} and \ac{MIN} cache implementations.
+Further, the CompactStack allocator is the only implementation that is able to perform better than the original \ac{trace}.
+As for the benchmarks 445.gobmk and 471.omnetpp the CompactQueue allocator presents the worst performance.
+The 483.xalancbmk benchmark is characterized by few accesses and long liveness intervals for most of the used variables, that indicates that long liveness intervals are not beneficial for the performance.
+
+In most of our experiments the results of the CompactQueue allocator have been outperformed by the CompactStack allocator, or the CompactSet allocator, or both.
+Intuitively, the CompactQueue implementation picks always the variable which has been freed least recently (longest ago).
+While the stack implementation of the free list enables the CompactStack to pick the most recently freed variable (shortest ago).
+Obviously, the most recently freed variable has a high probability to still be in the cache than the variable least recently freed.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
