@@ -830,7 +830,7 @@ And finally, we are able to execute the actual access on the variable directly o
 
 \section{Benchmarks}\label{sec:benchmarks}
 
-Our experiments are build on two benchmark suites the \emph{SPEC 2006 Benchmarks}\cite{henning2006spec} and \emph{Octane Benchmarks}\cite{v8benchmarks}. From both benchmark suites only a subset of the available benchmarks are used which are are explained below.
+Our experiments are build on two benchmark suites the \emph{SPEC 2006 Benchmarks}\cite{henning2006spec} and \emph{V8 Benchmarks}\cite{v8benchmarks}. From both benchmark suites only a subset of the available benchmarks are used which are are explained below.
 
 \subsection{SPEC 2006 Benchmarks}
 
@@ -913,9 +913,9 @@ Modifications for SPEC benchmarking purposes include: combining code to make a s
 \end{description}
 \end{quote}
 
-\subsection{Octane Benchmarks}
+\subsection{V8 Benchmarks}
 
-This section describes the subset of benchmarks of the Octane benchmark suite \cite{v8benchmarks} which we used for our experiments. The benchmark descriptions below are taken from the Octane website.
+This section describes the subset of benchmarks of the V8 benchmark suite \cite{v8benchmarks} which we used for our experiments. The benchmark descriptions below are taken from the website.
 
 \subsubsection{Richards}
 
@@ -1393,7 +1393,7 @@ Obviously, the most recently freed variable has a high probability to still be i
 \chapter{Conclusion \& Future Work}\label{cha:conclusion}
 
 % what we did
-In this work we have analyzed the memory access traces of 9 benchmarks taken from 2 different benchmark suits, SPEC 2006 and Octane.
+In this work we have analyzed the memory access traces of 9 benchmarks taken from 2 different benchmark suits, SPEC 2006 and V8.
 We have transformed the observed traces of all benchmarks by using the allocators: Identity, CompactStack, CompactSet, CompactQueue, and SingleAssignment.
 Each of the transformed traces has been executed on 4 different caches to observe data about it performance and memory usage.
 These 4 caches use 2 different algorithms to decide on an eviction candidate, \ac{LRU} and \citeauthor{belady1966study} namely.
