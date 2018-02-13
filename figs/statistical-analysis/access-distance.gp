@@ -1,23 +1,37 @@
-# set terminal postscript 'Times-Roman' eps color
-set terminal 'Times-Roman' pdf
-set ylabel 'Access Distance'
-set key autotitle columnhead
-set output 'plots/ad.svg'
-set logscale xy
+load "common.inc.gp"
 
-_gre='#7CA82B'
-_yel='#FFCA28'
-_ora='#EF8535'
-_red='#DD1144'
+set key top left Left reverse
+
+set output 'plots/ad.eps'
+set ylabel 'Access Distance'
+
+stats 'ad/445.gobmk.ad.stats.sorted.dropped.csv'
+_n_gobmk = STATS_records * 1.0
+stats 'ad/450.soplex.ad.stats.sorted.dropped.csv'
+_n_soplex = STATS_records * 1.0
+stats 'ad/454.calculix.ad.stats.sorted.dropped.csv'
+_n_calculix = STATS_records * 1.0
+stats 'ad/462.libquantum.ad.stats.sorted.dropped.csv'
+_n_libquntum = STATS_records * 1.0
+stats 'ad/471.omnetpp.ad.stats.sorted.dropped.csv'
+_n_omnetpp = STATS_records * 1.0
+stats 'ad/483.xalancbmk.ad.stats.sorted.dropped.csv'
+_n_xalancbmk = STATS_records * 1.0
+stats 'ad/richards.ad.stats.sorted.dropped.csv'
+_n_richards = STATS_records * 1.0
+stats 'ad/deltablue.ad.stats.sorted.dropped.csv'
+_n_deltablue = STATS_records * 1.0
+stats 'ad/raytrace.ad.stats.sorted.dropped.csv'
+_n_raytrace = STATS_records * 1.0
 
 plot \
-'ad/445.gobmk.ad.stats.sorted.dropped.csv'      u :1 w lines ls 1 lc rgb _gre t '445.gobmk',\
-'ad/450.soplex.ad.stats.sorted.dropped.csv'     u :1 w lines ls 2 lc rgb _yel t '450.soplex',\
-'ad/454.calculix.ad.stats.sorted.dropped.csv'   u :1 w lines ls 3 lc rgb _ora t '454.calculix',\
-'ad/462.libquantum.ad.stats.sorted.dropped.csv' u :1 w lines ls 4 lc rgb _red t '462.libquantum',\
-'ad/471.omnetpp.ad.stats.sorted.dropped.csv'    u :1 w lines ls 5 lc rgb _gre t '471.omnetpp',\
-'ad/483.xalancbmk.ad.stats.sorted.dropped.csv'  u :1 w lines ls 6 lc rgb _yel t '483.xalancbmk',\
-'ad/richards.ad.stats.sorted.dropped.csv'       u :1 w lines ls 7 lc rgb _ora t 'richards',\
-'ad/deltablue.ad.stats.sorted.dropped.csv'      u :1 w lines ls 8 lc rgb _red t 'deltablue',\
-'ad/raytrace.ad.stats.sorted.dropped.csv'       u :1 w lines ls 9 lc rgb _gre t 'raytrace',\
+'ad/445.gobmk.ad.stats.sorted.dropped.csv'      u (column(0)/_n_gobmk):1 w lines ls 1 t _t_gobmk,\
+'ad/450.soplex.ad.stats.sorted.dropped.csv'     u (column(0)/_n_soplex):1 w lines ls 2 t _t_soplex,\
+'ad/454.calculix.ad.stats.sorted.dropped.csv'   u (column(0)/_n_calculix):1 w lines ls 3 t _t_calculix,\
+'ad/462.libquantum.ad.stats.sorted.dropped.csv' u (column(0)/_n_libquntum):1 w lines ls 4 t _t_libquntum,\
+'ad/471.omnetpp.ad.stats.sorted.dropped.csv'    u (column(0)/_n_omnetpp):1 w lines ls 5 t _t_omnetpp,\
+'ad/483.xalancbmk.ad.stats.sorted.dropped.csv'  u (column(0)/_n_xalancbmk):1 w lines ls 6 t _t_xalancbmk,\
+'ad/richards.ad.stats.sorted.dropped.csv'       u (column(0)/_n_richards):1 w lines ls 7 t _t_richards,\
+'ad/deltablue.ad.stats.sorted.dropped.csv'      u (column(0)/_n_deltablue):1 w lines ls 8 t _t_deltablue,\
+'ad/raytrace.ad.stats.sorted.dropped.csv'       u (column(0)/_n_raytrace):1 w lines ls 9 t _t_raytrace,\
 ;

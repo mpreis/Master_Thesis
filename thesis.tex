@@ -1348,6 +1348,74 @@ This section presents the statistical analysis on the benchmarks according to th
 
 \Cref{tab:metric-liveness-length-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-liveness-interval-length-all} presents the results for all benchmarks. \emph{Count} represents the number of different liveness interval lengths. The results of the 445.gobmk benchmark indicate that most variables have short liveness intervals. This is indicated by the percentiles 5\%, 25\%, 50\%, and 75\%, which all present value $0$. In this context $0$ means that a variable is live for exactly one access. Hence, 75\% of the variables of the 445.gobmk benchmark are accessed only once. By the delta of the 75\% percentile and 95\% percentile we know that 20\% percent of the used variables are have a liveness interval of a length up to $156$. In combination with the fact that all variables used accumulate to an average liveness interval length of $1402011.75$, this implies that 5\% of the variables used by 445.gobmk consists of a significantly longer liveness interval. The results of the 471.omnetpp benchmark and the 483.xalancbmk benchmark indicate that there is a small amount of variables that significantly longer than the majority of the used variables.
 
+\Cref{fig:stats-overview} presents the results of all statistical metrics of all benchmarks. Note that the y-axis is logarithmic and the x-axis is linear.
+
+\Cref{fig:stats-liveness-interval-length} presents the liveness interval lengths on the y-axis. On the x-axis the liveness interval lengths of all variables are shown in decreasingly sorted.
+% 445.gobmk
+As illustrated by \Cref{fig:stats-liveness-interval-length} over 90\% of the liveness intervals of the 445.gobmk are of length 1 and less than 5\% are of a length longer than 5.
+% 462.libquantum
+Approximately 20\% of the liveness intervals of the 462.libquantum benchmark are of length greater equal 5, less than 10\% are or length greater equal 100, and over 65\% of the liveness intervals are of length 1.
+% 471.omnetpp
+The 471.omnetpp benchmarks consists of approximately 5\% of liveness intervals with a length greater 100, slightly more than 10\% are of a length great than 1, and slightly less than 90\% of the liveness intervals are of length 1.
+% 483.xalancbmk
+Approximately 20\% of the liveness intervals of the 483.xalancbmk benchmark are of a length greater than 1 and approximately 5\% of the liveness intervals are of a length greater than 2
+
+\Cref{fig:stats-overlapping-liveness} shows the number of overlapping liveness intervals on the y-axis.
+% 445.gobmk
+The 445.gobmk benchmark presents the most overlapping liveness intervals. Different to the other benchmarks the number of overlapping liveness interval do net reduce exactly line, there are several steps observable.
+% 462.libquantum
+The 462.libquantum benchmark is one of the benchmarks with the fewest overlapping liveness intervals. Then number of liveness intervals reduces linear.
+% 471.omnetpp
+The 471.omnetpp benchmark consists of significant more overlapping liveness intervals than all other benchmarks except the 445.gobmk benchmark. In difference to the 445.gobmk benchmark the number of overlapping liveness intervals of the 471.omnetpp benchmark decreases linear.
+% 483.xalancbmk
+The 483.xalancbmk benchmark is one of the benchmarks with the fewest overlapping liveness intervals. The number of overlapping liveness intervals decreases linear.
+
+\Cref{fig:stats-accesses} shows the number of access at a variable on the y-axis.
+On the x-axis the values of all variables are shown in decreasing order.
+% 445.gobmk
+Approximately 5\% of the variables of the 445.gobmk benchmark are accesses more often than 20 times, almost 3\% are accessed less than 20 times, and the remaining $\sim$92\% of the variables are accessed exactly 20 times.
+% 462.libquantum
+For the 462.libquantum benchmark approximately 35\% of the variables are accessed once, $\sim$15\% are accessed 2 times, almost 40\% of the variables are accessed more often than 2 times and less often than 200 times, and less than 10\% are accessed over 200 times.
+% 471.omnetpp
+10\% of the 471.omnetpp benchmarks variables are accessed less than 20 times, approximately 85\% are of the variables are accessed between 20 and 400 times, and the remaining around 5\% of the variables are accessed over 400 times.
+% 483.xalancbmk
+Almost 45\% of the variables of the 483.xalancbmk benchmark are accessed at most 10 times, approximately 30\% of the variables are accessed between 10 and 20 times, almost 15\% are accessed between 20 and 100 times, and the remaining $\sim$ 10\% are accessed more often than 100 times.
+
+\Cref{fig:stats-access-distance} illustrates the access distances on the y-axis and on the x-axis all observed values are shown in decreasing order.
+% 445.gobmk
+Only approximately 35\% of the access distances of the 445.gobmk benchmark are greater than 1, less than 10\% are greater than 10, and just a few percentage of the access distances are greater than 100.
+% 462.libquantum
+Over 50\% of the accesses distances of the 462.libquantum benchmark are greater than 1, almost 32\% are greater than 5, less than 5\% of the access distances are greater than 100, and less than 3\% are even greater 1000.
+% 471.omnetpp
+Slightly less than 40\% of the access distances are greater than 1, approximately 35\% are greater than 3, and only less than 20\% are greater than 3.
+% 483.xalancbmk
+Less than 30\% of the access distances are greater than 1, approximately 20\% are of access distance 2, and roughly 2\% of the access distances are greater than 10.
+
+\begin{figure}[!ht]
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/statistical-analysis/plots/ll.eps}
+    \subcaption{Liveness Interval Length}
+    \label{fig:stats-liveness-interval-length}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/statistical-analysis/plots/ol.eps}
+    \subcaption{Overlapping Liveness Intervals}
+    \label{fig:stats-overlapping-liveness}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/statistical-analysis/plots/aa.eps}
+    \subcaption{Accesses}
+    \label{fig:stats-accesses}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.5\textwidth}%
+    \includegraphics[width=\textwidth]{figs/statistical-analysis/plots/ad.eps}
+    \subcaption{Access Distance}
+    \label{fig:stats-access-distance}
+  \end{subfigure}
+  \caption{Statistical analysis: metrics overview}
+  \label{fig:stats-overview}
+\end{figure}
+
 \section{Conclusion}\label{sec:exp-conclusion}
 
 \Cref{cha:experiment} presents an experiment based on our environment to illustrate the difference of our cache implementations, of our allocator implementations, and the used benchmarks.

@@ -6,7 +6,7 @@ FIGS = figs
 
 all: default
 
-default: plots compile bib
+default: compile bib
 	$(MAKE) compile
 	$(MAKE) compile
 
@@ -19,6 +19,7 @@ bib: $(DOC).aux
 
 plots:
 	sh figs/make-plots.sh
+	sh figs/statistical-analysis/make-plots.sh
 
 clean:
 	rm -f ./figs/plots/*
