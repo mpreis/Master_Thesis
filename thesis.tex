@@ -101,15 +101,15 @@ The question asked is, given a trace of load and store instructions can we find 
 For the purpose of this work we focus on the sequence of load and store instructions of a program, the so-called \emph{memory access trace} (short \emph{trace}).
 Our analysis are executed based on the traces of the SPEC 2006 benchmarks and the V8 benchmarks.
 For each trace of a benchmark the following four metrics are computed:
-(1) the \emph{Accesses} represents the number of accesses on an address,
-(2) the \emph{Access Distance} illustrates number of accesses on other addresses between to accesses on the same address,
-(3) the \emph{Liveness Interval Length} represents the timespan an address is in use, and
-(4) the \emph{Overlapping Liveness} shows the number of overlapping liveness intervals at a certain point of the execution.
+(1) the \emph{accesses} represents the number of accesses on an address,
+(2) the \emph{access distance} illustrates number of accesses on other addresses between to accesses on the same address,
+(3) the \emph{liveness interval length} represents the timespan an address is in use, and
+(4) the \emph{overlapping liveness} shows the number of overlapping liveness intervals at a certain point of the execution.
 In this work each store instruction indicates the beginning of a liveness interval.
 A liveness interval ends with the last load instruction before the next store instruction, i.e. an address might consist of multiple liveness intervals.
 %
 Our analysis at first observe the sequence of load and store instructions of a benchmark.
-Next, the observed trace is analyzed according to the four metrics, \emph{Accesses}, \emph{Access Distance}, \emph{Liveness Interval Length}, and \emph{Overlapping Liveness}.
+Next, the observed trace is analyzed according to the four metrics, \emph{accesses}, \emph{access distance}, \emph{liveness interval length}, and \emph{overlapping liveness}.
 After the metrics have been saved the procedure for the performance analysis starts.
 The performance analysis uses different \emph{allocators} to modify the addresses used by the trace.
 The modification of the used addresses is called \emph{trace transformation}.
@@ -118,7 +118,7 @@ The simulated caches differer in the applied eviction policy and the information
 During the execution the number of main memory accesses, and the number of cache misses and cache hits are counted to determine the performance of a trace for a certain simulated cache.
 
 % conjecture
-Our conjecture is that the four metrics \emph{Accesses}, \emph{Access Distance}, \emph{Liveness Interval Length}, and \emph{Overlapping Liveness} characterize the performance of a program.
+Our conjecture is that the four metrics \emph{accesses}, \emph{access distance}, \emph{liveness interval length}, and \emph{Overlapping Liveness} characterize the performance of a program.
 Furthermore, we are convinced that caches maybe more effective if memory is reused quickly, independently of where data is located.
 
 
@@ -373,15 +373,16 @@ As an implication of Definition~\ref{def:liveness-interval} a single address mig
   \label{fig:liveness-intervals}
 \end{figure}
 
-\Cref{fig:liveness-intervals-example} illustrates the liveness intervals of the C code example presented in \Cref{fig:mat-example-c-code}, which shows on the instruction number on the left side and the instruction itself on the right side.
+\Cref{fig:liveness-intervals-example} illustrates the liveness intervals of the C code example presented in \Cref{fig:mat-example-c-code}, which shows the instruction number on the left side and the instruction itself on the right side.
 On top of the figure the addresses used by the program are listed.
-The core of the figure are the liveness intervals of the addresses.
+The core of the figure illustrates the liveness intervals of the addresses.
 Each line represents a single liveness interval.
 A liveness interval begins at the lower instruction number and ends at the higher one.
 The liveness intervals are quite obvious for the addresses \texttt{\&x}, \texttt{\&y}, and \texttt{\&z}.
 According to Definition \ref{def:liveness-interval}, a liveness interval always begins with a store instruction.
 The instructions 2, 3, and 7 indicate the beginnings of the liveness intervals for the three addresses \texttt{\&x}, \texttt{\&y}, and \texttt{\&z}.
-The ends of all three are indicated by load instructions at the instruction number 5, 9, and 12. None of the addresses is accessed after these lines again, e.g. \texttt{\&x}, not used anymore after instruction number 5.
+The endings are indicated by load instructions at the instruction numbers 5, 9, and 12.
+None of the addresses is accessed after these lines again, e.g. \texttt{\&x}, not used anymore after instruction number 5.
 The address \texttt{\&sum} presents a much more interesting case, it consists of four liveness intervals.
 The first liveness interval of \texttt{\&sum} begins at instruction number 1.
 This is when \texttt{\&sum} is initialized.
@@ -410,21 +411,41 @@ It is the base for the trace transformations described in \Cref{sec:trace-transf
 
 \section{Performance}\label{sec:performance}
 
-This section presents how the performance of a trace is computed. The performance of a trace is the most significant criteria of its quality. In general \ac{trace}s with better performance use the memory available in a more efficient way than others. The performance is independent of the number of instructions a \ac{trace} consists of. The only important criteria are the number of memory accesses. As \Cref{fig:hardware-model} shows there are different kinds of memory access. Depending if the accessed address is in the cache or not the time required to load the value of a address into a register varies. Cached data can be access much faster than data which has to be loaded from main memory. The \emph{latency} to load data into a register is measured in \emph{\ac{CPU} cycles}. \ac{CPU} cycles are a common metric to measure durations at hardware level.
+This section presents how the performance of a trace is computed.
+The performance of a trace is the most significant criteria of its quality.
+In general \ac{trace}s with better performance use the memory available in a more efficient way than others.
+The performance is independent of the number of instructions a \ac{trace} consists of.
+The only important criteria is the number of memory accesses.
+As \Cref{fig:hardware-model} shows there are different kinds of memory access.
+Depending if the accessed address is in the cache or not the time required to load the value of a address into a register varies.
+Cached data can be access much faster than data which has to be loaded from the main memory.
+The \emph{latency} to load data into a register is measured in \emph{\ac{CPU} cycles}.
+\ac{CPU} cycles are a common metric to measure durations at hardware level.
 
-In our system \emph{performance} is measured in \ac{CPA}. Indeed performance is not directly measured. As \Cref{equ:performance-cpa} illustrates it is computed according to the measured number of memory accesses. \ac{CPA} describes the average number of \ac{CPU} cycles per memory access with memory access equivalent to an instruction of the trace.
+In our system \emph{performance} is expressed in \ac{CPA}.
+Indeed performance is not directly measured.
+As \Cref{equ:performance-cpa} illustrates it is computed according to the number of memory accesses that raised during execution.
+\ac{CPA} describes the average number of \ac{CPU} cycles per memory access.
+A memory access is equivalent to an instruction of the trace.
 
-We proceed as follows, after the \ac{trace} of a program has been generated its performance is analyzed by applying the trace on a simulated cache and counting the different kinds of memory accesses. At the end of the execution the performance is computed as illustrated by \Cref{equ:performance-cpa}.
+We proceed as follows, after the \ac{trace} of a program has been generated its performance is analyzed by applying the trace on a simulated cache and counting the different kinds of memory accesses.
+At the end of the execution the performance is computed as illustrated by \Cref{equ:performance-cpa}.
 
 \begin{equation}\label{equ:performance-cpa}
 \text{CPA}(T,C) = \frac{\text{Sum of cycles}(T, C)}{\text{Sum of accesses}(T)}
 \end{equation}
 
-$T$ represents the \ac{trace} of the analyzed program. $C$ represents the applied cache, the different caches are explained in \Cref{sec:caches}.
+$T$ represents the \ac{trace} of the analyzed program.
+$C$ represents the applied cache, the different caches are explained in \Cref{sec:caches}.
 
-\emph{sum of cycles(T, C)} represents the sum of all memory accesses each weight according to its costs. The costs for a memory access the depends on the latency of the memory unit accessed. This is why cache accesses are cheaper than main memory accesses. The \emph{sum of accesses(T)} represents the total number of load and store instructions executed by the \ac{trace} $T$.
+\emph{sum of cycles(T, C)} represents the sum of all memory accesses and each one weight according to its costs.
+The costs for a memory access the depends on the latency of the memory unit that is accessed.
+This is why cache accesses are cheaper than accessing the main memory.
+The \emph{sum of accesses(T)} represents the total number of load and store instructions executed by the \ac{trace} $T$.
 
-\Cref{tab:memory-access-cost} shows the costs for the different types of memory accesses. These numbers are taken from literature \cite{drepper2007every}, \cite{skylake}. The actual values are not that important than the relation of cache instruction costs to the memory instruction costs.
+\Cref{tab:memory-access-cost} shows the costs for the different types of memory accesses.
+These numbers are taken from literature \cite{drepper2007every}, \cite{skylake}.
+The actual values are not that important than the relation of the costs.
 
 \begin{table}[!ht]
   \centering
@@ -442,7 +463,8 @@ $T$ represents the \ac{trace} of the analyzed program. $C$ represents the applie
   \label{tab:memory-access-cost}
 \end{table}
 
-This section presents our definition of performance and how the performance of a trace is computed. For this procedure the memory accesses of a  \ac{trace} are recored and finally used for computation. The performance is the average number of \ac{CPU} cycles per \ac{trace} instruction.
+This section presents our definition of performance and how the performance of a trace is computed.
+For this procedure the memory accesses of a \ac{trace} are recored and finally used for computation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Metrics
@@ -450,14 +472,23 @@ This section presents our definition of performance and how the performance of a
 
 \section{Metrics}\label{sec:metrics}
 
-This section presents the metrics chosen to characterize a \ac{trace}. The characteristic of \ac{trace} consists of the four metrics \emph{accesses}, \emph{access distance}, \emph{overlapping liveness}, and \emph{liveness interval length}. These are used to reason about the resulting performance of a \ac{trace} and further to compare a \ac{trace} with other \ac{trace}s. The metrics presented by this section are all applied after \ac{trace} transformation. So, these operated on variables rather than directly on addresses. Nevertheless, variables could easily be mapped to addresses. Furthermore, for all four metrics the same statistical parameters are computed: minimum, maximum, average, 5\% percentile, 25\% percentile, 50\% percentile, 75\% percentile, and 95\% percentile.
+This section presents the metrics chosen to characterize a \ac{trace}.
+The characteristic of \ac{trace} consists of the four metrics \emph{accesses}, \emph{access distance}, \emph{overlapping liveness}, and \emph{liveness interval length}.
+These are used to reason about the resulting performance of a \ac{trace} and further to compare a \ac{trace} with other \ac{trace}s.
+The metrics presented by this section are all applied after \ac{trace} transformation.
+Hence, these operate on variables rather than directly on addresses.
+Nevertheless, variables could easily be mapped to addresses.
+Furthermore, for all four metrics the same statistical parameters are computed: minimum, maximum, average, 5\% percentile, 25\% percentile, 50\% percentile, 75\% percentile, and 95\% percentile.
 
 \begin{remark} Statical metrics\
 \begin{itemize}
 \item The \emph{minimum} is the numerical smallest value of all samples.
 \item The \emph{maximum} is the numerical largest value of all samples.
 \item The \emph{average} is the arithmetic mean of all samples. It is computed by dividing the sum of all samples by the number of samples.
-\item The \emph{percentile} is the value below which a given percentage of samples of all samples fall, i.e., the 25\% percentile represents the value for which holds that 25\% of all samples are smaller than this value. The $k$th percentile is computed by sorting all samples from smallest to largest. Multiply the $k$ percent by the total number of values, this is the index within the sorted list of samples. The $k$ percentile is the value at the computed index.
+\item The \emph{percentile} is the value below which a given percentage of all samples fall, i.e., the 25\% percentile represents the value for which holds that 25\% of all samples are smaller than this value.
+The $k$ percentile is computed by sorting all samples from smallest to largest.
+Multiply the $k$ percent by the total number of values, this is the index within the sorted list of samples.
+The $k$ percentile is the value at the computed index.
 \end{itemize}
 \end{remark}
 
@@ -475,16 +506,40 @@ This section presents the metrics chosen to characterize a \ac{trace}. The chara
 \end{figure}
 
 \subsection{Accesses}\label{ssec:metric-accesses}
-The metric called \emph{accesses} is as simple as the name suggests. It investigates on the number of accesses on a certain variable. For this reason the number of accesses on each variable are counted. Independent of an access is a load or store each counts the same. In other words this metric shows how often a variables occurs within a \ac{trace}. Finally, the statistical metrics as explained above are computed on the observed sample. Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(1, 2)$. Variable $A$ is accessed twice and variable $B$ is accessed only once.
+The metric called \emph{accesses} is as simple as the name suggests.
+It investigates on the number of accesses on a certain variable.
+For this reason the number of accesses on each variable are counted, regardless of the access type.
+Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(1, 2)$.
+Variable $A$ is accessed twice and variable $B$ is accessed only once.
 
 \subsection{Access Distance}\label{ssec:metric-access-distance}
-The \emph{access distance} metric shows the distance between two sequential accesses on the same variable, e.g, if there is only one variable accessed the access distance of such a \ac{trace} is 0, but assume a \ac{trace} which accesses two variables alternating as shown by \Cref{fig:metrics-access-distance-exmaple} then the access distance of $A$ is 2. Its computed by subtracting the instruction number of the last access by the current instruction number, i.e., in case of $A$ the access distance is computed by $3-1 = 2$, same of $B$ ($2 - 2 = 0$). Finally, the statistical metrics as explained above are computed on the observed sample. Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$. Between the load of variable $A$ and the store on it there is only one other instruction this is why there is a $1$ in the list. The $0$ results for variable $B$ which accessed only once.
+The \emph{access distance} metric shows the distance between two sequential accesses on the same variable.
+For example if there is only one variable accessed the access distance of such a \ac{trace} is 0.
+Assume a \ac{trace} that accesses two variables alternating as shown by \Cref{fig:metrics-access-distance-exmaple}, then the access distance of $A$ is 2.
+Its computed by subtracting the instruction number of the current access and the instruction number of the previous access on a certain variable.
+For example, the access distance of variable $A$ is computed by $3-1 = 2$, same of $B$ ($2 - 2 = 0$).
+Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$.
+Between the load of variable $A$ and the store on it there is only one other instruction, that the reason why there is $2$ in the list.
+The $0$ results for variable $B$ that is accessed only once.
 
 \subsection{Overlapping Liveness}\label{ssec:metric-concurrently-live}
-The \emph{overlapping liveness} metric presents the number of variables which are live at a certain instruction number, i.e., this metric is equivalent with the number of overlapping liveness intervals observed for each instruction number. The set of live variable which are currently used is called \emph{working set}. The term working set has been introduced by the work \cite{denning1968working}. This metric shows how a \ac{trace}s working set size behaves. For this reason at each instruction the currently live variables are counted. The observed value is appended to then set of samples. Finally, the statistical metrics as explained above are computed on the observed sample. Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(1, 1, 2)$. At instruction number 1 and 3 only one variable is live $A$, namely. At instruction number 2 there are two variables live $A$, and $B$, respectively.
+The \emph{overlapping liveness} metric presents the number of variables that are live at a certain instruction number, the set of live variables is called \emph{working set}.
+The term working set has been introduced by the work \cite{denning1968working}.
+This metric shows how the working set of a \ac{trace}s grows and shrinks.
+For this reason at each instruction the currently live variables are recorded.
+Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(1, 1, 2)$.
+At instruction number 1 and 3 only one variable is live $A$.
+At instruction number 2 there are two variables live $A$, and $B$, respectively.
 
 \subsection{Liveness Interval Length}\label{ssec:metric-liveness-interval-length}
-The \emph{liveness interval length} metric illustrates the different lengths of liveness intervals. Variables are used for a certain timespan and this timespan varies. In general there are variables which are used for a short period and others are live for longer. If a variable is only accessed once the liveness interval length is $0$. The liveness interval length is computed similar to the access distance by subtracting the instruction number of beginning of a liveness interval from the instruction number of its last access. Finally, the statistical metrics as explained above are computed on the observed sample. Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$. As explained above if a variable is only accessed once the liveness interval length is $0$, this is the case of $B$. The length of the liveness interval of variable $A$ is represented by the second value of the list, $2$.
+The \emph{liveness interval length} metric illustrates the different lengths of liveness intervals.
+In general a variable is used for a specific purpose that yields the variable to be live a certain timespan.
+There are variables that are used for a short period and others are live for longer.
+If a variable is only accessed once the liveness interval length is $0$.
+The liveness interval length is computed similar to the access distance by subtracting the instruction number of beginning of a liveness interval from the instruction number of its last access.
+Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$.
+As explained above if a variable is only accessed once the liveness interval length is $0$, this is the case of $B$.
+The length of the liveness interval of variable $A$ is represented by the second value of the list, $2$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Trace Transformation
@@ -1536,7 +1591,7 @@ We have transformed the observed traces of all benchmarks by using the allocator
 Each of the transformed traces has been executed on 4 different caches to observe data about it performance and memory usage.
 These 4 caches use 2 different algorithms to decide on an eviction candidate, \ac{LRU} and \citeauthor{belady1966study} namely.
 For each eviction policy there is one version that uses the liveness information of a trace and a second one that proceeds without using liveness information.
-To reason about the performance and memory usage results we analyzed the observed memory access trace according to the four metrics: Accesses, Access Distance, Liveness Interval Length, and Overlapping Liveness Intervals.
+To reason about the performance and memory usage results we analyzed the observed memory access trace according to the four metrics: accesses, access distance, liveness interval length, and overlapping liveness.
 % results
 The presented experiment illustrates that the analyzed memory access traces have potential for improvement.
 Our extremely simple allocators used for transformation reveal that each \ac{trace} uses at least twice the memory than necessary.
