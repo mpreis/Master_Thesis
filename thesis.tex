@@ -509,7 +509,7 @@ The $k$ percentile is the value at the computed index.
 The metric called \emph{accesses} is as simple as the name suggests.
 It investigates on the number of accesses on a certain variable.
 For this reason the number of accesses on each variable are counted, regardless of the access type.
-Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(1, 2)$.
+Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple} results in following list of samples $(1, 2)$.
 Variable $A$ is accessed twice and variable $B$ is accessed only once.
 
 \subsection{Access Distance}\label{ssec:metric-access-distance}
@@ -518,7 +518,7 @@ For example if there is only one variable accessed the access distance of such a
 Assume a \ac{trace} that accesses two variables alternating as shown by \Cref{fig:metrics-access-distance-exmaple}, then the access distance of $A$ is 2.
 Its computed by subtracting the instruction number of the current access and the instruction number of the previous access on a certain variable.
 For example, the access distance of variable $A$ is computed by $3-1 = 2$, same of $B$ ($2 - 2 = 0$).
-Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$.
+Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$.
 Between the load of variable $A$ and the store on it there is only one other instruction, that the reason why there is $2$ in the list.
 The $0$ results for variable $B$ that is accessed only once.
 
@@ -527,7 +527,7 @@ The \emph{overlapping liveness} metric presents the number of variables that are
 The term working set has been introduced by the work \cite{denning1968working}.
 This metric shows how the working set of a \ac{trace}s grows and shrinks.
 For this reason at each instruction the currently live variables are recorded.
-Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(1, 1, 2)$.
+Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple} results in following list of samples $(1, 1, 2)$.
 At instruction number 1 and 3 only one variable is live $A$.
 At instruction number 2 there are two variables live $A$, and $B$, respectively.
 
@@ -537,7 +537,7 @@ In general a variable is used for a specific purpose that yields the variable to
 There are variables that are used for a short period and others are live for longer.
 If a variable is only accessed once the liveness interval length is $0$.
 The liveness interval length is computed similar to the access distance by subtracting the instruction number of beginning of a liveness interval from the instruction number of its last access.
-Applying this metric on the tiny example presented by \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$.
+Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$.
 As explained above if a variable is only accessed once the liveness interval length is $0$, this is the case of $B$.
 The length of the liveness interval of variable $A$ is represented by the second value of the list, $2$.
 
@@ -547,17 +547,29 @@ The length of the liveness interval of variable $A$ is represented by the second
 
 \section{Trace Transformation}\label{sec:trace-transformation}
 
-\Cref{sec:memory-access-trace} illustrated how to observe the \ac{trace} of a program. \Cref{sec:liveness} describes our definition of liveness and introduces liveness intervals. This section shows how to use these information to transform the \ac{trace} $T$ of a program. The aim is to transform a \ac{trace} $T$ into a \ac{trace} $T'$ which is semantically equivalent to $T$ but which offers better performance. The performance of a \ac{trace} is judged as shown in \Cref{sec:performance}. During transformation the addresses of the original \ac{trace} are replaced by other addresses.
-
-We distinguish the originally used addresses form the addresses used after transformation. The latter ones are called \emph{variables}. A \emph{variable} is in general nothing else than an address. There are two significant reasons why to use a different naming.
-
-First the original addresses have some properties like being an address on the heap or being an address of the globals or being an address within the program code which introduces some restrictions. For our purpose this information is not important. During transformation we do not care about this. Each address is handled the same way.
-
-Second it simplifies talking about \ac{trace}s. Each time we talk about an address it refers to the \ac{trace} observed form the binary. Talking about variables indicates that the \ac{trace} has been transformed already.
+\Cref{sec:memory-access-trace} illustrated how to observe the \ac{trace} of a program.
+\Cref{sec:liveness} describes our definition of liveness and introduces liveness intervals.
+This section shows how to use these information to transform the \ac{trace} $T$ of a program.
+The aim is to transform a \ac{trace} $T$ into a \ac{trace} $T'$ that is semantically equivalent to $T$, but offers better performance.
+The performance of a \ac{trace} is determined as presented in \Cref{sec:performance}.
+The transformation of a \ac{trace} does not effect the sequence of load and store instructions.
+Nevertheless, the addresses used by the \ac{trace} are replaced according to a given algorithm.
+The algorithms available are described below.
+We distinguish the originally used addresses form the addresses used after transformation, the latter ones are called \emph{variables}.
+We distinguishing the originally used addresses from those after transformation to emphasis the difference.
+Further, it simplifies talking about \ac{trace}s.
+Each time we talk about an address it refers to the \ac{trace} observed form the binary.
+Talking about variables indicates that the \ac{trace} has been transformed already.
 
 \subsection{Identity Trace}
 
-For transformation simply the addresses of a \ac{trace} are replaces by variables. There are no further changes. Based on the \ac{trace} (see \Cref{fig:mat-example-trace}) observed from the C code illustrates by \Cref{fig:mat-example-c-code} the addresses are replaces by variables as shown by \Cref{fig:trace-transformation-original}. Basically, \texttt{\&sum} becomes $A$, \texttt{\&x} becomes $B$, \texttt{\&y} becomes $C$, and \texttt{\&z} becomes $D$. Obviously, there is one more difference the x-axis and y-axis are switched, namely. The reason is simple because it requires less space vertically. However, note that liveness intervals of the variables shown by \Cref{fig:trace-transformation-original} are exactly the same as those of the addresses illustrated by \Cref{fig:liveness-intervals-example}.
+The identity trace reproduces the original \ac{trace}.
+For transformation each unique address of a \ac{trace} is replaced by an unique variable.
+Based on the \ac{trace} (see \Cref{fig:mat-example-trace}) observed from the C code, illustrated in \Cref{fig:mat-example-c-code}, the addresses are replaces by variables, as shown in \Cref{fig:trace-transformation-original}.
+Basically, \texttt{\&sum} becomes $A$, \texttt{\&x} becomes $B$, \texttt{\&y} becomes $C$, and \texttt{\&z} becomes $D$.
+Obviously, there is one more difference the x-axis and y-axis are switched.
+The reason is simple because it requires less space vertically.
+However, note that liveness intervals of the variables shown in \Cref{fig:trace-transformation-original} are exactly the same as those of the addresses illustrated in \Cref{fig:liveness-intervals-example}.
 
 \begin{figure}[!ht]
   \centering
@@ -570,7 +582,17 @@ In this work two different kinds of \ac{trace} transformations are applied, expa
 
 \subsection{Single Assignment Trace}
 
-For expanding a \ac{trace} we decided to use a \emph{single assignment} form. More concrete each liveness interval of a \ac{trace} is assigned to its own variable. Further, a variable is never assigned a liveness interval more often than exactly once. \Cref{fig:trace-transformation-sa} presents the \emph{single assignment trace} of \Cref{fig:mat-example-trace}. It is not surprising that the number of variable required increases applying this approach. In detail the four liveness intervals of address \texttt{\&sum} are know assigned to the variables $A$, $D$, $F$, and $G$. The variable a liveness interval is assigned to depends on its beginning. This is why the variables used to map the liveness intervals of address \texttt{\&sum} are not contiguous. For this approach walk through the \ac{trace} and each time a store instruction occurs assign the next free variable, e.g., in alphabetical order as shown by the example. The implementation details are explained in \Cref{ssec:allocator-single-assignment}.
+The single assignment trace expands the original \ac{trace}, i.e., it uses more variables than the original \ac{trace} addresses.
+For expanding a \ac{trace} we decided to use a \emph{single assignment} form.
+More concrete each liveness interval of a \ac{trace} is assigned to its own variable.
+Further, a variable is never assigned a liveness interval more often than exactly once.
+\Cref{fig:trace-transformation-sa} presents the \emph{single assignment trace} of \Cref{fig:mat-example-trace}.
+It is not surprising that the number of variables required increases applying such an approach.
+In detail, the four liveness intervals of address \texttt{\&sum} are know assigned to the variables $A$, $D$, $F$, and $G$.
+In this example that variables are assigned in alphabetical order according to the beginning of an liveness interval.
+This is the reason why the variables used to map the liveness intervals of address \texttt{\&sum} are not contiguous.
+For this approach iterate through the \ac{trace} and each time a store instruction occurs assign the next free variable.
+The implementation details are explained in \Cref{ssec:allocator-single-assignment}.
 
 \begin{figure}[!ht]
   \centering
@@ -581,10 +603,23 @@ For expanding a \ac{trace} we decided to use a \emph{single assignment} form. Mo
 
 \subsection{Compact Trace}
 
-For collapsing a \ac{trace} we to use a \emph{compact} form. More concrete each liveness interval of a \ac{trace} is assigned to a variable, but now variables are \emph{reused}. If the liveness interval ends the variable is added to a \emph{free list}, i.e., a list of variable already use before but there liveness intervals already ended. The procedure is as follows before using a new variable the free list is checked. If there are variables available at the free list these are used. Otherwise an new variable is assigned. The implementation details are explained in \Cref{ssec:allocator-compact}. There are various ways opportunities for the semantics of the free list. In this work three variants are investigated, (1) stack semantic presented by \Cref{sssec:allocator-compact-stack}, (2) queue semantic explained by \Cref{sssec:allocator-compact-queue}, and (3) set semantic shown by \Cref{sssec:allocator-compact-set}. The set semantic is thought to represent a random selection of a free variable. However, \Cref{fig:trace-transformation-compact} illustrates the compaction of the \ac{trace} shown in \Cref{fig:mat-example-trace} and applies a free list with stack semantics. As expected this approach requires less variables. The liveness intervals of \texttt{\&sum} remain the the same variable $A$. Furthermore, the addresses \texttt{\&x} and \texttt{\&z} now share variable $B$.
+For collapsing a \ac{trace} we to use a \emph{compact} form.
+More concrete each liveness interval of a \ac{trace} is assigned to a variable, but now variables are \emph{reused}.
+If the liveness interval ends the variable is added to a \emph{free list}, i.e., a list of variable already use before but their liveness intervals already ended.
+The procedure is as follows: before using a new variable the free list is checked, if there are variables available at the free list these are used.
+Otherwise an new variable is assigned.
+The implementation details are explained in \Cref{ssec:allocator-compact}.
+There are various ways opportunities for the semantics of the free list.
+In this work three variants are investigated, (1) stack semantic, (2) queue semantic, and (3) set semantic.
+The set semantic is thought to represent a random selection of a free variable.
+However, \Cref{fig:trace-transformation-compact} illustrates the compaction of the \ac{trace} shown in \Cref{fig:mat-example-trace} and applies a free list with stack semantics.
+As expected this approach requires less variables.
+The liveness intervals of \texttt{\&sum} remain the the same variable $A$.
+Furthermore, the addresses \texttt{\&x} and \texttt{\&z} now share variable $B$.
 
 \begin{remark}
-Note that only by coexistent the liveness intervals of address \texttt{\&sum} are assigned to the same variable $A$. In general is depends on the semantics of the free list and the currently free variables which variable a liveness interval is assigned to.
+Note that only by coexistent the liveness intervals of address \texttt{\&sum} are assigned to the same variable $A$.
+In general is depends on the semantics of the free list and the currently free variables which variable a liveness interval is assigned to.
 \end{remark}
 
 \begin{figure}[!ht]
@@ -594,7 +629,8 @@ Note that only by coexistent the liveness intervals of address \texttt{\&sum} ar
   \label{fig:trace-transformation-compact}
 \end{figure}
 
-This section presents two different kinds of \ac{trace} transformations, single assignment and compaction, namely. Single assignment potentially increases the number of used variables and compaction potentially decreases the number of used variables.
+This section presents two different kinds of \ac{trace} transformations, single assignment and compaction.
+Single assignment potentially increases the number of used variables and compaction potentially decreases the number of used variables.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Summarizing Example
