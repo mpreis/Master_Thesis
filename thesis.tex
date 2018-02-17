@@ -63,63 +63,63 @@ Towards cache-optimal address allocation:%
 Caches are based on two major observations: Data that is accessed once is likely (1) that nearby data is accessed in near future (\emph{spatial locality}~\cite{jacob2010memory}) and (2) that the same data is accessed again in near future (\emph{temporal locality}~\cite{jacob2010memory}).
 To address spatial locality so-called \emph{cache lines} have been introduced.
 A cache line is the smallest unit of data that can be loaded from the main memory.
-All cache lines of a cache are of same size and depending on there size the values of multiple addresses fit in one cache line.
+All cache lines of a cache are of the same size and dependent on the cache line size the values of multiple addresses fit in one cache line.
 A program accesses the data stored in the main memory via \emph{addresses}.
 An address is a unique identifier for a certain amount of data, e.g. 8 byte are a common amount of data accessible by one address~\cite{patterson2011computer}.
 %
-There are to different types of memory accesses, reading and modifying.
+There are two different types of memory accesses, reading and modifying.
 Reading data is realized by executing a \emph{load} instruction.
 A load instruction reads the data of an address and stores the read value into one of the \ac{CPU}s registers for further computations.
 The process of reading the data first tries to read the data from cache.
 If the data of the requested address is in the cache it is read from there.
 Otherwise the data has to be read from the main memory.
-Data is load from the main memory, stored in the cache, and finally loaded into one of the \ac{CPU}s registers.
-To modify data a \emph{store} instruction has to be executed.
-If the data to modify is already in the cache the main memory has not to be accessed.
+Data is loaded from the main memory, stored in the cache, and finally loaded into one of the \ac{CPU}s registers.
+To modify data, a \emph{store} instruction has to be executed.
+If the data to modify is already in the cache the main memory is not accessed.
 Otherwise, the data has to be loaded from the main memory into the cache first.
-If the accessed data is available in the cache this is called a \emph{cache hit}, otherwise when the data is not in the cache this is called a \emph{cache miss}, that is of independent of the access type executed.
+Independent of the access type, if the accessed data is available in the cache this is called a \emph{cache hit}, otherwise when the data is not in the cache this is called a \emph{cache miss}.
 %
-Since, a cache is limited in space and typically the data required for the execution, that is called the \emph{working set}~\cite{denning1968working}, is larger then the cache size, eventually the cache will run out of space.
-In the situation that the cache is full and an address is accessed that is not in the cache it is required to free up space.
-For this reason every cache implements an \emph{eviction police} to decide on an eviction candidate.
+Since, a cache is limited in space and typically the data required for the execution, which is called the \emph{working set}~\cite{denning1968working}, is larger then the cache size, eventually the cache will run out of space.
+Whenever the cache is full and an address is accessed that is not in the cache it is required to free up space.
+For this reason every cache implements an \emph{eviction policy} to decide on an eviction candidate.
 The eviction candidate is written back to the main memory to make space for the requested data, it is \emph{evicted}.
-The chose of the eviction policy aims to satisfy temporal locality, e.g. a common eviction policy is to evict the least recently used address.
+The choice of the eviction policy aims to satisfy temporal locality, e.g. a common eviction policy is to evict the least recently used address.
 %
-The fact that data is grouped together on so-called \emph{cache lines} influences the cache performance significantly.
+The fact that data is grouped together is so-called \emph{cache lines} influences the cache performance significantly.
 Assume iterating over an array.
-In such a case performance might be excellent, because these are perfect conditions for spatial locality and temporal locality.
+In such a case the performance might be excellent, because these are perfect conditions for spatial locality and temporal locality.
 However, assume iterating over a dynamically allocated linked list.
-In difference to an array it is not ensured that the list elements are stored contiguous in memory.
-It is more likely that elements are distributed across the whole memory space.
+Compared to an array it is not ensured that the list elements are stored contiguous in memory.
+It is more likely that elements are distributed across the whole address space.
 In a worst case scenario each iteration forces a cache miss.
-This issue is a consequence of \emph{memory layout} generated by the allocator through dynamic allocations.
+This issue is a consequence of the \emph{memory layout} generated by the allocator through dynamic allocations.
 
 % problem statement
-The question asked is, given a trace of load and store instructions can we find metrics that characterize the trace performance for a given cache and implement an execution engine for computing their quantities?
+We are interested in the following problem: given a trace of load and store instructions, can we find metrics that characterize the trace performance for a given cache and implement an execution engine for computing their quantities?
 
 % methods & approach
 For the purpose of this work we focus on the sequence of load and store instructions of a program, the so-called \emph{memory access trace} (short \emph{trace}).
-Our analysis are executed based on the traces of the SPEC 2006 benchmarks and the V8 benchmarks.
+We analyze traces of the SPEC 2006 benchmarks and the V8 benchmarks.
 For each trace of a benchmark the following four metrics are computed:
 (1) the \emph{accesses} represents the number of accesses on an address,
-(2) the \emph{access distance} illustrates number of accesses on other addresses between to accesses on the same address,
+(2) the \emph{access distance} is defined as the number of accesses on other addresses between to accesses on the same address,
 (3) the \emph{liveness interval length} represents the timespan an address is in use, and
-(4) the \emph{overlapping liveness} shows the number of overlapping liveness intervals at a certain point of the execution.
+(4) the \emph{overlapping liveness} is defined as the number of overlapping liveness intervals at a certain point of the execution.
 In this work each store instruction indicates the beginning of a liveness interval.
 A liveness interval ends with the last load instruction before the next store instruction, i.e. an address might consist of multiple liveness intervals.
 %
-Our analysis at first observe the sequence of load and store instructions of a benchmark.
+First, our analysis observe the sequence of load and store instructions of a benchmark.
 Next, the observed trace is analyzed according to the four metrics, \emph{accesses}, \emph{access distance}, \emph{liveness interval length}, and \emph{overlapping liveness}.
 After the metrics have been saved the procedure for the performance analysis starts.
 The performance analysis uses different \emph{allocators} to modify the addresses used by the trace.
 The modification of the used addresses is called \emph{trace transformation}.
-Each transformed trace is executed on four simulated cache.
-The simulated caches differer in the applied eviction policy and the information they have about the executed trace.
-During the execution the number of main memory accesses, and the number of cache misses and cache hits are counted to determine the performance of a trace for a certain simulated cache.
+Each transformed trace is executed on four simulated caches.
+The simulated caches differs in the applied eviction policy and their information about the executed trace.
+During the execution, the number of main memory accesses, the number of cache misses, and cache hits are counted to determine the performance of a trace for a certain simulated cache.
 
 % conjecture
 Our conjecture is that the four metrics \emph{accesses}, \emph{access distance}, \emph{liveness interval length}, and \emph{Overlapping Liveness} characterize the performance of a program.
-Furthermore, we are convinced that caches maybe more effective if memory is reused quickly, independently of where data is located.
+Furthermore, we are convinced that caches may be more effective if memory is reused quickly and independently of where the data is located.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -301,7 +301,7 @@ sum = sum + x; | movl -12(%rbp), %eax | load  &x
 An striking observation is that there are no arithmetic operations in the \ac{trace}, which makes sense, since this representation of a program shows all the interaction with the main memory.
 However, this does not mean that while translating the assembly code to its \ac{trace} arithmetic operations could be skipped.
 Nevertheless, not only the move instructions could lead to a main memory access.
-\Cref{fig:mat-example-addition-detail} shows a main memory access that is archived via reading the value stored at address \texttt{-16(\%rbp)} for the computation.
+\Cref{fig:mat-example-addition-detail} shows a main memory access that is achieved via reading the value stored at address \texttt{-16(\%rbp)} for the computation.
 Such an instruction leads to a \texttt{load} within the \ac{trace}.
 Since the result of a computation is saved somewhere there is also a \texttt{store} observable in \ac{trace}.
 
@@ -1060,7 +1060,7 @@ The proceeding of a cache without liveness information in general is identical f
 \Cref{fig:cache-behavior} illustrates proceeding of the caches. Everything starts with the access on a variable. Right now it does not matter if the access is a load or a store instruction. At first it is checked if the accessed variable is currently in the cache. In case the variable is cached, this is a cache hit, we are done and the initial access could be executed without any further actions.
 Otherwise, if the accessed variable is not cached it is a cache miss. Such a case requires further action, namely the next step is to control if there is space for at least one more variable in the cache.
 
-If the cache is full it is required to make some space. This is archived by applying the eviction policy to decide on the variable which will be kicked out of the cache. The eviction candidates value has to be saved, for this reason its value is written back to main memory by a store instruction. Then, the accessed variables value can be loaded from main memory and finally the requested access can be executed.
+If the cache is full it is required to make some space. This is achieved by applying the eviction policy to decide on the variable which will be kicked out of the cache. The eviction candidates value has to be saved, for this reason its value is written back to main memory by a store instruction. Then, the accessed variables value can be loaded from main memory and finally the requested access can be executed.
 
 In case that the cache is not full we are able to skip the selection of an eviction candidate and of course it is not required to save its value in main memory, so also the store instruction is not needed. Such a situation allows to immediately load the value of the requested variable. In this case an expensive store instruction on the main memory is saved.
 
@@ -1264,11 +1264,11 @@ At the figures below on the y-axis the speedup is displayed and on the x-axis th
 
 \Cref{fig:correlation-min-compactstack} shows the results of the CompactStack allocator in combination with the \ac{MIN} cache for all available benchmarks. Obviously, for the CompactStack allocator all benchmarks require less variables than used by the Identity allocator. Further, the results of all benchmark are within or at least are close to the right upper quarter. Most interesting results are those of the 445.gobmk, 471.omnetpp, and 454.calculix. The 445.gobmk benchmark presents the most speedup of all benchmarks. Further, it uses only the half of the variables used by the Identity allocator. Nevertheless, there are benchmarks with much better compaction. The 471.omnetpp benchmark presents by far the best compaction result, with nearly equivalent speedup as the Identity allocator. The 483.xalancbmk presents the worst speedup of all benchmarks. Further, its compaction result is also one of the worst ones, even with an improvement.
 
-\Cref{fig:correlation-min-compactset} presents the results of the CompactSet allocator in combination with the \ac{MIN} cache for all available benchmarks. In comparison to the CompactStack allocators results the results of the CompactSet allocator slight worse. Especially, in terms of speedup there is a significant weakening observable. The most outstanding benchmarks are again 445.gobmk, 471.omnetpp, and 454.calculix. The results of 445.gobmk and 471.omnetpp are quit similar to those of the CompactStack. The result of the 483.xalancbmk is clearly different for the result archive with the CompactStack allocator. The speedup of the 454.calculix benchmark significantly decreased.
+\Cref{fig:correlation-min-compactset} presents the results of the CompactSet allocator in combination with the \ac{MIN} cache for all available benchmarks. In comparison to the CompactStack allocators results the results of the CompactSet allocator slight worse. Especially, in terms of speedup there is a significant weakening observable. The most outstanding benchmarks are again 445.gobmk, 471.omnetpp, and 454.calculix. The results of 445.gobmk and 471.omnetpp are quit similar to those of the CompactStack. The result of the 483.xalancbmk is clearly different for the result achieve with the CompactStack allocator. The speedup of the 454.calculix benchmark significantly decreased.
 
-\Cref{fig:correlation-min-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{MIN} cache for all available benchmarks. Obviously, using the CompactQueue allocator is not beneficial for most benchmarks in terms of speedup. Nevertheless, the 445.gobmk still archive a performance improvement by a similar compaction as for the CompactStack and CompactSet allocators. Also the 471.omnetpp benchmark presents quit identical results for speedup and compaction. All other benchmarks show a decrease in speedup. Furthermore, for this allocator 454.calculix is not the allocator with the worst speedup, it is 483.xalancbmk.
+\Cref{fig:correlation-min-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{MIN} cache for all available benchmarks. Obviously, using the CompactQueue allocator is not beneficial for most benchmarks in terms of speedup. Nevertheless, the 445.gobmk still achieve a performance improvement by a similar compaction as for the CompactStack and CompactSet allocators. Also the 471.omnetpp benchmark presents quit identical results for speedup and compaction. All other benchmarks show a decrease in speedup. Furthermore, for this allocator 454.calculix is not the allocator with the worst speedup, it is 483.xalancbmk.
 
-\Cref{fig:correlation-min-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{MIN} cache for all available benchmarks. Without any detailed explanation it is clear that the SingleAssignment allocator presents the worst results of all four allocators. Obviously, in terms of compaction this allocator is not able to archive any improvement by definition. Using a new variable for each store instruction inevitably yields in more or at least the same number of variable than used by the Identity allocator. As expected all data points are within the left half of the figure. Unfortunately, non of the benchmarks is able to least archive the same performance as the Identity allocator. Only the 445.gobmk benchmark is close to one. Note that the 471.omnetpp benchmark, which archived the best compaction for the other three allocators, now presents the worst compaction. And additionally it also offers the worst speedup.
+\Cref{fig:correlation-min-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{MIN} cache for all available benchmarks. Without any detailed explanation it is clear that the SingleAssignment allocator presents the worst results of all four allocators. Obviously, in terms of compaction this allocator is not able to achieve any improvement by definition. Using a new variable for each store instruction inevitably yields in more or at least the same number of variable than used by the Identity allocator. As expected all data points are within the left half of the figure. Unfortunately, non of the benchmarks is able to least achieve the same performance as the Identity allocator. Only the 445.gobmk benchmark is close to one. Note that the 471.omnetpp benchmark, which achieved the best compaction for the other three allocators, now presents the worst compaction. And additionally it also offers the worst speedup.
 
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
@@ -1336,7 +1336,7 @@ At the figures below on the y-axis the speedup is displayed and on the x-axis th
 
 \Cref{fig:correlation-lru-compactstack} presents the results of the CompactStack allocator in combination with the \ac{LRU} cache for all benchmarks. This figure present a quite different result an shown by \Cref{fig:correlation-min-compactstack}. In an overall view the speedup is much worse for most of the benchmark in comparison to the \ac{MIN} caches. Nevertheless, there are still three outstanding benchmarks to discuss. (1) The 471.omnetpp benchmark remains the benchmark with the most compaction. (2) The 483.xalancbmk benchmark presents the most decrease in performance. For the \ac{MIN} caches this benchmark already shows a poor speedup, but with the \ac{LRU} cache it becomes the benchmark with the least speedup. (3) The 445.gobmk benchmark and the 462.libquantum benchmark. As for the \ac{MIN} caches the 445.gobmk benchmark remains the benchmark with the most speedup. Furthermore, the 462.libquantum benchmark shows a significant improvement in speedup with the \ac{LRU} cache.
 
-\Cref{fig:correlation-lru-compactset} presents the results of the CompactSet allocator in combination with the \ac{LRU} cache for all benchmarks. In an overall perspective also the CompactSet allocator is not able to archive that much speedup using the \ac{LRU} cache than a \ac{MIN} cache. Most of the benchmarks present a weakening in performance which results in less speedup. Nevertheless, two benchmarks present a speedup larger than one 445.gobmk and 462.libquantum, namely. The 485.xalancbmk presents again the least speedup of all benchmarks and the 471.omnetpp remains the benchmark with most compaction.
+\Cref{fig:correlation-lru-compactset} presents the results of the CompactSet allocator in combination with the \ac{LRU} cache for all benchmarks. In an overall perspective also the CompactSet allocator is not able to achieve that much speedup using the \ac{LRU} cache than a \ac{MIN} cache. Most of the benchmarks present a weakening in performance which results in less speedup. Nevertheless, two benchmarks present a speedup larger than one 445.gobmk and 462.libquantum, namely. The 485.xalancbmk presents again the least speedup of all benchmarks and the 471.omnetpp remains the benchmark with most compaction.
 
 \Cref{fig:correlation-lru-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{LRU} cache for all benchmarks. The CompactQueue allocator presents a similar behavior as the CompactStack and CompactSet allocators. Most of the data points show a weakening in speedup. The CompactQueue allocator has in an overall perspective the worst speedup results of all four allocators. In detail there are two quite interesting things to observe. First the 445.gobmk for the first time shows a speedup less than one. While 462.libquantum remains the only benchmark with a speedup greater than one. Second 483.xalancbmk is for this allocator not the benchmark with the worst speedup. The benchmark with the worst speedup is the richards benchmark.
 
@@ -1412,7 +1412,7 @@ The compaction shown by \Cref{fig:speedup-compaction-445-gobmk-compaction} is fo
 
 \Cref{fig:speedup-compaction-471-omnetpp} presents the results of the 471.omnetpp benchmark in detail.
 
-\Cref{fig:speedup-compaction-471-omnetpp-speedup} shows the speedup of all allocators and caches of the 471.omnetpp benchmark. Obviously, the speedup results of the 471.omnetpp benchmark are significant worse than those of the 445.gobmk benchmark. Just for the two caches \ac{MIN} and \ac{MIN}+Liveness the 471.omnetpp benchmark is able to archive a speedup greater than one at all. And for these caches only the compacting allocators are slightly greater than one. The results for the \ac{LRU} caches are dramatically worse. For the \ac{LRU} caches non of the allocators is able to archive a speedup close to one. However, the CompactionStack allocator presents the best results o all allocators and again the CompactQueue allocators shows the worst results.
+\Cref{fig:speedup-compaction-471-omnetpp-speedup} shows the speedup of all allocators and caches of the 471.omnetpp benchmark. Obviously, the speedup results of the 471.omnetpp benchmark are significant worse than those of the 445.gobmk benchmark. Just for the two caches \ac{MIN} and \ac{MIN}+Liveness the 471.omnetpp benchmark is able to achieve a speedup greater than one at all. And for these caches only the compacting allocators are slightly greater than one. The results for the \ac{LRU} caches are dramatically worse. For the \ac{LRU} caches non of the allocators is able to achieve a speedup close to one. However, the CompactionStack allocator presents the best results o all allocators and again the CompactQueue allocators shows the worst results.
 
 \Cref{fig:speedup-compaction-471-omnetpp-compaction} presents the compaction of the 471.omnetpp benchmark. As the previous figures suggested the compaction of the 471.omnetpp benchmark is extremely high. All compacting allocators require $39.76$ times less variables than the Identity allocator does. Furthermore, the compaction of the SingleAssignment allocator is quite interesting, because it indicates that the \ac{trace} consists of many store instructions which lead to a compaction of $0.004$.
 
@@ -1435,7 +1435,7 @@ The compaction shown by \Cref{fig:speedup-compaction-445-gobmk-compaction} is fo
 
 \Cref{fig:speedup-compaction-483-xalancbmk} presents the results of the 483.xalancbmk benchmark in detail.
 
-\Cref{fig:speedup-compaction-483-xalancbmk-speedup} shows the speedup results of the 483.xalancbmk. Unfortunately, the presented results show only two scenarios for which a speedup greater than one can be archived. Namely, this scenarios are the CompactStack allocator in combination with the \ac{MIN} cache and the CompactStack allocator in combination with the \ac{MIN}+Liveness cache. The CompactSet allocator is close to one but stays below even if a cache uses the liveness information. On the \ac{LRU} caches non of the presented allocators is able to archive a speedup above $0.15$. Which means that all allocators show a performance at least 85\% worse than the Identity allocators performance.
+\Cref{fig:speedup-compaction-483-xalancbmk-speedup} shows the speedup results of the 483.xalancbmk. Unfortunately, the presented results show only two scenarios for which a speedup greater than one can be achieved. Namely, this scenarios are the CompactStack allocator in combination with the \ac{MIN} cache and the CompactStack allocator in combination with the \ac{MIN}+Liveness cache. The CompactSet allocator is close to one but stays below even if a cache uses the liveness information. On the \ac{LRU} caches non of the presented allocators is able to achieve a speedup above $0.15$. Which means that all allocators show a performance at least 85\% worse than the Identity allocators performance.
 
 However, \Cref{fig:speedup-compaction-483-xalancbmk-compaction} presents quite good results for the compaction. The compacting allocators are able to use $7.14$ times less variables than the Identity allocators does.
 
@@ -1479,7 +1479,7 @@ Summarizing the \Cref{fig:performance-445-gobmk} illustrate that there is potent
 \end{figure}
 
 \subsection{471.omnetpp}
-\Cref{fig:performance-471-omnetpp} presents the performance results of the 471.omnetpp benchmark. As before both figures illustrate the performance in \ac{CPU}, but on the left hand-side the distribution of cache misses and cache hits is shown and on th right hand-side the relation of the different memory accesses is presented. For this benchmark the Identity results are much better than results of the 445.gobmk. Since the Identity \ac{CPA}s are quite close to 1 ($1.85$, $1.82$, $1.04$, and $1.03$) there is not much space for improvement, especially for the \ac{MIN} implementations. Nevertheless, only for the \ac{MIN} implementation we are able to archive an improvement with the allocators CompactStack, CompactSet, and CompactQueue. The approach without compaction, SingleAssignment, seams to be a bad chose for this benchmark, for all four cache implementations it shows poor performance. As before it is observable that those allocators with less cache misses end up with less main memory accesses. What is plausible although a cache miss does not necessarily force a main memory access, as \Cref{fig:cache-behavior-liveness} illustrates. According to the work flow shown by \Cref{fig:cache-behavior-liveness} the hypothesis raises that the 471.omnetpp benchmark consists of many variables with overlapping liveness intervals or this benchmark is very load intensive or both aspects are more pronounced compared to 445.gobmk.
+\Cref{fig:performance-471-omnetpp} presents the performance results of the 471.omnetpp benchmark. As before both figures illustrate the performance in \ac{CPU}, but on the left hand-side the distribution of cache misses and cache hits is shown and on th right hand-side the relation of the different memory accesses is presented. For this benchmark the Identity results are much better than results of the 445.gobmk. Since the Identity \ac{CPA}s are quite close to 1 ($1.85$, $1.82$, $1.04$, and $1.03$) there is not much space for improvement, especially for the \ac{MIN} implementations. Nevertheless, only for the \ac{MIN} implementation we are able to achieve an improvement with the allocators CompactStack, CompactSet, and CompactQueue. The approach without compaction, SingleAssignment, seams to be a bad chose for this benchmark, for all four cache implementations it shows poor performance. As before it is observable that those allocators with less cache misses end up with less main memory accesses. What is plausible although a cache miss does not necessarily force a main memory access, as \Cref{fig:cache-behavior-liveness} illustrates. According to the work flow shown by \Cref{fig:cache-behavior-liveness} the hypothesis raises that the 471.omnetpp benchmark consists of many variables with overlapping liveness intervals or this benchmark is very load intensive or both aspects are more pronounced compared to 445.gobmk.
 
 
 \begin{figure}[!ht]
@@ -1724,26 +1724,26 @@ Obviously, the most recently freed variable has a high probability to still be i
 \chapter{Conclusion \& Future Work}\label{cha:conclusion}
 
 % what we did
-In this work we have analyzed the memory access traces of 9 benchmarks taken from 2 different benchmark suits, SPEC 2006 and V8.
-We have transformed the observed traces of all benchmarks by using the allocators: Identity, CompactStack, CompactSet, CompactQueue, and SingleAssignment.
-Each of the transformed traces has been executed on 4 different caches to observe data about it performance and memory usage.
-These 4 caches use 2 different algorithms to decide on an eviction candidate, \ac{LRU} and \citeauthor{belady1966study} namely.
-For each eviction policy there is one version that uses the liveness information of a trace and a second one that proceeds without using liveness information.
+In this work, we have analyzed the memory access traces of nine benchmarks taken from two different benchmark suits, SPEC 2006 and V8.
+We have transformed the observed traces of all benchmarks by using different allocators: Identity, CompactStack, CompactSet, CompactQueue, and SingleAssignment.
+Each of the transformed traces has been executed on four different caches to observe the data about their performance and memory usage.
+These four caches use two different algorithms to decide on an eviction candidate, namely \ac{LRU} and \citeauthor{belady1966study}.
+For each eviction policy, there is one version that uses the liveness information of a trace and a second one that proceeds without using liveness information.
 To reason about the performance and memory usage results we analyzed the observed memory access trace according to the four metrics: accesses, access distance, liveness interval length, and overlapping liveness.
 % results
-The presented experiment illustrates that the analyzed memory access traces have potential for improvement.
+The presented experiments illustrate that the analyzed memory access traces have potential for improvement.
 Our extremely simple allocators used for transformation reveal that each \ac{trace} uses at least twice the memory than necessary.
-However, the drawback of these extremely simple allocators is shown in the performance results, most benchmarks archive a worse performance after transformation.
-The defined metrics used to reason about performance and memory usage illustrate tendencies for improvement rather than unique characteristics.
+However, the drawback of these extremely simple allocators is shown in the performance results, most benchmarks achieve a worse performance after transformation.
+The defined metrics, used to reason about performance and memory usage, illustrate tendencies for improvement rather than unique characteristics.
 % conclustions
-We were able to show that even moder computer programs have not reached there limits yet, there is still space for improvement.
-Unfortunately, the chose metrics are not that expressive than we would like them to be.
+We were able to show that even modern computer programs have not reached there limits yet, there is still space for improvement.
+Unfortunately, the chosen metrics are not as expressive than we have assumed.
 
 % future work
-For future work remains to implement more sophisticate allocators to improve the quality of the trace transformations.
-Further, the set of caches available could be extended by implementing additional eviction policies.
-Furthermore, other benchmark suites could be integrated and analyzed.
-The additional data could lead to further metrics, that allow stronger statements or
+Implementation of more sophisticated allocators that improve the quality of the trace transformations remains for future work.
+Further, the set of available caches could be extended by implementing additional eviction policies.
+Moreover, other benchmark suites could be integrated and analyzed.
+The additional data could lead to further metrics, that may allow stronger statements or
  reveal new characteristics.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
