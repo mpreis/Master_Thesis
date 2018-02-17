@@ -584,7 +584,7 @@ In this work two different kinds of \ac{trace} transformations are applied, expa
 
 The single assignment trace expands the original \ac{trace}, i.e., it uses more variables than the original \ac{trace} addresses.
 For expanding a \ac{trace} we decided to use a \emph{single assignment} form.
-More concrete each liveness interval of a \ac{trace} is assigned to its own variable.
+More concrete each liveness interval of a \ac{trace} is assigned to a variable.
 Further, a variable is never assigned a liveness interval more often than exactly once.
 \Cref{fig:trace-transformation-sa} presents the \emph{single assignment trace} of \Cref{fig:mat-example-trace}.
 It is not surprising that the number of variables required increases applying such an approach.
@@ -638,12 +638,37 @@ Single assignment potentially increases the number of used variables and compact
 
 \section{Summarizing Example}
 
-Lets take a look at the performance of the three \ac{trace}s from above. Assume a \ac{LRU} cache with 2 cache lines, each cache line fits exactly one variable. For details on \ac{LRU} caches see \Cref{ssec:cache-lru}. As a breath description of the applied cache imaging as long as there is a free cache line within the cache this one is used. In case of an eviction, all cache lines are utilized, so there is no more free space. To make space the \emph{least recently used} cache line is evicted.
+Lets take a look at the performance of the three \ac{trace}s from above.
+Assume a \ac{LRU} cache with 2 cache lines, each cache line fits exactly one variable.
+For details on \ac{LRU} caches see \Cref{ssec:cache-lru}.
+As a breath description of the applied cache, imaging as long as there is a free cache line within the cache, this one is used.
+In case there is no more free cache line it is required to evict one of the used cache lines.
+To make space the \emph{least recently used} cache line is evicted.
 
-If a variable is accessed which is already in the cache a cheap cache access can be executed, either a load or store instruction. Otherwise, a much more expensive main memory instruction has to be executed. The costs of these instructions are presented by \Cref{tab:memory-access-cost}. For the following performance computation we assume a simple optimization. The first store instruction on a variable can be executed directly into the cache. Furthermore, assume that in case of an eviction the data of a variable is stored in main memory. Independent, if the variable is still alive or already dead.
+If a variable is accessed that is already in the cache a cheap cache access can be executed, either a load or store instruction.
+Otherwise, the main memory has to be access that is much more expensive
+The costs of the different kinds of accesses are presented in \Cref{tab:memory-access-cost}.
+For the following performance computation we assume a simple optimization: the first store instruction on a variable can be executed directly into the cache.
+Further, assume that in case of an eviction the data of a variable has to be stored in the main memory.
+Regardless if the variable is still alive or already dead.
 
 \subsection{Identity Trace}
-\Cref{fig:trace-transformation-original-marked} shows the annotated liveness intervals of the identity \ac{trace} of \Cref{fig:trace-transformation-original}. According to the assumptions from above every beginning of a liveness interval is annotated with a cache store instruction. Since the assumed cache fits exactly two variables the first eviction occurs when writing variable $C$ at instruction 3. According to the eviction policy of the applied \ac{LRU} cache variable $A$ is evicted. The memory store of variable $A$ is annotated with a filled red circle. Unfortunately, variable $A$ is accessed at the next instruction. For this reason it has to be loaded from main memory again, but before $B$ is stored in main memory to make space in the cache for $A$. The same procedure repeats for the variables $B$ and $C$ at instruction number 5. At instruction number 6 we are able to load a variable directly from cache for the first time. Nevertheless, there are two more eviction required to finish the execution of this trace. One at instruction 7, variable $B$ is evicted to make space for variable $D$ which is accessed for the first time. A interesting aspect at this instruction is that the liveness interval of variable $B$ end two instruction before, so $B$ is dead. Furthermore, $B$ is not needed anymore for the following instructions. In general this information is not available, this is why there is a memory store annotated. But if a systems knows about the liveness intervals of its variables it might decide to overwrite the value of $B$ by the value of $D$ and avoid the memory store. The last eviction appears at instruction 9 when variable $C$ is accessed for the last time. Variable $A$ is accessed several time without any interaction with the main memory, because each time it is access it is in the cache.
+\Cref{fig:trace-transformation-original-marked} shows the annotated liveness intervals of the identity \ac{trace} illustrated in \Cref{fig:trace-transformation-original}.
+According to the assumptions from above every beginning of a liveness interval is annotated with a cache store.
+Since the assumed cache fits exactly two variables the first eviction occurs when writing variable $C$ at instruction number 3.
+According to the eviction policy of the applied \ac{LRU} cache variable $A$ is evicted.
+The memory store of variable $A$ is annotated with a filled red circle.
+Unfortunately, variable $A$ is accessed at the next instruction.
+For this reason it has to be loaded from the main memory again, but before $B$ has to be stored in in the main memory to make space in the cache for $A$.
+The same procedure repeats for the variables $B$ and $C$ at instruction number 5.
+At instruction number 6 we are able to load a variable directly from cache for the first time.
+Nevertheless, there are two more evictions required to finish the execution of this trace.
+One at instruction number 7, variable $B$ is evicted to make space for variable $D$.
+A interesting aspect at this instruction is that the liveness interval of variable $B$ ended two instructions before, hence $B$ is dead.
+Furthermore, $B$ is not needed anymore for the following instructions.
+In general this information is not available, this is the reason why there is a memory store annotated.
+However, if a system knows about the liveness intervals of its variables it might decide to overwrite the value of $B$ with the value of $D$ and avoid the memory store.
+The last eviction appears at instruction number 9, variable $C$ is accessed for the last time. Variable $A$ is accessed several time without any interaction with the main memory, because each time it is accessed it is in the cache.
 
 \begin{figure}[!ht]
   \centering
@@ -652,7 +677,27 @@ If a variable is accessed which is already in the cache a cheap cache access can
   \label{fig:trace-transformation-original-marked}
 \end{figure}
 
-The metrics of the \ac{trace} illustrated by \Cref{fig:trace-transformation-original-marked} characterize it. The \emph{accesses} metric is observed by counting all accesses on a certain variable. In this example the list of samples holds four values one for each variable. The number of accesses on variable $A$ is $7$, on all other variables are accessed twice. The resulting and (sorted) list of samples looks as follows $(2, 2, 2, 7)$. The \emph{access distance} presents kind of the access frequency on an variable. Depending on the number of accesses the list of access distances could be significantly larger than the number of used variables. In this case the sorted list of samples looks as follows $(0, 1, 2, 2, 2, 2, 3, 3, 5, 6)$. For variable $A$ there are multiple access distances (from left to write) $3$, $2$, $2$, $2$, $1$, and $0$, namely. The \emph{overlapping liveness} metrics shows how many variables are used at the same instruction number. The list of samples is computed by counting the overlapping liveness intervals for each instruction number. As a result the size of the samples list depends on the number of instructions rather than on the number of used variables. In case of the current example the samples are $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$. For the purpose of better understanding the list is on sorted instead it is ordered according to the correlating instruction number, i.e., the first entry represents the number of overlapping liveness variable at instruction number 1 and the last entry represents this value for instruction number 13. The fourth metric is the \emph{liveness interval length}. The number of used variables and the number of accesses on a variables define number of samples for this metric. The number of accesses on a variable are signification because these define the liveness intervals. For this example the list of samples looks as follows $(0, 1, 2, 3, 3, 5, 6)$. For variable $A$ there are four entry in the list $0$, $1$, $2$, and $3$. The resulting metrics are presented by \Cref{tab:summarizing-example-metrics-original}.
+The metrics of this \ac{trace} are illustrated in \Cref{fig:trace-transformation-original-marked}.
+The \emph{accesses} metric is observed by recording the number of accesses for each variable.
+In this example the list of samples holds four values one for each variable.
+The number of accesses on variable $A$ is $7$, all other variables are accessed twice.
+The resulting sorted list of samples looks as follows $(2, 2, 2, 7)$.
+The \emph{access distance} presents a kind of the access frequency on an variable.
+Depending on the number of accesses the list of access distances could be significantly larger than the number of used variables.
+In this case the sorted list of samples looks as follows $(0, 1, 2, 2, 2, 2, 3, 3, 5, 6)$.
+For variable $A$ there are multiple access distances (from left to write) $3$, $2$, $2$, $2$, $1$, and $0$.
+The \emph{overlapping liveness} metrics shows how many variables are used at a certain instruction number.
+The list of samples is computed by counting the overlapping liveness intervals for each instruction number.
+As a result the size of the samples list depends on the number of instructions rather than on the number of used variables.
+In case of the current example the samples are $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$.
+For the purpose of better understanding the list is not sorted.
+Instead it is ordered according to the correlating instruction number, i.e., the first entry represents the number of overlapping liveness intervals at instruction number 1.
+The fourth metric is the \emph{liveness interval length}.
+The number of used variables and the number of accesses on a variables define number of samples for this metric.
+The number of accesses on a variable are significant, because these define the liveness intervals.
+For this example the list of samples looks as follows $(0, 1, 2, 3, 3, 5, 6)$.
+For variable $A$ there are four entry in the list $0$, $1$, $2$, and $3$.
+The resulting metrics are presented in \Cref{tab:summarizing-example-metrics-original}.
 
 \begin{table}[!ht]
   \centering
@@ -667,18 +712,28 @@ The metrics of the \ac{trace} illustrated by \Cref{fig:trace-transformation-orig
     Liveness Interval Length & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     \hline
   \end{tabular}
-  \caption{Metrics of the identity \ac{trace} illustrated by \Cref{fig:trace-transformation-original-marked} (values are rounded).}
+  \caption{Metrics of the identity \ac{trace} illustrated in \Cref{fig:trace-transformation-original-marked} (values are rounded).}
   \label{tab:summarizing-example-metrics-original}
 \end{table}
 
-To compute the performance of \Cref{equ:trace-transformation-original-marked} the different kinds of memory access have to be counted and weight as illustrated by \Cref{equ:trace-transformation-original-marked}. According to the annotations of \Cref{fig:trace-transformation-original-marked} there are 2 cache load, 7 cache stores, 4 memory loads, and 5 memory stores. The result of this equation indicates that 4.15 \ac{CPU} cycles are required in average to proceed one instruction of the \ac{trace}.
+To compute the performance of \Cref{equ:trace-transformation-original-marked} the different kinds of memory access have to be counted and weight as illustrated by \Cref{equ:trace-transformation-original-marked}.
+According to the annotations of \Cref{fig:trace-transformation-original-marked} there are 2 cache load, 7 cache stores, 4 memory loads, and 5 memory stores.
+The result of this equation indicates that $4.15$ \ac{CPU} cycles are required in average to proceed one instruction of the \ac{trace}.
 
 \begin{equation}\label{equ:trace-transformation-original-marked}
 \text{\ac{CPA}}(T_{original}, C_{LRU}) = \frac{1 * (2 + 7) + 5 * (4 + 5)}{13} = 4.15
 \end{equation}
 
 \subsection{Single Assignment Trace}
-\Cref{fig:trace-transformation-sa-marked} shows the annotated liveness intervals of the single assignment trace of \Cref{fig:trace-transformation-sa}. Unexpectedly, the number of cache stores increases according to the number of variables used. On the one hand the assumption of executing the first store on a variable directly on the cache and using more variables result in more cache store instructions. On the other hand by using more addresses the number of cache loads seams to reduce for this example. In total the number of cache instructions is the same as required for the identity \ac{trace}, but the distribution is a different. Taking a look at the main memory accesses we observe an increased number of memory stores. The number of memory loads is the same. The more variables used the more variables have to be saved in main memory in case of eviction. Compared to \Cref{fig:trace-transformation-original} there three times more memory stores on variables which are already dead. The other four memory store instructions executed are identical to those of the identity \ac{trace}.
+\Cref{fig:trace-transformation-sa-marked} shows the annotated liveness intervals of the single assignment trace of \Cref{fig:trace-transformation-sa}.
+Unexpectedly, the number of cache stores increases according to the number of variables used.
+The combination of: using more variables and the assumption that the first access on a variable yields a cache store, increases the number of cache stores executed.
+Further, using more variables seams to reduce the number of cache loads at least for this example.
+In total the number of cache accesses is the same as for the identity \ac{trace}, but the distribution differs.
+Taking a look at the main memory accesses we observe an increase in the number of memory stores.
+The single assignment \ac{trace} requires the same amount of memory loads as the identity \ac{trace}.
+Compared to \Cref{fig:trace-transformation-original} there are three times more memory stores on variables that are already dead.
+The other four memory stores executed are identical to those of the identity \ac{trace}.
 
 \begin{figure}
   \centering
@@ -687,7 +742,17 @@ To compute the performance of \Cref{equ:trace-transformation-original-marked} th
   \label{fig:trace-transformation-sa-marked}
 \end{figure}
 
-As introduces by \Cref{ssec:metric-accesses} the access distance for the \ac{trace} presented by \Cref{fig:trace-transformation-sa} is computed. The resulting list of samples looks as follows $(1, 2, 2, 2, 2, 2, 2)$. As expected for each variable there is only one entry in the list. Different to the accesses of the identity \ac{trace} there are more entries. By coincident each variable except $G$ is accessed twice. Computing the \emph{access distance} results in following list of samples $(0, 1, 2, 3, 3, 5, 6)$. The \emph{overlapping liveness} variables are observed by counting the overlapping liveness intervals and result in the displayed list $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$. Since the liveness intervals are not change during transforming a \ac{trace} these values are the same as for the identity \ac{trace}. The samples for the \emph{liveness interval length} look as follows $(0, 1, 2, 3, 3, 5, 6)$. For this example the samples of the access distance and the liveness interval length are identical, but this is a coincident and not generally the case. \Cref{tab:summarizing-example-metrics-sa} presents the statistical metrics.
+The accesses for the \ac{trace} shown in \Cref{fig:trace-transformation-sa} is computed as introduced in \Cref{ssec:metric-accesses}.
+The computation outputs this list of samples: $(1, 2, 2, 2, 2, 2, 2)$.
+As expected for each variable there is only one entry in the list.
+Different to the accesses of the identity \ac{trace} there are more entries.
+By coincident each variable except $G$ is accessed twice.
+Computing the \emph{access distance} results in following list of samples $(0, 1, 2, 3, 3, 5, 6)$.
+The \emph{overlapping liveness} variables are observed by counting the overlapping liveness intervals and result in the displayed list $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$.
+Since the liveness intervals are not change during transforming a \ac{trace} these values are the same as for the identity \ac{trace}.
+The samples for the \emph{liveness interval length} look as follows $(0, 1, 2, 3, 3, 5, 6)$.
+For this example the samples of the access distance and the liveness interval length are identical, but this is a coincident.
+\Cref{tab:summarizing-example-metrics-sa} presents the statistical metrics.
 
 \begin{table}[!ht]
   \centering
@@ -706,14 +771,25 @@ As introduces by \Cref{ssec:metric-accesses} the access distance for the \ac{tra
   \label{tab:summarizing-example-metrics-sa}
 \end{table}
 
-The performance is computed as defined above. For this single assignment trace we observe 2 cache loads, 7 cache stores, 4 memory loads, and 7 memory stores which results in a \ac{CPA} of 4.92. This result is slightly worse than the \ac{CPA} of the identity \ac{trace} presented by \Cref{equ:trace-transformation-original-marked}.
+For this single assignment trace we observe 2 cache loads, 7 cache stores, 4 memory loads, and 7 memory stores that result in a \ac{CPA} of $4.92$.
+This result is slightly worse than the \ac{CPA} of the identity \ac{trace} presented by \Cref{equ:trace-transformation-original-marked}.
 
 \begin{equation}\label{equ:trace-transformation-sa-marked}
 \text{\ac{CPA}}(T_{single~assigment}, C_{LRU}) = \frac{1 * (2 + 7) + 5 * (4 + 7)}{13} = 4.92
 \end{equation}
 
 \subsection{Compact Trace}
-\Cref{fig:trace-transformation-compact-marked} shows the annotated liveness intervals of the compact trace of \Cref{fig:trace-transformation-compact}. The most significant difference compared to the others two trace is the number of variables used. Variable $B$ is reused for the variable $D$ of the identity \ac{trace}. Obviously, there are less memory stores required than for the single assignment trace. Furthermore, there are even less memory stores required than for the identity \ac{trace}. The reason is that reusing variable $B$ turn the memory store into a cache store of the new value. The other memory accesses are quite similar as explained above. Each liveness interval begins with a cache store. Variable $A$ allows two cache loads. The memory stores on the instructions 3, 4, 5, and 9 are identical for all three traces. Same for the memory loads at instruction 4, 5, 9, and 12.
+\Cref{fig:trace-transformation-compact-marked} shows the annotated liveness intervals of the compact trace based on \Cref{fig:trace-transformation-compact}.
+The most significant difference compared to the others two traces is the number of variables used.
+Variable $B$ is reused instead of picking a new variable.
+Obviously, there are less memory stores required than for the single assignment trace.
+Furthermore, there are even less memory stores required than for the identity \ac{trace}.
+The reason is that reusing variable $B$ turns the memory store into a cache store.
+The other memory accesses are quite similar as explained above.
+Each liveness interval begins with a cache store.
+Variable $A$ allows two cache loads.
+The memory stores on the instruction numbers 3, 4, 5, and 9 are identical for all three traces.
+Same for the memory loads at the instruction numbers 4, 5, 9, and 12.
 
 \begin{figure}
   \centering
@@ -722,7 +798,14 @@ The performance is computed as defined above. For this single assignment trace w
   \label{fig:trace-transformation-compact-marked}
 \end{figure}
 
-For the \ac{trace} presented by \Cref{fig:trace-transformation-compact} the list of samples for th \emph{accesses} metric is $(2, 4, 7)$. According the number of used variables the list holds only three vales. The samples of the \emph{access distance} looks as follows $(0, 1, 2, 2, 2, 2, 2, 3, 3, 5, 6)$. The resulting statistical metrics are presented by \Cref{tab:summarizing-example-metrics-compact}. The \emph{overlapping liveness} metrics yields in the same list of samples as for the identity \ac{trace} and the single assignment \ac{trace}, $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$. Reason is that the liveness intervals are not changed only rearranged. As already mentioned the samples for the \emph{liveness interval length} are the same as for the single assignment \ac{trace} and the identity \ac{trace}, $(0, 1, 2, 3, 3, 5, 6)$. The reason for this is at the liveness intervals are never changed.
+For the \ac{trace} presented in \Cref{fig:trace-transformation-compact} the list of samples for the \emph{accesses} metric is $(2, 4, 7)$.
+According the number of used variables the list consists of three values.
+The samples of the \emph{access distance} look as follows $(0, 1, 2, 2, 2, 2, 2, 3, 3, 5, 6)$.
+The \emph{overlapping liveness} metrics yields in the same list of samples as for the identity \ac{trace} and the single assignment \ac{trace}, $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$.
+Reason is that the liveness intervals are not changed only rearranged.
+As already mentioned the samples for the \emph{liveness interval length} are the same as for the single assignment \ac{trace} and the identity \ac{trace}, $(0, 1, 2, 3, 3, 5, 6)$.
+The reason for this is at the liveness intervals are never changed.
+The resulting statistical metrics are presented by \Cref{tab:summarizing-example-metrics-compact}.
 
 \begin{table}[!ht]
   \centering
@@ -741,17 +824,20 @@ For the \ac{trace} presented by \Cref{fig:trace-transformation-compact} the list
   \label{tab:summarizing-example-metrics-compact}
 \end{table}
 
-The performance of the compact trace presented by \Cref{fig:trace-transformation-compact-marked} is computed as follows. There are 2 cache loads, 7 cache stores, 4 memory loads, and 4 memory stores required for the execution, which results in a \ac{CPA} of 3.77. This result the best one of the presented ones. Which shows that for this example the presented compact trace performs best.
+There are 2 cache loads, 7 cache stores, 4 memory loads, and 4 memory stores required for the execution, that results in a \ac{CPA} of $3.77$.
+This result the best one of the presented ones, that shows that for this example the presented compact trace performs best.
 
 \begin{equation}\label{equ:trace-transformation-compact-marked}
 \text{\ac{CPA}}(T_{compact}, C_{LRU}) = \frac{1 * (2 + 7) + 5 * (4 + 4)}{13} = 3.77
 \end{equation}
 
 \subsection{Conclusion}
-To conclude the summarizing example for each metric and the performance the three \ac{trace}s are compared. This example concludes the Theoretical Foundations illustrating the differences of these \ac{trace}s in terms of execution and performance.
+To conclude the summarizing example for each metric and the performance the three \ac{trace}s are compared. This example concludes the Theoretical Foundations with illustrating the differences of the identical \ac{trace}, the single assignment \ac{trace} and the compact \ac{trace}.
 
 \subsubsection{Performance}
-\Cref{tab:summarizing-example-performance} presents the computed performance for each \ac{trace} applied to a simulated cache based on \ac{LRU} eviction policy. As the table shows a transformation not always resulting in an improvement. For this example the compacted \ac{trace} yield the best performance.
+\Cref{tab:summarizing-example-performance} presents the computed performance for each \ac{trace} applied to a simulated cache based on \ac{LRU} eviction policy.
+As the table shows a transformation not always leads to an improvement.
+For this example the compacted \ac{trace} yield the best performance.
 
 \begin{table}[!ht]
   \centering
@@ -770,7 +856,13 @@ To conclude the summarizing example for each metric and the performance the thre
 
 \subsubsection{Accesses}
 
-By transforming a \ac{trace} into another one the total number of accesses never changes. Nevertheless, which variable is access and how often a variable is accessed has a high potential to be modified. Because this is the purpose of \ac{trace} transformation. The \Cref{tab:summarizing-example-metrics-overview-accesses} illustrates the comparison of the three \ac{trace}s discussed. Obviously, the variables of the single assignment \ac{trace} are accessed significantly less often than in case of the other two \ac{trace}s. To pick one value, 95 percentage of all variables of the single assignment \ac{trace} are accessed only twice. For the identity \ac{trace} and also for the compact \ac{trace} the 95\% percentile is larger than 6. For the compact \ac{trace} it is expected, because less variables are used and the number of accesses is not changed. Hence, a single variable has to be access more often.
+By transforming a \ac{trace} into another one the total number of accesses never changes.
+Nevertheless, which variable and how many times it is accessed could be different.
+\Cref{tab:summarizing-example-metrics-overview-accesses} illustrates the comparison of the three \ac{trace}s discussed.
+Obviously, the variables of the single assignment \ac{trace} are accessed significantly less often than it is the case for the others.
+To pick one value, 95 percentage of all variables of the single assignment \ac{trace} are accessed only twice.
+For the identity \ac{trace} and the compact \ac{trace} the 95\% percentile is larger than 6.
+Hence, the variables of the compact \ac{trace} and the identity \ac{trace} are accessed $\sim3$ times more often that those of the single assignment \ac{trace}.
 
 \begin{table}[!ht]
   \centering
@@ -790,7 +882,14 @@ By transforming a \ac{trace} into another one the total number of accesses never
 
 \subsubsection{Access Distance}
 
-\Cref{tab:summarizing-example-metrics-overview-access-distance} shows the comparison of the access distance metric. The differences between identity \ac{trace} and compacted \ac{trace} are minimal. The reason is that there is only one difference, the liveness interval of variable $D$ of the identity \ac{trace} is merged into variable $B$ of the compacted \ac{trace}. For the calculation this means that there is one sample more in the list of the compact \ac{trace}, of value $2$ namely. All other sample are identical to those the identity \ac{trace}. The difference between identity \ac{trace} and single assignment \ac{trace} are a bit more significant. The reason in this case is that the access distance of the single assignment \ac{trace} is reduced to pure liveness intervals. In this case the list of sample for the single assignment \ac{trace} is shorter than the one of the identity \ac{trace}.
+\Cref{tab:summarizing-example-metrics-overview-access-distance} shows the comparison of the access distance metric.
+The differences between identity \ac{trace} and compact \ac{trace} are minimal.
+The reason is that there is only one difference, the liveness interval of variable $D$ form the identity \ac{trace} s merged into variable $B$ of the compact \ac{trace}.
+For the calculation this means that there is one sample more in the list of the compact \ac{trace}.
+All other samples are identical to those the identity \ac{trace}.
+The differences between identity \ac{trace} and single assignment \ac{trace} are a more significant.
+The reason is that the access distance of the single assignment \ac{trace} is reduced to the liveness intervals.
+In this case the list of sample for the single assignment \ac{trace} is shorter than the one of the identity \ac{trace}.
 
 \begin{table}[!ht]
   \centering
@@ -809,7 +908,9 @@ By transforming a \ac{trace} into another one the total number of accesses never
 \end{table}
 
 \subsubsection{Overlapping Liveness}
-The results for overlapping liveness metric are presented by \Cref{tab:summarizing-example-metrics-overview-concurrently-live}. Unexpectedly, the results for all three \ac{trace}s are identical. Since the liveness intervals are potentially reassigned to another variable, but never changed in terms of length, beginning, and ending this is not surprising.
+The results for the overlapping liveness metric are presented in \Cref{tab:summarizing-example-metrics-overview-concurrently-live}.
+Unexpectedly, the results for all three \ac{trace}s are identical.
+Hence, the liveness intervals are not modified by any transformation.
 
 \begin{table}[!ht]
   \centering
@@ -828,7 +929,8 @@ The results for overlapping liveness metric are presented by \Cref{tab:summarizi
 \end{table}
 
 \subsubsection{Liveness Interval Length}
-The results for the liveness interval length metric does not show any differences between the three \ac{trace}s as \Cref{tab:summarizing-example-metrics-overview-liveness-interval-length} illustrates. It is as expected, because the liveness intervals are not modified during transformation.
+The results for the liveness interval length metric does not show any differences between the three \ac{trace}s as \Cref{tab:summarizing-example-metrics-overview-liveness-interval-length} illustrates.
+It is as expected, because the liveness intervals are not modified by any transformation.
 
 \begin{table}[!ht]
   \centering
