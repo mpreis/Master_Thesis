@@ -60,32 +60,32 @@ Towards cache-optimal address allocation:%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}\label{cha:introduction}
 % motivation
-Caches are based on two major observations: Data that is accessed once is likely (1) that nearby data is accessed in near future (\emph{spatial locality}~\cite{jacob2010memory}) and (2) that the same data is accessed again in near future (\emph{temporal locality}~\cite{jacob2010memory}).
+Caches are based on two major observations: When data is accessed once, it is likely (1) that nearby data is accessed in the near future (\emph{spatial locality}~\cite{jacob2010memory}) and (2) that the same data is accessed again in the near future (\emph{temporal locality}~\cite{jacob2010memory}).
 To address spatial locality so-called \emph{cache lines} have been introduced.
 A cache line is the smallest unit of data that can be loaded from the main memory.
-All cache lines of a cache are of the same size and dependent on the cache line size the values of multiple addresses fit in one cache line.
+All cache lines of a cache are of the same size and dependent on the cache line size, the values of multiple addresses fit in one cache line.
 A program accesses the data stored in the main memory via \emph{addresses}.
 An address is a unique identifier for a certain amount of data, e.g. 8 byte are a common amount of data accessible by one address~\cite{patterson2011computer}.
 %
 There are two different types of memory accesses, reading and modifying.
 Reading data is realized by executing a \emph{load} instruction.
 A load instruction reads the data of an address and stores the read value into one of the \ac{CPU}s registers for further computations.
-The process of reading the data first tries to read the data from cache.
-If the data of the requested address is in the cache it is read from there.
+At first it is tried to read the data from the cache.
+If the data of the requested address is in the cache, it is read from there.
 Otherwise the data has to be read from the main memory.
 Data is loaded from the main memory, stored in the cache, and finally loaded into one of the \ac{CPU}s registers.
 To modify data, a \emph{store} instruction has to be executed.
-If the data to modify is already in the cache the main memory is not accessed.
+If the data to modify is already in the cache, the main memory is not accessed.
 Otherwise, the data has to be loaded from the main memory into the cache first.
-Independent of the access type, if the accessed data is available in the cache this is called a \emph{cache hit}, otherwise when the data is not in the cache this is called a \emph{cache miss}.
+Independent of the access type, if the accessed data is available in the cache, this is called a \emph{cache hit}, otherwise when the data is not in the cache this is called a \emph{cache miss}.
 %
-Since, a cache is limited in space and typically the data required for the execution, which is called the \emph{working set}~\cite{denning1968working}, is larger then the cache size, eventually the cache will run out of space.
-Whenever the cache is full and an address is accessed that is not in the cache it is required to free up space.
+Since a cache is limited in space and typically the data required for the execution, which is called the \emph{working set}~\cite{denning1968working}, is larger then the cache size, eventually the cache will run out of space.
+Whenever the cache is full and an address is accessed that is not in the cache, it is necessary to free up space.
 For this reason every cache implements an \emph{eviction policy} to decide on an eviction candidate.
-The eviction candidate is written back to the main memory to make space for the requested data, it is \emph{evicted}.
+The eviction candidate is written back to the main memory to make space for the requested data, then it is \emph{evicted}.
 The choice of the eviction policy aims to satisfy temporal locality, e.g. a common eviction policy is to evict the least recently used address.
 %
-The fact that data is grouped together is so-called \emph{cache lines} influences the cache performance significantly.
+The fact that cached data is grouped, such a group of data is called \emph{cache lines}, influences the cache performance significantly.
 Assume iterating over an array.
 In such a case the performance might be excellent, because these are perfect conditions for spatial locality and temporal locality.
 However, assume iterating over a dynamically allocated linked list.
@@ -101,20 +101,20 @@ We are interested in the following problem: given a trace of load and store inst
 For the purpose of this work we focus on the sequence of load and store instructions of a program, the so-called \emph{memory access trace} (short \emph{trace}).
 We analyze traces of the SPEC 2006 benchmarks and the V8 benchmarks.
 For each trace of a benchmark the following four metrics are computed:
-(1) the \emph{accesses} represents the number of accesses on an address,
-(2) the \emph{access distance} is defined as the number of accesses on other addresses between to accesses on the same address,
+(1) the \emph{accesses} represent the number of accesses on an address,
+(2) the \emph{access distance} is defined as the number of accesses on other addresses between two accesses on the same address,
 (3) the \emph{liveness interval length} represents the timespan an address is in use, and
 (4) the \emph{overlapping liveness} is defined as the number of overlapping liveness intervals at a certain point of the execution.
 In this work each store instruction indicates the beginning of a liveness interval.
 A liveness interval ends with the last load instruction before the next store instruction, i.e. an address might consist of multiple liveness intervals.
 %
-First, our analysis observe the sequence of load and store instructions of a benchmark.
+First, our analysis observes the sequence of load and store instructions of a benchmark.
 Next, the observed trace is analyzed according to the four metrics, \emph{accesses}, \emph{access distance}, \emph{liveness interval length}, and \emph{overlapping liveness}.
-After the metrics have been saved the procedure for the performance analysis starts.
+After the metrics have been saved, the procedure for the performance analysis starts.
 The performance analysis uses different \emph{allocators} to modify the addresses used by the trace.
 The modification of the used addresses is called \emph{trace transformation}.
 Each transformed trace is executed on four simulated caches.
-The simulated caches differs in the applied eviction policy and their information about the executed trace.
+The simulated caches differ in the applied eviction policy and their information about the executed trace.
 During the execution, the number of main memory accesses, the number of cache misses, and cache hits are counted to determine the performance of a trace for a certain simulated cache.
 
 % conjecture
@@ -145,25 +145,70 @@ This section deals with the applied hardware model. The model used is reduced to
 \end{figure}
 
 \subsection{Central Processing Unit}
-The \emph{\ac{CPU}} is the heart of a computer system. The purpose of a \ac{CPU} is to process and execute a given program. A \emph{program} consists of a sequence of instructions which operate on data. It is processed sequentially, that is, instruction by instruction. An \emph{instruction} is a command with the purpose to perform a specific action, e.g. to add two numbers or to modify data. \emph{Data} is the information required by a program that is necessary for its execution, e.g. values for computations. The \ac{CPU} consists of a limited number of so-called \emph{registers}. A \emph{register} is an extremely small and extremely fast memory unit which allows the \ac{CPU} to execute computations. Registers are the only memory unit where the \ac{CPU} is able to apply arithmetic operations. The actual size of a single register and the number of registers available for computations depend on the architecture of the hardware.
+The \emph{\ac{CPU}} is the heart of a computer system.
+The purpose of a \ac{CPU} is to process and execute a given program.
+A \emph{program} consists of a sequence of instructions which operate on data.
+It is processed sequentially, that is, instruction by instruction.
+An \emph{instruction} is a command with the purpose to perform a specific action, e.g. to add two numbers or to modify data.
+\emph{Data} is the information required by a program that is necessary for its execution, e.g. values for computations.
+The \ac{CPU} consists of a limited number of so-called \emph{registers}.
+A \emph{register} is an extremely small and extremely fast memory unit which allows the \ac{CPU} to execute computations.
+Registers are the only memory unit where the \ac{CPU} is able to apply arithmetic operations.
+The actual size of a single register and the number of registers available for computations depend on the architecture of the hardware.
 
-For the purpose of this work, only instructions reading or writing data are taken into account. In order to read data, a \emph{load} instruction is required; in order to write data, a \emph{store} instructions is applied. These two instructions access the data of a program stored at the main memory, e.g. for the purpose of a calculation it might be necessary to get some data from the main memory and save its result at the main memory for later usage. Such data can be accessed by executing a load or store instruction on main memory. However, there are several more instructions available on modern computer systems, e.g. arithmetical operations.
+For the purpose of this work, only instructions reading or writing data are taken into account.
+In order to read data, a \emph{load} instruction is required; in order to write data, a \emph{store} instructions is applied.
+These two instructions access the data of a program stored at the main memory, e.g. for the purpose of a calculation it might be necessary to get some data from the main memory and save its result at the main memory for later usage.
+Such data can be accessed by executing a load or store instruction on main memory.
+However, there are several more instructions available on modern computer systems, e.g. arithmetical operations.
 
 \subsection{Main Memory}
-The \emph{main memory} is a storage containing all data required to execute a program. In general, the \ac{CPU} has to load data from the main memory and store data in main memory to process a program. Furthermore, even the program itself is stored at the main memory during its execution. Each instruction of a program has to be loaded before the \ac{CPU} is able to execute it. In case of a load instruction, the \ac{CPU} first loads the instruction itself. Then the CPU interprets the instruction to find out what to do, e.g. execute a load of data. Last the \ac{CPU} execution the instruction, e.g. it loads the actually required data into some of the available registers.
+The \emph{main memory} is a storage containing all data required to execute a program.
+In general, the \ac{CPU} has to load data from the main memory and store data in the main memory to process a program.
+Furthermore, even the program itself is stored at the main memory during its execution.
+Each instruction of a program has to be loaded before the \ac{CPU} is able to execute it.
+In case of a load instruction, the \ac{CPU} first loads the instruction itself.
+Then the CPU interprets the instruction to find out what to do, e.g. execute a load of data.
+Last the \ac{CPU} executes the instruction, e.g. it loads the actually required data into some of the available registers.
 
-The main memory is structured in equally sized chunks of memory, that are for example the size of 8 byte. These are then called a \emph{word}. Each of these memory chunks can be accesses by the \ac{CPU} via a unique identifier, its \emph{physical address}. To simplify a programmers life and make programs easier portable, \emph{virtual addresses} have been introduced. A virtual address (short \emph{address}) maps a physical address. Each program on a computer is given its own virtual address space which starts at address 0; this is an important assumption. In reality the first physical address of a program is very unlikely to be 0. This mapping of physical addresses to virtual addresses which always start at address 0 makes programs easier portable. For the purpose of this work, it is important to keep in mind that load and store instruction operate on addresses, e.g. \texttt{load \&address} where \texttt{\&address} represents the address of the data that is to be loaded.
+The main memory is structured in equally sized chunks of memory, that are for example the size of 8 byte.
+These are then called a \emph{word}.
+Each of these memory chunks can be accessed by the \ac{CPU} via a unique identifier, its \emph{physical address}.
+To simplify a programmers life and make programs easier portable, \emph{virtual addresses} have been introduced.
+A virtual address (short \emph{address}) maps a physical address.
+Each program on a computer is given its own virtual address space which starts at address 0; this is an important assumption.
+In reality the first physical address of a program is very unlikely to be 0.
+This mapping of physical addresses to virtual addresses which always start at address 0 makes programs easier portable.
+For the purpose of this work, it is important to keep in mind that load and store instruction operate on addresses, e.g. \texttt{load \&address} where \texttt{\&address} represents the address of the data that is to be loaded.
 
 \subsection{Cache}
-A \emph{cache} is a small high-speed memory which temporarily holds data of the addresses used by the currently processed program. The concept of caches has been introduced by Smith \cite{smith1982cache}.
+A \emph{cache} is a small high-speed memory which temporarily holds data of the addresses used by the currently processed program.
+Smith describes the concept of caches in \cite{smith1982cache}.
 
-Caches are based on two major observations, namely \emph{Temporal locality} and \emph{Spatial locality}.\emph{Temporal locality} means that if data is accessed it is likely that the same data is accessed again in the near future. \emph{Spatial locality} means that if data is accessed it is likely that other data near by is also accessed in the near future. Speaking about \emph{accessing an address} is equivalent with \emph{accessing data stored at an address in the main memory}. The same accounts for cached addresses. For the \ac{CPU} a cache is invisible. Regardless of whether or there is a cache or not the \ac{CPU} always just wants to access a certain address. If there is cache present it simply takes less time to load the value of an address into the \ac{CPU}s register. This is because caches are high-speed memory units.
+Caches are based on two major observations, namely \emph{Temporal locality} and \emph{Spatial locality}.
+\emph{Temporal locality} means that if data is accessed it is likely that the same data is accessed again in the near future.
+\emph{Spatial locality} means that if data is accessed, it is likely that other data nearby is also accessed in the near future.
+Speaking about \emph{accessing an address} is equivalent with \emph{accessing data stored at an address in the main memory}.
+The same accounts for cached addresses.
+For the \ac{CPU} a cache is invisible.
+Regardless of whether or there is a cache or not the \ac{CPU} always just wants to access a certain address.
+If there is cache present, it simply takes less time to load the value of an address into the \ac{CPU}s register.
+This is because caches are high-speed memory units.
 
-A \emph{cache hit} occurs whenever the \ac{CPU} wants to access an address which is already in the cache. Then no main memory access is required. The data is directly accessed via cache.
+A \emph{cache hit} occurs whenever the \ac{CPU} wants to access an address which is already in the cache.
+Then no main memory access is required.
+The data is directly accessed via cache.
 
-A \emph{cache miss} occurs whenever the \ac{CPU} wants to access an address that is not currently in the cache. Such a situation requires to load the data of the requested address from the main memory into the cache. Before the value stored at this address is loaded into one of the registers. Such an operation is expensive as explained in \Cref{sec:performance}.
+A \emph{cache miss} occurs whenever the \ac{CPU} accesses an address that is not currently in the cache.
+In such a situation it is required to load the data of the requested address from the main memory into the cache.
+Before the value stored at this address, it is loaded into one of the registers.
+Such an operation is expensive as explained in \Cref{sec:performance}.
 
-The \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory in order to make free space available. Since caches are limited in the number of addresses that can be temporarily, stored a cache will eventually run out of space. In case the cache is full and a cache miss occurs it is required to make space available to load the requested address. There are different algorithms trying to make an appropriate chose of the address that is to be evicted. For more details see \Cref{sec:caches}
+The \emph{cache policy} decides which address has to be \emph{evicted}, i.e., which address has to be written back into the main memory in order to make free space available.
+Since caches are limited in the number of addresses that can be temporarily stored, a cache will eventually run out of space.
+In the case that the cache is full and a cache miss occurs, it is required to make space available to load the requested address.
+There are different algorithms trying to make an appropriate chose of the address, that is to be evicted.
+For more details see \Cref{sec:caches}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Memory Access Trace
@@ -171,9 +216,20 @@ The \emph{cache policy} decides which address has to be \emph{evicted}, i.e., wh
 
 \section{Memory Access Trace}\label{sec:memory-access-trace}
 
-The \emph{\ac{trace}} represents all memory accesses for a given program. More precisely, the \ac{trace} is a sequence of load and store instructions observed by analyzing a given program. Furthermore, for the purpose of this work is does not matter which value is stored at a certain address. Therefore, the stored values are all dropped. This results in a sequence of tuples consisting of the instruction type, which is either \emph{load} or \emph{store}, and an address. \Cref{fig:mat-example-trace} shows an example of a \ac{trace}, addresses are annotated with \texttt{\&} known from programming languages like C.
+The \emph{\ac{trace}} represents all memory accesses for a given program.
+More precisely, the \ac{trace} is a sequence of load and store instructions observed by analyzing a given program.
+Furthermore, for the purpose of this work it does not matter which value is stored at a certain address.
+Therefore, the stored values are all dropped.
+This results in a sequence of tuples consisting of the instruction type, which is either \emph{load} or \emph{store}, and an address.
+\Cref{fig:mat-example-trace} shows an example of a \ac{trace} where addresses are annotated with \texttt{\&} known from programming languages like C.
 
-\Cref{fig:mat-example-c-code} shows a simple C program which sums up three numbers. First, all used variables are declared. Afterwards, the variables \texttt{sum}, \texttt{x}, and \texttt{y} are initialized with the values \texttt{0}, \texttt{1}, and \texttt{2}. Followed by the first computation, the value of \texttt{x} is added to \texttt{sum}s value and stored in \texttt{sum}. Next, the variable \texttt{z} is initialized with value \texttt{3}. Then, \texttt{sum} is increased by the value of \texttt{y}. Finally, the computation is completed by adding the value of \texttt{z} to \texttt{sum}.
+\Cref{fig:mat-example-c-code} shows a simple C program which sums up three numbers.
+First, all used variables are declared.
+Afterwards, the variables \texttt{sum}, \texttt{x}, and \texttt{y} are initialized with the values \texttt{0}, \texttt{1}, and \texttt{2}.
+Followed by the first computation, the value of \texttt{x} is added to \texttt{sum}s value and stored in \texttt{sum}.
+Next, the variable \texttt{z} is initialized with value \texttt{3}.
+Then, \texttt{sum} is increased by the value of \texttt{y}.
+Finally, the computation is completed by adding the value of \texttt{z} to \texttt{sum}.
 
 \begin{figure}[!ht]
   \centering
@@ -184,10 +240,31 @@ The \emph{\ac{trace}} represents all memory accesses for a given program. More p
   \label{fig:mat-example-c-code}
 \end{figure}
 
-\Cref{fig:mat-example-assembly-code} shows a snippet of assembly code generated by compiling the code of \Cref{fig:mat-example-c-code}. For compilation GCC 4.8.5 on Ubuntu 16.04 for AMD Opteron\texttrademark Processor 6376 with x86\_64 Architecture has been used. Since the declaration of the variables is only important for the compiler, no assembly code is generated for: \texttt{int sum, x, y, z;}. Therefore, the first line of assembly code shown in \Cref{fig:mat-example-assembly-code} represents the code generated for the C code \texttt{sum = 0;}. However, the compiler has not generated a store operation, instead the following code appears \texttt{movl \$0, -16(\%rbp)}.
+\Cref{fig:mat-example-assembly-code} shows a snippet of assembly code generated by compiling the code of \Cref{fig:mat-example-c-code}.
+For compilation GCC 4.8.5 on Ubuntu 16.04 for AMD Opteron\texttrademark Processor 6376 with x86\_64 Architecture was used.
+Since the declaration of the variables is only important for the compiler, no assembly code is generated for: \texttt{int sum, x, y, z;}.
+Therefore, the first line of assembly code shown in \Cref{fig:mat-example-assembly-code} represents the code generated for the C code \texttt{sum = 0;}.
+However, the compiler has not generated a store operation, instead the following code appears \texttt{movl \$0, -16(\%rbp)}.
 
-This assembly instruction consists of three parts. The first part shows the instruction that should be executed. In the example above \texttt{movl} represents this instruction. \texttt{movl} moves a \emph{long} value into a register. A long value is on the x86\_64 architecture the size of 32 bit. The second part represents the value that should be moved. In the example from above a constant value is moved. The fact that \texttt{0} is a constant value is indicated by the \texttt{\$} character. The third part represents the address to which the value should be moved to. In the example from above the target address is \texttt{-16(\%rbp)}. In this case, \texttt{rbp} is a register indicated by the \texttt{\%} character. Further, \texttt{\%rbp} is a so-called \emph{general-purpose} register of size 64 bit. By now it is enough to know that this register holds a memory address which is used as base to compute the actual target address. \texttt{-16} is the offset used to compute the actual target address.
-\Cref{fig:mat-example-assembly-code} only consists of two different types of instructions. The \texttt{movl} instruction is explained above. The other operation is used as follows \texttt{addl \%eax -16(\%rbp)}. The meaning of this instruction is to add the value stored at \texttt{-16(\%rbp)} to the value currently stored at the register \texttt{\%eax} and store the result at \texttt{\%eax}. As indicated by the \texttt{l} character at the and of the instruction name, this instruction operates on values of size 32 bit.
+This assembly instruction consists of three parts.
+The first part shows the instruction that should be executed.
+In the example above \texttt{movl} represents this instruction.
+\texttt{movl} moves a \emph{long} value into a register.
+A long value is on the x86\_64 architecture the size of 32 bit.
+The second part represents the value that should be moved.
+In the example from above a constant value is moved.
+The fact that \texttt{0} is a constant value is indicated by the \texttt{\$} character.
+The third part represents the address to which the value should be moved to.
+In the example from above the target address is \texttt{-16(\%rbp)}.
+In this case, \texttt{rbp} is a register indicated by the \texttt{\%} character.
+Further, \texttt{\%rbp} is a so-called \emph{general-purpose} register of size 64 bit.
+By now it is enough to know that this register holds a memory address which is used as base to compute the actual target address.
+\texttt{-16} is the offset used to compute the actual target address.
+\Cref{fig:mat-example-assembly-code} only consists of two different types of instructions.
+The \texttt{movl} instruction is explained above.
+The other operation is used as follows \texttt{addl \%eax -16(\%rbp)}.
+The meaning of this instruction is to add the value stored at \texttt{-16(\%rbp)} to the value currently stored at the register \texttt{\%eax} and store the result at \texttt{\%eax}.
+As indicated by the \texttt{l} character at the and of the instruction name, this instruction operates on values of the size of 32 bit.
 
 \begin{figure}[!ht]
   \centering
@@ -198,7 +275,7 @@ This assembly instruction consists of three parts. The first part shows the inst
   \label{fig:mat-example-assembly-code}
 \end{figure}
 
-Comparing the assembly code of \Cref{fig:mat-example-assembly-code} with the C code of \Cref{fig:mat-example-c-code}, the correlating instruction can be identified.
+\Cref{fig:mat-example-assembly-code} shows the assembly code of generated for the C code of \Cref{fig:mat-example-c-code}.
 Obviously, the first three assembly instructions correlate to the three assignments of the C code.
 It might be unexpected that the \texttt{movl} instruction is used instead of a store instruction.
 However, moving a value to a certain location is semantically equivalent to a store.
@@ -246,15 +323,11 @@ sum = sum + x; | movl -12(%rbp), %eax
 After the addition, the assignment of variable \texttt{z} follows.
 This assignment works exactly the same as discussed at the beginning of this section.
 The same accounts for the remaining two additions (\texttt{sum = sum + y;} and \texttt{sum = sum + z;}).
-The explanations above illustrate the generate code for the simple example of \Cref{fig:mat-example-c-code}.
-Furthermore, the behavior of the code is discussed.
-Moreover, there are already tiny hints about the memory accesses.
 The next step is to take look at the \ac{trace} used in this work.
 
 \Cref{fig:mat-example-trace} presents the \ac{trace} observed by the example of \Cref{fig:mat-example-c-code}.
-For reasons of better human readability the variable names of the C code are kept.
 To illustrate that the \ac{trace} operates on the addresses the C like character \texttt{\&} is used as prefix of an address.
-All information expect the kind of access and the accessed address is dropped.
+All information expects this kind of access and the accessed address is dropped.
 
 \begin{figure}[!ht]
   \centering
@@ -266,8 +339,8 @@ All information expect the kind of access and the accessed address is dropped.
 \end{figure}
 
 \Cref{fig:mat-example-comp-assignment-all} compares the assignment of the C code with the generated assembly code and the resulting \ac{trace} of these instructions.
-Assignments are straight translated into stores within in the \ac{trace}.
-In order to facilitate the procedure, the stored value is dropped so that only the accessed address remains in the \ac{trace}.
+Assignments are translated into stores in the \ac{trace}.
+In order to facilitate the procedure, the stored value is dropped, so that only the accessed address remains in the \ac{trace}.
 
 \begin{figure}[!ht]
   \centering
@@ -282,7 +355,8 @@ sum = 0; | movl $0, -16(%rbp) | store &sum
   \label{fig:mat-example-comp-assignment-all}
 \end{figure}
 
-\Cref{fig:mat-example-comp-addition-all} presents the \ac{trace} for the addition \texttt{sum = sum + x;}. The move instruction \texttt{movl -12(\%rbp), \%eax} loads the value of \texttt{x} into a register, which translates as expected into a load instruction in the \ac{trace}.
+\Cref{fig:mat-example-comp-addition-all} presents the \ac{trace} for the addition \texttt{sum = sum + x;}.
+The move instruction \texttt{movl -12(\%rbp), \%eax} loads the value of \texttt{x} into a register, which translates as expected into a load instruction in the \ac{trace}.
 The addition itself translates into two instructions within the \ac{trace}.
 
 \begin{figure}[!ht]
@@ -299,7 +373,7 @@ sum = sum + x; | movl -12(%rbp), %eax | load  &x
 \end{figure}
 
 An striking observation is that there are no arithmetic operations in the \ac{trace}, which makes sense, since this representation of a program shows all the interaction with the main memory.
-However, this does not mean that while translating the assembly code to its \ac{trace} arithmetic operations could be skipped.
+However, this does not mean that while translating the assembly code to its \ac{trace}, arithmetic operations could be skipped.
 Nevertheless, not only the move instructions could lead to a main memory access.
 \Cref{fig:mat-example-addition-detail} shows a main memory access that is achieved via reading the value stored at address \texttt{-16(\%rbp)} for the computation.
 Such an instruction leads to a \texttt{load} within the \ac{trace}.
@@ -334,7 +408,7 @@ In general, the liveness of an address begins with its allocation and ends with 
 Yet, \citeauthor{aigner2013acdc} showed in their work \cite{aigner2013acdc} that the general understanding of liveness offers potential for improvement.
 
 In their work, they introduced the term of \emph{deallocation delay}, describing the timespan from the last access on an object until its deallocation.
-This is based on the observation that objects often live longer than necessary, because of this deallocation delay, which is a waste of resources, especially, memory.
+This is based on the observation that objects often live longer than necessary, because of this deallocation delay, which is a waste of resources, especially memory.
 
 \begin{remark}
 Note that in the work \cite{aigner2013acdc} the liveness term is defined at object level. In this work we are exclusively focusing on address level.
@@ -344,7 +418,7 @@ However, in this work liveness is defined differently.
 First of all, liveness is defined on address level, since the whole work is operating on addresses rather than objects or data structures.
 Further, an address does not consist of \emph{the one} liveness.
 Rather, it consists of multiple timespans of liveness.
-In the timespan beginning with allocating an address and deallocating it there are periods in which the address is used heavily and there are periods where the address is not used at all.
+In the timespan beginning with allocating an address and deallocating it, there are periods in which the address is used heavily and there are periods where the address is not used at all.
 These periods of usage are called \emph{liveness intervals}.
 How these liveness intervals are defined is presented by \Cref{def:liveness-interval}.
 The basic idea is that each store operation introduces a new liveness intervals.
@@ -382,8 +456,8 @@ The liveness intervals are quite obvious for the addresses \texttt{\&x}, \texttt
 According to Definition \ref{def:liveness-interval}, a liveness interval always begins with a store instruction.
 The instructions 2, 3, and 7 indicate the beginnings of the liveness intervals for the three addresses \texttt{\&x}, \texttt{\&y}, and \texttt{\&z}.
 The endings are indicated by load instructions at the instruction numbers 5, 9, and 12.
-None of the addresses is accessed after these lines again, e.g. \texttt{\&x}, not used anymore after instruction number 5.
-The address \texttt{\&sum} presents a much more interesting case, it consists of four liveness intervals.
+None of the addresses are accessed after these lines again, e.g. \texttt{\&x} which is not used anymore after instruction number 5.
+The address \texttt{\&sum} presents a much more interesting case as it consists of four liveness intervals.
 The first liveness interval of \texttt{\&sum} begins at instruction number 1.
 This is when \texttt{\&sum} is initialized.
 Followed by the initializations of \texttt{\&x} and \texttt{\&y} before \texttt{\&sum} is accessed again.
@@ -413,22 +487,22 @@ It is the base for the trace transformations described in \Cref{sec:trace-transf
 
 This section presents how the performance of a trace is computed.
 The performance of a trace is the most significant criteria of its quality.
-In general \ac{trace}s with better performance use the memory available in a more efficient way than others.
-The performance is independent of the number of instructions a \ac{trace} consists of.
+In general \ac{trace}s with better performance use the memory is available in a more efficient way than others.
+The performance is independent of the number of instructions that a \ac{trace} consists of.
 The only important criteria is the number of memory accesses.
 As \Cref{fig:hardware-model} shows there are different kinds of memory access.
-Depending if the accessed address is in the cache or not the time required to load the value of a address into a register varies.
-Cached data can be access much faster than data which has to be loaded from the main memory.
+Depending if the accessed address is in the cache or not, the time required to load the value of a address into a register varies.
+Cached data can be accessed much faster than data which has to be loaded from the main memory.
 The \emph{latency} to load data into a register is measured in \emph{\ac{CPU} cycles}.
 \ac{CPU} cycles are a common metric to measure durations at hardware level.
 
 In our system \emph{performance} is expressed in \ac{CPA}.
 Indeed performance is not directly measured.
-As \Cref{equ:performance-cpa} illustrates it is computed according to the number of memory accesses that raised during execution.
+As \Cref{equ:performance-cpa} illustrates, it is computed according to the number of memory accesses that are raised during execution.
 \ac{CPA} describes the average number of \ac{CPU} cycles per memory access.
 A memory access is equivalent to an instruction of the trace.
 
-We proceed as follows, after the \ac{trace} of a program has been generated its performance is analyzed by applying the trace on a simulated cache and counting the different kinds of memory accesses.
+We proceed as follows. After the \ac{trace} of a program has been generated its performance is analyzed by applying the trace on a simulated cache and counting the different kinds of memory accesses.
 At the end of the execution the performance is computed as illustrated by \Cref{equ:performance-cpa}.
 
 \begin{equation}\label{equ:performance-cpa}
@@ -436,10 +510,10 @@ At the end of the execution the performance is computed as illustrated by \Cref{
 \end{equation}
 
 $T$ represents the \ac{trace} of the analyzed program.
-$C$ represents the applied cache, the different caches are explained in \Cref{sec:caches}.
+$C$ represents the applied cache; the different caches are explained in \Cref{sec:caches}.
 
-\emph{sum of cycles(T, C)} represents the sum of all memory accesses and each one weight according to its costs.
-The costs for a memory access the depends on the latency of the memory unit that is accessed.
+\emph{Sum of cycles(T, C)} represents the sum of all memory accesses and each one weighted according to the costs of its type.
+The costs for a memory access depends on the latency of the memory unit that is accessed.
 This is why cache accesses are cheaper than accessing the main memory.
 The \emph{sum of accesses(T)} represents the total number of load and store instructions executed by the \ac{trace} $T$.
 
@@ -473,7 +547,7 @@ For this procedure the memory accesses of a \ac{trace} are recored and finally u
 \section{Metrics}\label{sec:metrics}
 
 This section presents the metrics chosen to characterize a \ac{trace}.
-The characteristic of \ac{trace} consists of the four metrics \emph{accesses}, \emph{access distance}, \emph{overlapping liveness}, and \emph{liveness interval length}.
+The characteristic of a \ac{trace} consists of the four metrics \emph{accesses}, \emph{access distance}, \emph{overlapping liveness}, and \emph{liveness interval length}.
 These are used to reason about the resulting performance of a \ac{trace} and further to compare a \ac{trace} with other \ac{trace}s.
 The metrics presented by this section are all applied after \ac{trace} transformation.
 Hence, these operate on variables rather than directly on addresses.
@@ -486,9 +560,6 @@ Furthermore, for all four metrics the same statistical parameters are computed: 
 \item The \emph{maximum} is the numerical largest value of all samples.
 \item The \emph{average} is the arithmetic mean of all samples. It is computed by dividing the sum of all samples by the number of samples.
 \item The \emph{percentile} is the value below which a given percentage of all samples fall, i.e., the 25\% percentile represents the value for which holds that 25\% of all samples are smaller than this value.
-The $k$ percentile is computed by sorting all samples from smallest to largest.
-Multiply the $k$ percent by the total number of values, this is the index within the sorted list of samples.
-The $k$ percentile is the value at the computed index.
 \end{itemize}
 \end{remark}
 
@@ -506,39 +577,38 @@ The $k$ percentile is the value at the computed index.
 \end{figure}
 
 \subsection{Accesses}\label{ssec:metric-accesses}
-The metric called \emph{accesses} is as simple as the name suggests.
-It investigates on the number of accesses on a certain variable.
+The metric called \emph{accesses} is defined as the number of accesses on a certain variable.
 For this reason the number of accesses on each variable are counted, regardless of the access type.
-Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple} results in following list of samples $(1, 2)$.
+Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple}, results in the following list of samples $(1, 2)$.
 Variable $A$ is accessed twice and variable $B$ is accessed only once.
 
 \subsection{Access Distance}\label{ssec:metric-access-distance}
 The \emph{access distance} metric shows the distance between two sequential accesses on the same variable.
-For example if there is only one variable accessed the access distance of such a \ac{trace} is 0.
-Assume a \ac{trace} that accesses two variables alternating as shown by \Cref{fig:metrics-access-distance-exmaple}, then the access distance of $A$ is 2.
-Its computed by subtracting the instruction number of the current access and the instruction number of the previous access on a certain variable.
+For example, if there is only one variable accessed, the access distance of such a \ac{trace} is 0.
+Assume a \ac{trace} that accesses two variables alternating as shown by \Cref{fig:metrics-exmaple}, then the access distance of $A$ is 2.
+It is computed by subtracting the instruction number of the current access and the instruction number of the previous access on a certain variable.
 For example, the access distance of variable $A$ is computed by $3-1 = 2$, same of $B$ ($2 - 2 = 0$).
-Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$.
+Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple}, results in the following list of samples $(0, 2)$.
 Between the load of variable $A$ and the store on it there is only one other instruction, that the reason why there is $2$ in the list.
-The $0$ results for variable $B$ that is accessed only once.
 
 \subsection{Overlapping Liveness}\label{ssec:metric-concurrently-live}
-The \emph{overlapping liveness} metric presents the number of variables that are live at a certain instruction number, the set of live variables is called \emph{working set}.
+The \emph{overlapping liveness} metric is defined as the number of overlapping liveness intervals at a certain point of the execution.
+The set of live variables is called \emph{working set}.
 The term working set has been introduced by the work \cite{denning1968working}.
 This metric shows how the working set of a \ac{trace}s grows and shrinks.
 For this reason at each instruction the currently live variables are recorded.
-Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple} results in following list of samples $(1, 1, 2)$.
+Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple}, results in the following list of samples $(1, 1, 2)$.
 At instruction number 1 and 3 only one variable is live $A$.
-At instruction number 2 there are two variables live $A$, and $B$, respectively.
+At instruction number 2 there are two variables live respectively $A$, and $B$.
 
 \subsection{Liveness Interval Length}\label{ssec:metric-liveness-interval-length}
-The \emph{liveness interval length} metric illustrates the different lengths of liveness intervals.
-In general a variable is used for a specific purpose that yields the variable to be live a certain timespan.
+The \emph{liveness interval length} metric is defined as the different lengths of liveness intervals.
+In general, a variable is used for a specific purpose that yields the variable to be live a certain timespan.
 There are variables that are used for a short period and others are live for longer.
-If a variable is only accessed once the liveness interval length is $0$.
-The liveness interval length is computed similar to the access distance by subtracting the instruction number of beginning of a liveness interval from the instruction number of its last access.
-Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple} results in following list of samples $(0, 2)$.
-As explained above if a variable is only accessed once the liveness interval length is $0$, this is the case of $B$.
+If a variable is only accessed once, the liveness interval length is $0$.
+The liveness interval length is computed by subtracting the instruction number of the first access of the liveness interval from the instruction number of its last access.
+Applying this metric on the tiny example presented in \Cref{fig:metrics-exmaple}, results in the following list of samples $(0, 2)$.
+As explained above, if a variable is only accessed once, the liveness interval length is $0$, this is the case with $B$.
 The length of the liveness interval of variable $A$ is represented by the second value of the list, $2$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -549,26 +619,24 @@ The length of the liveness interval of variable $A$ is represented by the second
 
 \Cref{sec:memory-access-trace} illustrated how to observe the \ac{trace} of a program.
 \Cref{sec:liveness} describes our definition of liveness and introduces liveness intervals.
-This section shows how to use these information to transform the \ac{trace} $T$ of a program.
+This section shows how to use this information to transform the \ac{trace} $T$ of a program.
 The aim is to transform a \ac{trace} $T$ into a \ac{trace} $T'$ that is semantically equivalent to $T$, but offers better performance.
 The performance of a \ac{trace} is determined as presented in \Cref{sec:performance}.
 The transformation of a \ac{trace} does not effect the sequence of load and store instructions.
 Nevertheless, the addresses used by the \ac{trace} are replaced according to a given algorithm.
 The algorithms available are described below.
-We distinguish the originally used addresses form the addresses used after transformation, the latter ones are called \emph{variables}.
-We distinguishing the originally used addresses from those after transformation to emphasis the difference.
-Further, it simplifies talking about \ac{trace}s.
-Each time we talk about an address it refers to the \ac{trace} observed form the binary.
+We distinguish between the originally used addresses and the addresses used after transformation; the latter ones are called \emph{variables}.
+The different naming simplifies talking about \ac{trace}s.
+Each time we talk about an address, it refers to the \ac{trace} observed from the binary.
 Talking about variables indicates that the \ac{trace} has been transformed already.
 
 \subsection{Identity Trace}
 
 The identity trace reproduces the original \ac{trace}.
 For transformation each unique address of a \ac{trace} is replaced by an unique variable.
-Based on the \ac{trace} (see \Cref{fig:mat-example-trace}) observed from the C code, illustrated in \Cref{fig:mat-example-c-code}, the addresses are replaces by variables, as shown in \Cref{fig:trace-transformation-original}.
+Based on the \ac{trace} (see \Cref{fig:mat-example-trace}) observed from the C code, illustrated in \Cref{fig:mat-example-c-code}, the addresses are replaced by variables, as shown in \Cref{fig:trace-transformation-original}.
 Basically, \texttt{\&sum} becomes $A$, \texttt{\&x} becomes $B$, \texttt{\&y} becomes $C$, and \texttt{\&z} becomes $D$.
-Obviously, there is one more difference the x-axis and y-axis are switched.
-The reason is simple because it requires less space vertically.
+The x-axis and y-axis are switched, because it requires less space vertically.
 However, note that liveness intervals of the variables shown in \Cref{fig:trace-transformation-original} are exactly the same as those of the addresses illustrated in \Cref{fig:liveness-intervals-example}.
 
 \begin{figure}[!ht]
@@ -578,20 +646,20 @@ However, note that liveness intervals of the variables shown in \Cref{fig:trace-
   \label{fig:trace-transformation-original}
 \end{figure}
 
-In this work two different kinds of \ac{trace} transformations are applied, expanding the \ac{trace} and collapsing the \ac{trace}.
+In this work two different kinds of \ac{trace} transformations are applied, respectively expanding the \ac{trace} and collapsing the \ac{trace}.
 
 \subsection{Single Assignment Trace}
 
 The single assignment trace expands the original \ac{trace}, i.e., it uses more variables than the original \ac{trace} addresses.
 For expanding a \ac{trace} we decided to use a \emph{single assignment} form.
-More concrete each liveness interval of a \ac{trace} is assigned to a variable.
-Further, a variable is never assigned a liveness interval more often than exactly once.
+More specific, each liveness interval of a \ac{trace} is assigned to a variable.
+Further, a variable is never assigned to a liveness interval more often than exactly once.
 \Cref{fig:trace-transformation-sa} presents the \emph{single assignment trace} of \Cref{fig:mat-example-trace}.
-It is not surprising that the number of variables required increases applying such an approach.
-In detail, the four liveness intervals of address \texttt{\&sum} are know assigned to the variables $A$, $D$, $F$, and $G$.
-In this example that variables are assigned in alphabetical order according to the beginning of an liveness interval.
+It is not surprising that the number of variables required increases when applying such an approach.
+In detail, the four liveness intervals of address \texttt{\&sum} are now assigned to the variables $A$, $D$, $F$, and $G$.
+In this example, those variables are assigned in alphabetical order according to the beginning of an liveness interval.
 This is the reason why the variables used to map the liveness intervals of address \texttt{\&sum} are not contiguous.
-For this approach iterate through the \ac{trace} and each time a store instruction occurs assign the next free variable.
+For this approach iterate through the \ac{trace} and each time a store instruction occurs, assign the next free variable.
 The implementation details are explained in \Cref{ssec:allocator-single-assignment}.
 
 \begin{figure}[!ht]
@@ -603,23 +671,27 @@ The implementation details are explained in \Cref{ssec:allocator-single-assignme
 
 \subsection{Compact Trace}
 
-For collapsing a \ac{trace} we to use a \emph{compact} form.
-More concrete each liveness interval of a \ac{trace} is assigned to a variable, but now variables are \emph{reused}.
-If the liveness interval ends the variable is added to a \emph{free list}, i.e., a list of variable already use before but their liveness intervals already ended.
-The procedure is as follows: before using a new variable the free list is checked, if there are variables available at the free list these are used.
-Otherwise an new variable is assigned.
+For collapsing a \ac{trace} we use a \emph{compact} form.
+Each liveness interval of a \ac{trace} is assigned to a variable, but now variables are \emph{reused}.
+If the liveness interval ends, the variable is added to a \emph{free list}.
+A free list is a list of variables that have been used before but their liveness intervals have ended.
+Hence, these variables can be used again for another liveness interval.
+The procedure is as follows: Before using a new variable, the free list is checked; if there are variables available at the free list, these are used.
+Otherwise a new variable is assigned.
 The implementation details are explained in \Cref{ssec:allocator-compact}.
-There are various ways opportunities for the semantics of the free list.
+There are various data structures that can be used to implement a free.
+The selected data structure influences the semantic of the free list.
 In this work three variants are investigated, (1) stack semantic, (2) queue semantic, and (3) set semantic.
 The set semantic is thought to represent a random selection of a free variable.
-However, \Cref{fig:trace-transformation-compact} illustrates the compaction of the \ac{trace} shown in \Cref{fig:mat-example-trace} and applies a free list with stack semantics.
-As expected this approach requires less variables.
-The liveness intervals of \texttt{\&sum} remain the the same variable $A$.
+\Cref{fig:trace-transformation-compact} illustrates the compaction of the \ac{trace} shown in \Cref{fig:mat-example-trace}.
+For this example a free list with stack semantic is used.
+As expected, this approach requires less variables.
+The liveness intervals of \texttt{\&sum} remain the same with variable $A$.
 Furthermore, the addresses \texttt{\&x} and \texttt{\&z} now share variable $B$.
 
 \begin{remark}
 Note that only by coexistent the liveness intervals of address \texttt{\&sum} are assigned to the same variable $A$.
-In general is depends on the semantics of the free list and the currently free variables which variable a liveness interval is assigned to.
+In general, it depends on the semantics of the free list and the currently free variables which variable a liveness interval is assigned to.
 \end{remark}
 
 \begin{figure}[!ht]
@@ -639,36 +711,35 @@ Single assignment potentially increases the number of used variables and compact
 \section{Summarizing Example}
 
 Lets take a look at the performance of the three \ac{trace}s from above.
-Assume a \ac{LRU} cache with 2 cache lines, each cache line fits exactly one variable.
+Assume a \ac{LRU} cache with 2 cache lines, where each cache line fits exactly one variable.
 For details on \ac{LRU} caches see \Cref{ssec:cache-lru}.
-As a breath description of the applied cache, imaging as long as there is a free cache line within the cache, this one is used.
+As a breath description of the applied cache, imagine as long as there is a free cache line within the cache, this one is used.
 In case there is no more free cache line it is required to evict one of the used cache lines.
-To make space the \emph{least recently used} cache line is evicted.
+To make space, the \emph{least recently used} cache line is evicted.
 
-If a variable is accessed that is already in the cache a cheap cache access can be executed, either a load or store instruction.
-Otherwise, the main memory has to be access that is much more expensive
+If a variable is accessed that is already in the cache, a cheap cache access can be executed, either a load or store instruction.
+Otherwise, the main memory has to be accessed that is much more expensive
 The costs of the different kinds of accesses are presented in \Cref{tab:memory-access-cost}.
-For the following performance computation we assume a simple optimization: the first store instruction on a variable can be executed directly into the cache.
-Further, assume that in case of an eviction the data of a variable has to be stored in the main memory.
-Regardless if the variable is still alive or already dead.
+For the following performance computation we assume a simple optimization: The first store instruction on a variable can be executed directly into the cache.
+Further, assume that in case of an eviction the data of a variable has to be stored in the main memory, regardless if the variable is live or dead.
 
 \subsection{Identity Trace}
 \Cref{fig:trace-transformation-original-marked} shows the annotated liveness intervals of the identity \ac{trace} illustrated in \Cref{fig:trace-transformation-original}.
-According to the assumptions from above every beginning of a liveness interval is annotated with a cache store.
-Since the assumed cache fits exactly two variables the first eviction occurs when writing variable $C$ at instruction number 3.
+According to the assumptions from above, every beginning of a liveness interval is annotated with a cache store.
+Since the assumed cache fits exactly two variables, the first eviction occurs when writing variable $C$ at instruction number 3.
 According to the eviction policy of the applied \ac{LRU} cache variable $A$ is evicted.
 The memory store of variable $A$ is annotated with a filled red circle.
 Unfortunately, variable $A$ is accessed at the next instruction.
 For this reason it has to be loaded from the main memory again, but before $B$ has to be stored in in the main memory to make space in the cache for $A$.
-The same procedure repeats for the variables $B$ and $C$ at instruction number 5.
+The same procedure is repeated for the variables $B$ and $C$ at instruction number 5.
 At instruction number 6 we are able to load a variable directly from cache for the first time.
 Nevertheless, there are two more evictions required to finish the execution of this trace.
 One at instruction number 7, variable $B$ is evicted to make space for variable $D$.
-A interesting aspect at this instruction is that the liveness interval of variable $B$ ended two instructions before, hence $B$ is dead.
+An interesting aspect at this instruction is that the liveness interval of variable $B$ ended two instructions before, hence $B$ is dead.
 Furthermore, $B$ is not needed anymore for the following instructions.
-In general this information is not available, this is the reason why there is a memory store annotated.
+In general, this information is not available, this is the reason why there is a memory store.
 However, if a system knows about the liveness intervals of its variables it might decide to overwrite the value of $B$ with the value of $D$ and avoid the memory store.
-The last eviction appears at instruction number 9, variable $C$ is accessed for the last time. Variable $A$ is accessed several time without any interaction with the main memory, because each time it is accessed it is in the cache.
+The last eviction appears at instruction number 9, where variable $C$ is accessed for the last time. Variable $A$ is accessed several time without any interaction with the main memory, because each time it is accessed, it is in the cache.
 
 \begin{figure}[!ht]
   \centering
@@ -679,24 +750,24 @@ The last eviction appears at instruction number 9, variable $C$ is accessed for 
 
 The metrics of this \ac{trace} are illustrated in \Cref{fig:trace-transformation-original-marked}.
 The \emph{accesses} metric is observed by recording the number of accesses for each variable.
-In this example the list of samples holds four values one for each variable.
-The number of accesses on variable $A$ is $7$, all other variables are accessed twice.
+In this example, the list of samples holds four values one for each variable.
+The number of accesses on variable $A$ is $7$; all other variables are accessed twice.
 The resulting sorted list of samples looks as follows $(2, 2, 2, 7)$.
-The \emph{access distance} presents a kind of the access frequency on an variable.
-Depending on the number of accesses the list of access distances could be significantly larger than the number of used variables.
+The \emph{access distance} presents a kind of the access frequency on a variable.
+Depending on the number of accesses, the list of access distances could be significantly larger than the number of used variables.
 In this case the sorted list of samples looks as follows $(0, 1, 2, 2, 2, 2, 3, 3, 5, 6)$.
 For variable $A$ there are multiple access distances (from left to write) $3$, $2$, $2$, $2$, $1$, and $0$.
 The \emph{overlapping liveness} metrics shows how many variables are used at a certain instruction number.
 The list of samples is computed by counting the overlapping liveness intervals for each instruction number.
 As a result the size of the samples list depends on the number of instructions rather than on the number of used variables.
-In case of the current example the samples are $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$.
+In the case of the current example the samples are $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$.
 For the purpose of better understanding the list is not sorted.
 Instead it is ordered according to the correlating instruction number, i.e., the first entry represents the number of overlapping liveness intervals at instruction number 1.
 The fourth metric is the \emph{liveness interval length}.
-The number of used variables and the number of accesses on a variables define number of samples for this metric.
+The number of used variables and the number of accesses define the number of samples for this metric.
 The number of accesses on a variable are significant, because these define the liveness intervals.
 For this example the list of samples looks as follows $(0, 1, 2, 3, 3, 5, 6)$.
-For variable $A$ there are four entry in the list $0$, $1$, $2$, and $3$.
+For variable $A$ there are four entries in the list $0$, $1$, $2$, and $3$.
 The resulting metrics are presented in \Cref{tab:summarizing-example-metrics-original}.
 
 \begin{table}[!ht]
@@ -716,9 +787,9 @@ The resulting metrics are presented in \Cref{tab:summarizing-example-metrics-ori
   \label{tab:summarizing-example-metrics-original}
 \end{table}
 
-To compute the performance of \Cref{equ:trace-transformation-original-marked} the different kinds of memory access have to be counted and weight as illustrated by \Cref{equ:trace-transformation-original-marked}.
+To compute the performance of \Cref{equ:trace-transformation-original-marked} the different kinds of memory accesses have to be counted and weighted as illustrated by \Cref{equ:trace-transformation-original-marked}.
 According to the annotations of \Cref{fig:trace-transformation-original-marked} there are 2 cache load, 7 cache stores, 4 memory loads, and 5 memory stores.
-The result of this equation indicates that $4.15$ \ac{CPU} cycles are required in average to proceed one instruction of the \ac{trace}.
+The result of this equation indicates that $4.15$ \ac{CPU} cycles are required in average to process one instruction of the \ac{trace}.
 
 \begin{equation}\label{equ:trace-transformation-original-marked}
 \text{\ac{CPA}}(T_{original}, C_{LRU}) = \frac{1 * (2 + 7) + 5 * (4 + 5)}{13} = 4.15
@@ -727,12 +798,12 @@ The result of this equation indicates that $4.15$ \ac{CPU} cycles are required i
 \subsection{Single Assignment Trace}
 \Cref{fig:trace-transformation-sa-marked} shows the annotated liveness intervals of the single assignment trace of \Cref{fig:trace-transformation-sa}.
 Unexpectedly, the number of cache stores increases according to the number of variables used.
-The combination of: using more variables and the assumption that the first access on a variable yields a cache store, increases the number of cache stores executed.
-Further, using more variables seams to reduce the number of cache loads at least for this example.
-In total the number of cache accesses is the same as for the identity \ac{trace}, but the distribution differs.
-Taking a look at the main memory accesses we observe an increase in the number of memory stores.
+The combination of using more variables and the assumption that the first access on a variable yields a cache store, increases the number of cache stores executed.
+Further, using more variables seems to reduce the number of cache loads at least for this example.
+In total, the number of cache accesses is the same as for the identity \ac{trace}, but the distribution differs.
+Taking a look at the main memory accesses, we observe an increase in the number of memory stores.
 The single assignment \ac{trace} requires the same amount of memory loads as the identity \ac{trace}.
-Compared to \Cref{fig:trace-transformation-original} there are three times more memory stores on variables that are already dead.
+Compared to \Cref{fig:trace-transformation-original}, there are three times more memory stores on variables that are already dead.
 The other four memory stores executed are identical to those of the identity \ac{trace}.
 
 \begin{figure}
@@ -745,13 +816,13 @@ The other four memory stores executed are identical to those of the identity \ac
 The accesses for the \ac{trace} shown in \Cref{fig:trace-transformation-sa} is computed as introduced in \Cref{ssec:metric-accesses}.
 The computation outputs this list of samples: $(1, 2, 2, 2, 2, 2, 2)$.
 As expected for each variable there is only one entry in the list.
-Different to the accesses of the identity \ac{trace} there are more entries.
-By coincident each variable except $G$ is accessed twice.
-Computing the \emph{access distance} results in following list of samples $(0, 1, 2, 3, 3, 5, 6)$.
+Different to the accesses of the identity \ac{trace}, there are more entries.
+By coincidence each variable except $G$ is accessed twice.
+Computing the \emph{access distance} results in the following list of samples $(0, 1, 2, 3, 3, 5, 6)$.
 The \emph{overlapping liveness} variables are observed by counting the overlapping liveness intervals and result in the displayed list $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$.
-Since the liveness intervals are not change during transforming a \ac{trace} these values are the same as for the identity \ac{trace}.
+Since the liveness intervals are not changed during transforming a \ac{trace}, these values are the same as for the identity \ac{trace}.
 The samples for the \emph{liveness interval length} look as follows $(0, 1, 2, 3, 3, 5, 6)$.
-For this example the samples of the access distance and the liveness interval length are identical, but this is a coincident.
+For this example the samples of the access distance and the liveness interval length are identical, but this is a coincidence.
 \Cref{tab:summarizing-example-metrics-sa} presents the statistical metrics.
 
 \begin{table}[!ht]
@@ -767,7 +838,7 @@ For this example the samples of the access distance and the liveness interval le
     Liveness Interval Length & 0.00 & 6.00 & 2.86 & 0.30 & 1.50 & 3.00 & 4.00 & 5.69 \\
     \hline
   \end{tabular}
-  \caption{Metrics of the single assignment trace \ac{trace} illustrated by \Cref{fig:trace-transformation-sa-marked} (values are rounded).}
+  \caption{Metrics of the single assignment trace \ac{trace} are illustrated by \Cref{fig:trace-transformation-sa-marked} (values are rounded).}
   \label{tab:summarizing-example-metrics-sa}
 \end{table}
 
@@ -801,10 +872,10 @@ Same for the memory loads at the instruction numbers 4, 5, 9, and 12.
 For the \ac{trace} presented in \Cref{fig:trace-transformation-compact} the list of samples for the \emph{accesses} metric is $(2, 4, 7)$.
 According the number of used variables the list consists of three values.
 The samples of the \emph{access distance} look as follows $(0, 1, 2, 2, 2, 2, 2, 3, 3, 5, 6)$.
-The \emph{overlapping liveness} metrics yields in the same list of samples as for the identity \ac{trace} and the single assignment \ac{trace}, $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$.
-Reason is that the liveness intervals are not changed only rearranged.
+The list of overlapping liveness intervals of the compact \ac{trace} is identical to the list of the identity \ac{trace}, $(1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1)$.
+The reason is that the liveness intervals are not changed, but are rearranged.
 As already mentioned the samples for the \emph{liveness interval length} are the same as for the single assignment \ac{trace} and the identity \ac{trace}, $(0, 1, 2, 3, 3, 5, 6)$.
-The reason for this is at the liveness intervals are never changed.
+The reason for this is that the liveness intervals are never changed.
 The resulting statistical metrics are presented by \Cref{tab:summarizing-example-metrics-compact}.
 
 \begin{table}[!ht]
@@ -824,20 +895,20 @@ The resulting statistical metrics are presented by \Cref{tab:summarizing-example
   \label{tab:summarizing-example-metrics-compact}
 \end{table}
 
-There are 2 cache loads, 7 cache stores, 4 memory loads, and 4 memory stores required for the execution, that results in a \ac{CPA} of $3.77$.
-This result the best one of the presented ones, that shows that for this example the presented compact trace performs best.
+There are 2 cache loads, 7 cache stores, 4 memory loads, and 4 memory stores required for the execution that result in a \ac{CPA} of $3.77$.
+That shows that for this example the presented compact trace performs best.
 
 \begin{equation}\label{equ:trace-transformation-compact-marked}
 \text{\ac{CPA}}(T_{compact}, C_{LRU}) = \frac{1 * (2 + 7) + 5 * (4 + 4)}{13} = 3.77
 \end{equation}
 
 \subsection{Conclusion}
-To conclude the summarizing example for each metric and the performance the three \ac{trace}s are compared. This example concludes the Theoretical Foundations with illustrating the differences of the identical \ac{trace}, the single assignment \ac{trace} and the compact \ac{trace}.
+To conclude, for each metric and the performance the three \ac{trace}s are compared. This example illustrates the differences of the identity \ac{trace}, the single assignment \ac{trace}, and the compact \ac{trace}.
 
 \subsubsection{Performance}
-\Cref{tab:summarizing-example-performance} presents the computed performance for each \ac{trace} applied to a simulated cache based on \ac{LRU} eviction policy.
-As the table shows a transformation not always leads to an improvement.
-For this example the compacted \ac{trace} yield the best performance.
+\Cref{tab:summarizing-example-performance} presents the computed performance for each \ac{trace} executed on a simulated cache based on \ac{LRU} eviction policy.
+As the table shows, a transformation not always leads to an improvement.
+For this example the compacted \ac{trace} yields the best performance.
 
 \begin{table}[!ht]
   \centering
@@ -856,7 +927,7 @@ For this example the compacted \ac{trace} yield the best performance.
 
 \subsubsection{Accesses}
 
-By transforming a \ac{trace} into another one the total number of accesses never changes.
+By transforming a \ac{trace} into another one, the total number of accesses never changes.
 Nevertheless, which variable and how many times it is accessed could be different.
 \Cref{tab:summarizing-example-metrics-overview-accesses} illustrates the comparison of the three \ac{trace}s discussed.
 Obviously, the variables of the single assignment \ac{trace} are accessed significantly less often than it is the case for the others.
@@ -884,12 +955,12 @@ Hence, the variables of the compact \ac{trace} and the identity \ac{trace} are a
 
 \Cref{tab:summarizing-example-metrics-overview-access-distance} shows the comparison of the access distance metric.
 The differences between identity \ac{trace} and compact \ac{trace} are minimal.
-The reason is that there is only one difference, the liveness interval of variable $D$ form the identity \ac{trace} s merged into variable $B$ of the compact \ac{trace}.
+The reason is that there is only one difference, the liveness interval of variable $D$ of the identity \ac{trace} is merged into variable $B$ of the compact \ac{trace}.
 For the calculation this means that there is one sample more in the list of the compact \ac{trace}.
 All other samples are identical to those the identity \ac{trace}.
-The differences between identity \ac{trace} and single assignment \ac{trace} are a more significant.
+The differences between identity \ac{trace} and single assignment \ac{trace} are more significant.
 The reason is that the access distance of the single assignment \ac{trace} is reduced to the liveness intervals.
-In this case the list of sample for the single assignment \ac{trace} is shorter than the one of the identity \ac{trace}.
+In this case the list of samples for the single assignment \ac{trace} is shorter than the one of the identity \ac{trace}.
 
 \begin{table}[!ht]
   \centering
@@ -969,7 +1040,9 @@ Given a \ac{trace} $T$ of load and store instructions find metrics that characte
 
 \chapter{Implementation}\label{cha:implementation}
 
-This chapter explains the implementation of our environment used for the experiments presented by \Cref{cha:experiment}. \Cref{cha:theoretical-foundations} explains the theoretical background for the tool chain applied to observe the aimed information. In general there are two major aspects we are interested in, (1) the performance of a \ac{trace} and (2) the metrics of a \ac{trace} which characterize its performance.
+This chapter explains the implementation of our environment used for the experiments presented by \Cref{cha:experiment}.
+\Cref{cha:theoretical-foundations} explains the theoretical background for the tool chain applied to observe the required information.
+In general, there are two major aspects we are interested in, (1) the performance of a \ac{trace} and (2) the metrics of a \ac{trace} which characterize its performance.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow
@@ -977,16 +1050,26 @@ This chapter explains the implementation of our environment used for the experim
 
 \section{Workflow}
 
-We implemented a multistate offline approach to observe all the information as illustrated by \Cref{fig:workflow}. In this context \emph{offline} indicates that there are analyzing steps required before executing the \ac{trace}. More concrete this is about \emph{Preparation}, and \emph{Transformation \& Analysis}.
+We implemented a multistate offline approach to observe all the information as illustrated by \Cref{fig:workflow}.
+In this context \emph{offline} indicates that there are analyses before executing the \ac{trace}. More specific, this is about \emph{Preparation}, and \emph{Transformation \& Analysis}.
 
 \begin{description}
-  \item[Compilation] It is required to generate a binary of a benchmark which should be analyzed. The benchmarks we used are presented by \Cref{sec:benchmarks}. For our experiments these benchmarks are compiled with \emph{GCC 4.8.5} on \emph{Ubuntu 16.04} for \emph{AMD Opteron\texttrademark Processor 6376} with \emph{x86\_64 Architecture}.
+  \item[Compilation] It is required to generate a binary of a benchmark which should be analyzed.
+  The benchmarks we used are presented by \Cref{sec:benchmarks}.
+  For our experiments these benchmarks are compiled with \emph{GCC 4.8.5} on \emph{Ubuntu 16.04} for \emph{AMD Opteron\texttrademark Processor 6376} with \emph{x86\_64 Architecture}.
 
-  \item[Preparation] Next is to obtain a \ac{trace} of load and store instruction on addresses. We use the Valgrind\cite{Valgrind} tool called \emph{Lackey} to obtain all the memory accesses of an x86\_64 executable. This represents the \ac{trace} of the benchmark which will be analyzed and transformed later on.
+  \item[Preparation] Next is to obtain a \ac{trace} of load and store instruction on addresses.
+  We use the Valgrind\cite{Valgrind} tool called \emph{Lackey} to obtain all the memory accesses of an x86\_64 executable.
+  This represents the \ac{trace} of the benchmark which will be analyzed and transformed later on.
 
-  \item[Analysis] After the \ac{trace} has been obtained and before it is executed there is an analyzing step to observing the metrics explained in \Cref{sec:metrics}. This informations are partly used by some of the caches presented by \Cref{sec:caches}.
+  \item[Analysis] After the \ac{trace} has been obtained and before it is executed, we analyze the \ac{trace} to observe the metrics explained in \Cref{sec:metrics}.
+  The observed information is partly used by some of the caches presented by \Cref{sec:caches}.
 
-  \item[Execution \& Transformation] Finally the \ac{trace} can be executed to figure out its performance. During execution the \ac{trace} is transformed. An allocator is used to proceed the transformation into a single assignment \ac{trace}, or a compact \ac{trace}, or an identity \ac{trace}. This procedure requires to apply a cache. In this work there are several caches available which are presented by \Cref{sec:caches}. During execution the memory accesses are counted which are finally used to calculate the performance.
+  \item[Execution \& Transformation] Finally the \ac{trace} can be executed to figure out its performance.
+  During execution the \ac{trace} is transformed.
+  An allocator is used to proceed the transformation into a single assignment \ac{trace}, or a compact \ac{trace}, or an identity \ac{trace}.
+  In this work there are several caches available which are presented by \Cref{sec:caches}.
+  During execution the memory accesses are counted which are finally used to calculate the performance.
 \end{description}
 
 \begin{figure}[!ht]
@@ -1003,19 +1086,45 @@ We implemented a multistate offline approach to observe all the information as i
 \section{Allocators}
 \label{sec:allocators}
 
-This section presents the implementation of the trace transformation. In general for every trace there is a transformation required to replace the addresses observed via Valgrind by variables. Even for analyzing the identity \ac{trace} this transformation is necessary. The actual transformation is done during the execution phase by an \emph{allocator}. Each store instruction is interpreted like a \texttt{malloc} in C. Hence, each store instruction forces the allocator to return an variable to operate on. This is the point in time where an address is replaced by a variable.  It is up to the used allocator if a new variable is returned or a variable is reused. This architecture is the reason why also for the execution the identity \ac{trace} a transformation is applied. In our system there are three types of allocators: the \emph{Identity Allocator}, the \emph{Single Assignment Allocator} and the \emph{Compact Allocator}.
+This section presents the implementation of the trace transformation.
+In general, for every trace there is a transformation required to replace the addresses observed via Valgrind by variables.
+Even for analyzing the identity \ac{trace} a transformation is required.
+The actual transformation is done during the execution phase by an \emph{allocator}.
+Each store instruction is interpreted like a \texttt{malloc} in C.
+Hence, each store instruction forces the allocator to return a variable to operate on.
+This is the point in time where an address is replaced by a variable.
+It is up to the used allocator if a new variable is returned or a variable is reused.
+This architecture is the reason why also for the execution the identity \ac{trace}, a transformation is applied.
+In our system there are three types of allocators: the \emph{Identity Allocator}, the \emph{Single Assignment Allocator} and the \emph{Compact Allocator}.
 
 \subsection{Identity Allocator}\label{ssec:allocator-original}
 
-The identity allocator is used to measure the performance of a programs \ac{trace} with any chances. This allocator produces the \emph{identity \ac{trace}} as explained by \Cref{sec:trace-transformation}. The identity \ac{trace} is important to figure out which one of the other transformations shows an improvement and which make performance even worse. The implementation of the identity allocator is as simple as it simply used the addresses of a \ac{trace} as variables.
+The identity allocator is used to measure the performance of a programs original \ac{trace}
+This allocator produces the \emph{identity \ac{trace}} as explained by \Cref{sec:trace-transformation}.
+The identity \ac{trace} is important to figure out which one of the other transformations shows an improvement.
+The implementation of the identity allocator is as simple as it simply used the addresses of a \ac{trace} as variables.
 
 \subsection{Single Assignment Allocator}\label{ssec:allocator-single-assignment}
 
-The single assignment allocator is used to illustrate the performance of never reusing any address at all. Which can be interpreted as compacting allocator with a compaction ration of 0 percentage. Which means there is no compaction. It is implemented by a bump pointer allocator assuming endless memory. Each time there is a store instruction the bump pointer is increased and the new variable is returned. The bump pointer is never decreased.
+The single assignment allocator is used to illustrate the performance of never reusing any address at all.
+This can be interpreted as a compacting allocator with a compaction ration of 0 percentage.
+That means there is no compaction.
+It is implemented by a bump pointer allocator assuming endless memory.
+Each time there is a store instruction, the bump pointer is increased and the new variable is used.
+The bump pointer is never decreased.
 
 \subsection{Compacting Allocator}\label{ssec:allocator-compact}
 
-The compacting allocators are used to illustrate the advantages and disadvantages of compaction. Compaction is achieved by using a free list. If the free list is empty the bump pointer is increased an the new variable is returned. Otherwise a variable of the free list is taken. The variable is removed from the list and return for usage. This work presents three different implementation of the compact allocator. These differ in the semantics of the free list, there is one implementation with \emph{stack} semantic, one with \emph{queue} semantic, and one with \emph{set} semantic. The stack semantic is equivalent with picking the most recently freed variable. In contract to the stack semantic there is the queue semantics which represents pick the least recently freed variable. And finally the set semantic represents picking a random variable of the freed ones.
+The compacting allocators are used to illustrate the advantages and disadvantages of compaction.
+Compaction is achieved by using a free list.
+If the free list is empty, the bump pointer is increased and the new variable is used.
+Otherwise a variable of the free list is taken.
+The variable is removed from the list and returned for usage.
+This work presents three different implementations of the compact allocator.
+These differ in the semantics of the free list, there is one implementation with \emph{stack} semantic, one with \emph{queue} semantic, and one with \emph{set} semantic.
+The stack semantic is equivalent with picking the most recently freed variable.
+In contrast to the stack semantic there is the queue semantics which represents picking the least recently freed variable.
+And finally the set semantic represents picking a random variable of the freed ones.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Caches
@@ -1023,32 +1132,56 @@ The compacting allocators are used to illustrate the advantages and disadvantage
 
 \section{Caches}\label{sec:caches}
 
-This section presents our implementations of caches. As explained by \Cref{sec:hardware-model} within the environment of computer where \ac{CPU} communicates with the main memory a cache is a hardware component. For the purpose of this work all caches simulated are implemented in software. This allows us to analyze multiple different caches. Obviously, we cannot measure real time for the execution of \ac{trace} because every component of our environment is implement in software. This is the reason why in \Cref{sec:performance} the performance is defined by the number of different memory accesses instead of using the total execution time of a benchmark as usually.
+This section presents our implementations of caches.
+As explained by \Cref{sec:hardware-model} within the environment of computer where \ac{CPU} communicates with the main memory a cache is a hardware component.
+For the purpose of this work all caches simulated are implemented in software.
+This allows us to analyze multiple different caches.
+Obviously, we cannot measure real time for the execution of a \ac{trace} because every component of our environment is implemented in software.
+This is the reason why in \Cref{sec:performance} the performance is defined by the number of different memory accesses instead of using the total execution time of a benchmark as usually.
 
 Nevertheless, our cache implementations offer the most basic properties as configurable parameters.
-For all implementations the \emph{cache size} and the \emph{cache line size} is configurable.
+For all implementations the \emph{cache size} and the \emph{cache line size} are configurable.
 The \ac{LRU} caches offer several more configurable parameters.
 
 \begin{remark}
-Note that our cache implementations operate on variables rather than on addresses. This is because the applied allocator transforms the \ac{trace} of addresses into a \ac{trace} of variables.
+Note that our cache implementations operate on variables rather than on addresses.
+This is because the applied allocator transforms the \ac{trace} of addresses into a \ac{trace} of variables.
 \end{remark}
 
-In our environment four caches are available. There two different eviction policies implemented. One using the classical \ac{LRU} algorithm to decide which item of the cache will be evicted. And the other one using an algorithm proposed by \Citeauthor{belady1966study} in his work \cite{belady1966study} from \citeyear{belady1966study} to decide on the item which will be evicted.
+In our environment four caches are available.
+There two different eviction policies implemented.
+One using the classical \ac{LRU} algorithm to decide which item of the cache will be evicted.
+And the other one using an algorithm proposed by \Citeauthor{belady1966study} in his work \cite{belady1966study} from \citeyear{belady1966study} to decide on the item which will be evicted.
 
-For both algorithms used as eviction policy there is another implementation which has full information about the liveness intervals of all variables of a \ac{trace}. This enables further optimizations as explained below.
+For both algorithms used as eviction policy, there is another implementation which has full information about the liveness intervals of all variables of a \ac{trace}.
+This enables further optimizations as explained below.
 
 \subsection{MIN Cache}\label{ssec:cache-MIN}
 
-This implementation of a cache is based on the algorithm proposed in \cite{belady1966study}, called \emph{\ac{MIN}}. The basic idea behind \citeauthor{belady1966study}s algorithm is to evict the item within the cache which is not need for the longest time. More precise if there is a dead item in the cache evict it otherwise evict the item which is accessed again furthest in future. In praxis this algorithm is hard to apply, because it would require to know the future which is not the case in real systems. Nevertheless, analyzing an implementation of this approach is quite interesting, because the algorithm has been proofed to be the optimal eviction policy (\cite{mattson1970evaluation}, \cite{van2007short}, \cite{vogler2008another}, \cite{lee2016simple}). Even if this algorithm is hardly applicable in reality our environment offers all requirements. This is one advantage of the offline analysis of a \ac{trace}. All required information for the \citeauthor{belady1966study} algorithm is already available before the execution begins.
+This implementation of a cache is based on the algorithm proposed in \cite{belady1966study}, called \emph{\ac{MIN}}.
+The basic idea behind \citeauthor{belady1966study}s algorithm is to evict the item within the cache which is not need for the longest time.
+More precise, if there is a dead item in the cache this is evicted, otherwise the item that is accessed again furthest in the future is evicted.
+In praxis this algorithm is hard to apply, because it would require to know the future which is not the case in real systems.
+Nevertheless, analyzing an implementation of this approach is quite interesting, because the algorithm has been proven to be the optimal eviction policy (\cite{mattson1970evaluation}, \cite{van2007short}, \cite{vogler2008another}, \cite{lee2016simple}).
+Even if this algorithm is hardly applicable in reality, our environment offers all requirements.
+This is one advantage of the offline analysis of a \ac{trace}. All required information for the \citeauthor{belady1966study} algorithm is already available before the execution begins.
 
 \subsection{Least Recently Used Cache}\label{ssec:cache-lru}
 
-This implementation of a cache is based on the \ac{LRU} algorithm, which is part of the literature since years (\cite{johnson1994x3}, \cite{drepper2007every}, \cite{patterson2011computer}, \cite{jacob2010memory}, and many more). Different than \citeauthor{belady1966study}s algorithm the \ac{LRU} approach is widely used in praxis. Instead of caring about future access which are unknown in realty this approach takes a look at the pasted accesses. For this reason it is required to keep track of the accesses on the currently cache items. A \ac{LRU} cache decides based on its track information and always decided on the item in the cache which has not been accessed for the longest time. The is also the source of its name, \emph{least recently used}. The idea behind is that is an item has not been accessed for longer there is a possibility that it is not need anymore but still is in the cache. For the purpose of this work the \ac{LRU} cache implementation which comes with Valgrind is used.
+This implementation of a cache is based on the \ac{LRU} algorithm, which is part of the literature since years (\cite{johnson1994x3}, \cite{drepper2007every}, \cite{patterson2011computer}, \cite{jacob2010memory}, and many more).
+Different than \citeauthor{belady1966study}s algorithm the \ac{LRU} approach is widely used in praxis.
+Instead of caring about future accesses which are unknown in realty, this approach takes a look at the past accesses.
+For this reason it is required to keep track of the accesses on the currently cached items.
+A \ac{LRU} cache decides based on its track information and always decided on the item in the cache which has not been accessed for the longest time.
+This is also the source of its name, \emph{least recently used}.
+The idea behind is that an item that has not been accessed for longer, therefore is a possibility that it is not needed anymore but is still in the cache.
+For the purpose of this work the \ac{LRU} cache implementation which comes with Valgrind is used.
 
 \subsection{Cache Proceeding}
 \subsubsection{Without Liveness Information}\label{ssec:cache-behavior}
 
-The proceeding of a cache without liveness information in general is identical for the \ac{LRU} implantation and the \Citeauthor{belady1966study} implementation. The only difference is in the chose of the eviction candidate.
+The proceeding of a cache without liveness information in general is identical for the \ac{LRU} implantation and the \Citeauthor{belady1966study} implementation.
+The only difference is in the choice of the eviction candidate.
 
 \begin{figure}[!ht]
   \centering
@@ -1057,18 +1190,33 @@ The proceeding of a cache without liveness information in general is identical f
   \label{fig:cache-behavior}
 \end{figure}
 
-\Cref{fig:cache-behavior} illustrates proceeding of the caches. Everything starts with the access on a variable. Right now it does not matter if the access is a load or a store instruction. At first it is checked if the accessed variable is currently in the cache. In case the variable is cached, this is a cache hit, we are done and the initial access could be executed without any further actions.
-Otherwise, if the accessed variable is not cached it is a cache miss. Such a case requires further action, namely the next step is to control if there is space for at least one more variable in the cache.
+\Cref{fig:cache-behavior} illustrates the proceeding of the caches.
+Everything starts with the access on a variable.
+Right now it does not matter if the access is a load or a store instruction.
+At first, it is checked if the accessed variable is currently in the cache.
+In the case that the variable is cached, this is a cache hit; we are done and the initial access can be executed without any further actions.
+Otherwise, if the accessed variable is not cached, it is a cache miss.
+Such a case requires further action; namely the next step is to check if there is space for at least one more variable in the cache.
 
-If the cache is full it is required to make some space. This is achieved by applying the eviction policy to decide on the variable which will be kicked out of the cache. The eviction candidates value has to be saved, for this reason its value is written back to main memory by a store instruction. Then, the accessed variables value can be loaded from main memory and finally the requested access can be executed.
+If the cache is full, it is required to make some space.
+This is achieved by applying the eviction policy to decide on the variable which will be kicked out of the cache.
+The value of the eviction candidate has to be saved.
+For this reason its value is written back to the main memory by a store instruction.
+Then, the accessed variables value can be loaded from the main memory and finally the requested access can be executed.
 
-In case that the cache is not full we are able to skip the selection of an eviction candidate and of course it is not required to save its value in main memory, so also the store instruction is not needed. Such a situation allows to immediately load the value of the requested variable. In this case an expensive store instruction on the main memory is saved.
+In case that the cache is not full, we are able to skip the selection of an eviction candidate and of course it is not required to save its value in the main memory, therefore the store instruction is not needed.
+Such a situation allows to immediately load the value of the requested variable.
+In this case an expensive store instruction on the main memory is saved.
 
-Summarizing, in the worst case it is required to execute two expensive main memory instruction before the actual variable can be accessed. This is not optimal in comparison to the best case which does not require to access the main memory at all. However, as \Cref{fig:cache-behavior} illustrates there is the possibility get rid of at least one of the expensive instructions.
+Summarizing, in the worst case it is required to execute two expensive main memory instructions before the actual variable can be accessed.
+This is not optimal in comparison to the best case which does not require any main memory access.
+However, as \Cref{fig:cache-behavior} illustrates, there is the possibility to get rid of at least one of the expensive instructions.
 
 \subsubsection{With Liveness Information}\label{ssec:cache-behavior-liveness}
 
-\Cref{ssec:cache-behavior} shows that there are certain cases in which the number of expensive main memory accesses can be reduced. This sections tries to minimize the number of main memory accesses by using the information about the liveness intervals of a \ac{trace}. Again the \ac{LRU} implementation and the \Citeauthor{belady1966study} implementation differ only by the selection of the eviction candidate.
+\Cref{ssec:cache-behavior} shows that there are certain cases in which the number of expensive main memory accesses can be reduced.
+This sections tries to minimize the number of main memory accesses by using the information about the liveness intervals of a \ac{trace}.
+Again the \ac{LRU} implementation and the \Citeauthor{belady1966study} implementation differ only by the selection of the eviction candidate.
 
 \begin{figure}[!ht]
   \centering
@@ -1077,13 +1225,33 @@ Summarizing, in the worst case it is required to execute two expensive main memo
   \label{fig:cache-behavior-liveness}
 \end{figure}
 
-\Cref{fig:cache-behavior-liveness} illustrates the proceeding for caches with liveness informations. Everything starts with the access on a variable. By now it does not matter which kind of access it is. In case it becomes relevant it will be discussed. As without liveness information the first thing to do is to check if the accessed variable is already in the cache. If this is the case it is a cache hit and we are done. The actual access can be executed directly on the cache.
-Otherwise, if the accessed variable is not in the cache yet, its a cache miss. A cache miss requires further steps to get the accessed variable into the cache.
+\Cref{fig:cache-behavior-liveness} illustrates the proceeding for caches with liveness information.
+Everything starts with the access on a variable.
+By now it does not matter which kind of access it is.
+In case it becomes relevant, it will be discussed.
+As without liveness information the first thing to do, is to check whether the accessed variable is cached or not.
+If the accessed variable is in the cache, it is a cache hit and we are done.
+The actual access can be executed directly on the cache.
+Otherwise, if the accessed variable is not in the cache yet, its a cache miss.
+A cache miss requires further steps to get the accessed variable into the cache.
 
-Next is to check either the cache is full or not. In case there is no more space in the cache for another variable it is necessary to evict one of the cached variables. The eviction candidate is chosen by the eviction policy of the cache, either via \ac{LRU} algorithm or via \Citeauthor{belady1966study}s algorithm. In proceeding a variable access, the selection of the eviction candidate is the only difference which might occur between the two available implementations which use liveness information. Next, we make use of the liveness information by proofing if the eviction candidate is live or dead. If the eviction candidate is still live, this means its liveness interval did not end yet, it is necessary to save the variables value. For this reason a store instruction on main memory is executed to save the eviction candidates value. If the variable chosen for eviction is dead it is not required to save its value, because it is not used anymore in future. This is why the store instruction on main memory can be skipped.
-If the cache is not full yet then the whole eviction procedure, selecting a variable to evict and saving its value if needed, can be skipped.
+Next is to check whether the cache is full or not.
+In case there is no more space in the cache for another variable, it is necessary to evict one of the cached variables.
+The eviction candidate is chosen by the eviction policy of the cache, either via \ac{LRU} algorithm or via \Citeauthor{belady1966study}s algorithm.
+While proceeding a variable access, the selection of the eviction candidate is the only difference which might occur between the two available implementations which use liveness information.
+Next, we make use of the liveness information by proving if the eviction candidate is live or dead.
+If the eviction candidate is still live; this means its liveness interval did not end yet, and it is necessary to save the variables value.
+For this reason a store instruction on the main memory is executed to save the eviction candidates value.
+If the variable chosen for eviction is dead, it is not required to save its value, because it is not used anymore in future.
+This is why the store instruction on the main memory can be skipped.
+If the cache is not full yet, then the whole eviction procedure, selecting a variable to evict and saving its value if needed, can be skipped.
 
-After all the possible steps and opportunities so far the cache reached a state in which there is at least one free spot available for the accessed variable. Only question remaining is do we have to load the accessed variable from main memory? This is the point in the whole procedure where the type of access on the currently accessed variable matters. In case of a load an main memory load instruction is yield. This is required to load the value written by one of the previous accessed. In case of a store on the currently accessed variable, its previously stored value does not matter any because its overwritten anyway. For this reason the expensive load instruction on main memory can be skipped.
+After all the possible steps and opportunities so far the cache has reached a state in which there is at least one free spot available for the accessed variable.
+The only question remaining is: Do we have to load the accessed variable from main memory?
+This is the only situation in the whole procedure where the type of access on the currently accessed variable matters.
+In case that the access is of type load, it is required to load the previously written value from the main memory.
+In case of a store on the currently accessed variable, its previously stored value does not matter any more because it is overwritten anyway.
+For this reason, the expensive load instruction on the main memory can be skipped.
 
 And finally, we are able to execute the actual access on the variable directly on the cache.
 
@@ -1093,7 +1261,7 @@ And finally, we are able to execute the actual access on the variable directly o
 
 \section{Benchmarks}\label{sec:benchmarks}
 
-Our experiments are build on two benchmark suites the \emph{SPEC 2006 Benchmarks}\cite{henning2006spec} and \emph{V8 Benchmarks}\cite{v8benchmarks}. From both benchmark suites only a subset of the available benchmarks are used which are are explained below.
+Our experiments are built on two benchmark suites, the \emph{SPEC 2006 Benchmarks}\cite{henning2006spec} and the \emph{V8 Benchmarks}\cite{v8benchmarks}. From both benchmark suites only a subset of the available benchmarks are used which are are explained below.
 
 \subsection{SPEC 2006 Benchmarks}
 
@@ -1221,39 +1389,39 @@ This chapter presents experiments executed on our environment.
 For this experiments the benchmarks presented by \Cref{sec:benchmarks} are analyzed.
 The \ac{trace} of each benchmark is observed by using Valgrind Lackey.
 During these experiments the \ac{trace} of each benchmark is applied to all five allocators available.
-In the this section the \ac{trace}s are named according to the applied allocator.
+In this section the \ac{trace}s are named according to the applied allocator.
 Hence, \emph{Identity} represents the \ac{trace} generated by the identity allocator, \emph{CompactStack} represents a compact \ac{trace} using a free list with stack semantic, \emph{CompactQueue} represents a compact \ac{trace} using a free list with queue semantic, \emph{CompactSet} represents a compact \ac{trace} using a free list with set semantic, and \emph{SingleAssignment} represents the \ac{trace} generated by the single assignment allocator.
-Each allocator is executed on each cache introduces in \Cref{sec:caches}.
+Each allocator is executed on each cache introduced in \Cref{sec:caches}.
 In the following section the caches are named \emph{\ac{MIN}}, \emph{\ac{MIN}+Liveness}, \emph{\ac{LRU}}, and \emph{\ac{LRU}+Liveness}.
 The suffix \emph{+Liveness} indicates that the cache makes use of the liveness information of a \ac{trace}.
 Further, all caches of this experiment are configured for cache size of 32KB and cache line size of 64 byte.
 These values are chosen to represent a realistic cache.
 
 \begin{remark}
-When speaking about an allocator this is equivalent with speaking about the transformed \ac{trace} that results by applying this allocator.
+When speaking about an allocator this is equivalent to speaking about the transformed \ac{trace} that results by applying this allocator.
 \end{remark}
 
 \section{Speedup \& Compaction}
 \label{sec:exp-speedup-compaction}
 
 This section presents the results about speedup and compaction of our allocators.
-The speedup describes the relation of an allocators \ac{CPA} and the \ac{CPA} of the Identity allocator.
-The \ac{CPA} of all allocators is computed as \Cref{equ:performance-cpa} illustrates.
+The speedup describes the relation of an allocators \ac{CPA} and the \ac{CPA} of the identity allocator.
+The \ac{CPA} of all allocators is computed as the \Cref{equ:performance-cpa} illustrates.
 The speedup is calculated as follows:
 $$Speedup(Allocator, Cache) = \frac{CPA(Identity, Cache)}{CPA(Allocator, Cache)}$$
 
-The compaction describes the memory used of a \ac{trace} in relation the the memory used by the identity allocator.
+The compaction describes the memory used by a \ac{trace} in relation to the memory used by the identity allocator.
 The number of variables used by an allocator on a given cache is indicated by $\#Addresses(Allocator, Cache)$.
 The compaction is computed as follows:
 $$%
 Compaction(Allocator, Cache) = \frac{\#Addresses(Identity, Cache)}{\#Addressed(Allocator, Cache)}
 $$
 
-The figures below show in the y-axis the speedup and on the x-axis the compaction is presented.
-Values greater than one represent an improvement and values less than one represent a weakening, in terms of performance or compaction.
-For this reason we are aiming for values within the right upper corner, because values in this area represent an improvement in performance and compaction.
-At the opposition there is the left lower corner where we would not like to see values, because values in this area represent a weakening in performance and compaction.
-The remaining two areas represent either an improvement in performance and a weakening in compaction or vice versa.
+The figures below show the speedup on the y-axis and the compaction is presented on the x-axis.
+Values greater than one represent an improvement and values less than one represent a worsening, in terms of performance or compaction.
+For this reason we are aiming for values within the upper right corner because values in this area represent an improvement in performance and compaction.
+Values at the lower left corner represent a worsening in performance and compaction; this area should be avoided.
+The remaining two areas represent either an improvement in performance and a worsening in compaction or vice versa.
 
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
@@ -1281,23 +1449,41 @@ The remaining two areas represent either an improvement in performance and a wea
   \label{fig:correlation-min}
 \end{figure}
 
-\Cref{fig:correlation-min} illustrates the results of all allocator and benchmark combinations applied on the \ac{MIN} cache.
+\Cref{fig:correlation-min} illustrates the results of all allocators and benchmark combinations applied on the \ac{MIN} cache.
 
 \Cref{fig:correlation-min-compactstack} shows the results of the CompactStack allocator in combination with the \ac{MIN} cache for all available benchmarks.
-Obviously, applying the CompactStack allocator leads for all benchmarks to an improvement in the number of used variables.
-Further, most the benchmarks present a better performance than the identity allocator.
+Obviously, applying the CompactStack allocator leads to an improvement in the number of used variables for all benchmarks.
+Furthermore, most benchmarks present a better performance than the identity allocator.
 Most interesting results are those of the 445.gobmk, 471.omnetpp, and 454.calculix.
 The 445.gobmk benchmark presents the most significant speedup of all benchmarks.
-Further, it uses only the half of the variables used by the Identity allocator.
-Nevertheless, there are benchmarks with much better compaction.
-The 471.omnetpp benchmark presents the best compaction result, with nearly equivalent performance as the Identity allocator.
+Furthermore, it uses only the half of the variables used by the Identity allocator.
+Nevertheless, there are benchmarks with a much better compaction.
+The 471.omnetpp benchmark presents the best compaction result with nearly equivalent performance as the Identity allocator.
 The 483.xalancbmk presents a speedup less than one with a compaction of approximately two.
 
-\Cref{fig:correlation-min-compactset} presents the results of the CompactSet allocator in combination with the \ac{MIN} cache for all available benchmarks. In comparison to the CompactStack allocators results the results of the CompactSet allocator slight worse. Especially, in terms of speedup there is a significant weakening observable. The most outstanding benchmarks are again 445.gobmk, 471.omnetpp, and 454.calculix. The results of 445.gobmk and 471.omnetpp are quit similar to those of the CompactStack. The result of the 483.xalancbmk is clearly different for the result achieve with the CompactStack allocator. The speedup of the 454.calculix benchmark significantly decreased.
+\Cref{fig:correlation-min-compactset} presents the results of the CompactSet allocator in combination with the \ac{MIN} cache for all available benchmarks.
+In comparison to the CompactStack allocators results, the results of the CompactSet allocator are slightly worse.
+Especially, in terms of speedup there is a significant worsening observable.
+The most outstanding benchmarks are again 445.gobmk, 471.omnetpp, and 454.calculix.
+The results of 445.gobmk and 471.omnetpp are quite similar to those of the CompactStack.
+The result of the 483.xalancbmk is clearly different to the result achieved by the CompactStack allocator.
 
-\Cref{fig:correlation-min-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{MIN} cache for all available benchmarks. Obviously, using the CompactQueue allocator is not beneficial for most benchmarks in terms of speedup. Nevertheless, the 445.gobmk still achieve a performance improvement by a similar compaction as for the CompactStack and CompactSet allocators. Also the 471.omnetpp benchmark presents quit identical results for speedup and compaction. All other benchmarks show a decrease in speedup. Furthermore, for this allocator 454.calculix is not the allocator with the worst speedup, it is 483.xalancbmk.
+\Cref{fig:correlation-min-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{MIN} cache for all available benchmarks.
+Obviously, using the CompactQueue allocator is not beneficial for most benchmarks in terms of speedup.
+Nevertheless, the 445.gobmk benchmark still achieved a performance improvement with a similar compaction to the CompactStack and CompactSet allocators.
+Also the 471.omnetpp benchmark presents quite identical results for speedup and compaction.
+All other benchmarks show a decrease in speedup.
+Furthermore, for this allocator 454.calculix is not the allocator with the worst speedup, it is 483.xalancbmk.
 
-\Cref{fig:correlation-min-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{MIN} cache for all available benchmarks. Without any detailed explanation it is clear that the SingleAssignment allocator presents the worst results of all four allocators. Obviously, in terms of compaction this allocator is not able to achieve any improvement by definition. Using a new variable for each store instruction inevitably yields in more or at least the same number of variable than used by the Identity allocator. As expected all data points are within the left half of the figure. Unfortunately, non of the benchmarks is able to least achieve the same performance as the Identity allocator. Only the 445.gobmk benchmark is close to one. Note that the 471.omnetpp benchmark, which achieved the best compaction for the other three allocators, now presents the worst compaction. And additionally it also offers the worst speedup.
+\Cref{fig:correlation-min-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{MIN} cache for all available benchmarks.
+Without any detailed explanation it is clear that the SingleAssignment allocator presents the worst results of all four allocators.
+Obviously, in terms of compaction this allocator is not able to achieve any improvement by definition.
+Using a new variable for each store instruction inevitably yields in more or at least the same number of variable than used by the Identity allocator.
+As expected, all data points are within the left half of the figure.
+Unfortunately, none of the benchmarks are able to least achieve the same performance as the Identity allocator.
+Only the 445.gobmk benchmark is close to one.
+Note that the 471.omnetpp benchmark, which achieved the best compaction for the other three allocators, now presents the worst compaction.
+And additionally, it also offers the worst speedup.
 
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
@@ -1325,15 +1511,32 @@ The 483.xalancbmk presents a speedup less than one with a compaction of approxim
   \label{fig:correlation-min-liveness}
 \end{figure}
 
-\Cref{fig:correlation-min-liveness} illustrates the results of all benchmark and allocator combinations applied on the \ac{MIN}+Liveness cache. According the to proceeding presented by \Cref{ssec:cache-behavior-liveness} the compaction is not influence of using the liveness information. For this reason we can focus on performance while comparing the caches based on \citeauthor{belady1966study}s algorithm (\ac{MIN}).
+\Cref{fig:correlation-min-liveness} illustrates the results of all benchmarks and allocator combinations applied on the \ac{MIN}+Liveness cache.
+According to the proceeding presented by \Cref{ssec:cache-behavior-liveness}, the compaction is not influenced by using the liveness information.
+For this reason we can focus on performance while comparing the caches based on \citeauthor{belady1966study}s algorithm (\ac{MIN}).
 
-\Cref{fig:correlation-min-liveness-compactstack} presents the results of the CompactStack allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks. The relations between the benchmarks are quite similar to those of the \ac{MIN} cache. As mentioned above compaction is not influence by using the liveness information. This is why the 471.omnetpp benchmark still shows the most compaction and 445.gobmk is still one of the benchmarks with the least improvement in compaction. Even with the least improvement the 445.gobmk benchmark uses only half of the addresses required by the Identity allocator. In terms of performance the 445.gobmk benchmark remains as the benchmarks with the most speedup. In general the speedup for the \ac{MIN}+Liveness cache is slightly worse than for the \ac{MIN} cache. The reason is that also the performance of the Identity allocator improves by using the \ac{MIN}+Liveness cache. Hence, the gap shrinks and the speedup decrease.
+\Cref{fig:correlation-min-liveness-compactstack} presents the results of the CompactStack allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks.
+The relations between the benchmarks are quite similar to those of the \ac{MIN} cache.
+As mentioned above compaction is not influenced by using the liveness information.
+This is why the 471.omnetpp benchmark still shows the most compaction and 445.gobmk is still one of the benchmarks with the least improvement in compaction.
+Even with the least improvement the 445.gobmk benchmark uses only half of the addresses required by the Identity allocator.
+In terms of performance the 445.gobmk benchmark remains as the benchmarks with the most speedup.
+In general, the speedup for the \ac{MIN}+Liveness cache is slightly worse than for the \ac{MIN} cache.
+The reason is that also the performance of the Identity allocator improves by using the \ac{MIN}+Liveness cache.
+Hence, the gap shrinks and the speedup decreases.
 
-\Cref{fig:correlation-min-liveness-compactset} presents the results of the CompactSet allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks. For the CompactSet allocator the differences to the \ac{MIN} cache without liveness information are hard to see on this figure. The details for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk are presented by \Cref{fig:speedup-compaction-445-gobmk,fig:speedup-compaction-471-omnetpp,fig:speedup-compaction-483-xalancbmk}.
+\Cref{fig:correlation-min-liveness-compactset} presents the results of the CompactSet allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks.
+For the CompactSet allocator the differences to the \ac{MIN} cache without liveness information are hard to see on this figure.
+The details for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk are presented by \Cref{fig:speedup-compaction-445-gobmk,fig:speedup-compaction-471-omnetpp,fig:speedup-compaction-483-xalancbmk}.
 
-\Cref{fig:correlation-min-liveness-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks. Unfortunately, the \ac{MIN}+Liveness cache is not able to push the results up into the right upper corner. Hence, the benchmarks performance worse using the CompactionQueue allocator than using the Identity allocator. Nevertheless, there is an improvement observable in comparison it the \ac{MIN} cache.
+\Cref{fig:correlation-min-liveness-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks.
+Unfortunately, the \ac{MIN}+Liveness cache is not able to push the results up into the right upper corner.
+Hence, the benchmarks performance is worse using the CompactionQueue allocator than using the Identity allocator.
+Nevertheless, there is an improvement observable in comparison it the \ac{MIN} cache.
 
-\Cref{fig:correlation-min-liveness-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks. The usage of liveness information has an positive influence on the speedup of the benchmarks. Nevertheless, the this influence is to small to push the results into an area which is more beneficial.
+\Cref{fig:correlation-min-liveness-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{MIN}+Liveness cache for all benchmarks.
+The usage of liveness information has an positive influence on the speedup of the benchmarks.
+Nevertheless, the influence is too small to push the results into an area which is more beneficial.
 
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
@@ -1361,15 +1564,39 @@ The 483.xalancbmk presents a speedup less than one with a compaction of approxim
   \label{fig:correlation-lru}
 \end{figure}
 
-\Cref{fig:correlation-lru} illustrates the results of all benchmark and allocator combinations applied on the \ac{LRU} cache. Obviously, the algorithm to decided on an eviction candidate has an enormous influence.
+\Cref{fig:correlation-lru} illustrates the results of all benchmarks and allocator combinations applied on the \ac{LRU} cache.
+Obviously, the algorithm that decided which item is evicted has an enormous influence.
 
-\Cref{fig:correlation-lru-compactstack} presents the results of the CompactStack allocator in combination with the \ac{LRU} cache for all benchmarks. This figure present a quite different result an shown by \Cref{fig:correlation-min-compactstack}. In an overall view the speedup is much worse for most of the benchmark in comparison to the \ac{MIN} caches. Nevertheless, there are still three outstanding benchmarks to discuss. (1) The 471.omnetpp benchmark remains the benchmark with the most compaction. (2) The 483.xalancbmk benchmark presents the most decrease in performance. For the \ac{MIN} caches this benchmark already shows a poor speedup, but with the \ac{LRU} cache it becomes the benchmark with the least speedup. (3) The 445.gobmk benchmark and the 462.libquantum benchmark. As for the \ac{MIN} caches the 445.gobmk benchmark remains the benchmark with the most speedup. Furthermore, the 462.libquantum benchmark shows a significant improvement in speedup with the \ac{LRU} cache.
+\Cref{fig:correlation-lru-compactstack} presents the results of the CompactStack allocator in combination with the \ac{LRU} cache for all benchmarks.
+This figure presents a quite different result as shown by \Cref{fig:correlation-min-compactstack}.
+Overall the speedup is much worse for most of the benchmark in comparison to the \ac{MIN} caches.
+Nevertheless, there are still three outstanding benchmarks to discuss.
+(1) The 471.omnetpp benchmark remains the benchmark with the most compaction.
+(2) The 483.xalancbmk benchmark presents the highest decrease in performance.
+For the \ac{MIN} caches this benchmark already shows a poor speedup, but with the \ac{LRU} cache it becomes the benchmark with the least speedup.
+(3) The 445.gobmk benchmark and the 462.libquantum benchmark that present the best performance.
+As for the \ac{MIN} caches the 445.gobmk benchmark remains the benchmark with the highest speedup.
+Furthermore, the 462.libquantum benchmark shows a significant improvement in speedup to the \ac{LRU} cache.
 
-\Cref{fig:correlation-lru-compactset} presents the results of the CompactSet allocator in combination with the \ac{LRU} cache for all benchmarks. In an overall perspective also the CompactSet allocator is not able to achieve that much speedup using the \ac{LRU} cache than a \ac{MIN} cache. Most of the benchmarks present a weakening in performance which results in less speedup. Nevertheless, two benchmarks present a speedup larger than one 445.gobmk and 462.libquantum, namely. The 485.xalancbmk presents again the least speedup of all benchmarks and the 471.omnetpp remains the benchmark with most compaction.
+\Cref{fig:correlation-lru-compactset} presents the results of the CompactSet allocator in combination with the \ac{LRU} cache for all benchmarks.
+In an overall perspective also the CompactSet allocator is not able to achieve that much speedup using the \ac{LRU} cache compared to a \ac{MIN} cache.
+Most of the benchmarks present a worsening in performance which results in less speedup.
+Nevertheless, two benchmarks present a speedup larger than one 445.gobmk and 462.libquantum, namely.
+The 485.xalancbmk presents again the least speedup of all benchmarks and the 471.omnetpp remains the benchmark with most compaction.
 
-\Cref{fig:correlation-lru-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{LRU} cache for all benchmarks. The CompactQueue allocator presents a similar behavior as the CompactStack and CompactSet allocators. Most of the data points show a weakening in speedup. The CompactQueue allocator has in an overall perspective the worst speedup results of all four allocators. In detail there are two quite interesting things to observe. First the 445.gobmk for the first time shows a speedup less than one. While 462.libquantum remains the only benchmark with a speedup greater than one. Second 483.xalancbmk is for this allocator not the benchmark with the worst speedup. The benchmark with the worst speedup is the richards benchmark.
+\Cref{fig:correlation-lru-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{LRU} cache for all benchmarks.
+The CompactQueue allocator presents a similar behavior as the CompactStack and CompactSet allocators.
+Most of the data points show a worsening in speedup.
+In an overall perspective the CompactQueue allocator has the worst speedup results of all four allocators.
+In detail there are two quite interesting things to observe.
+First, the 445.gobmk benchmark shows a speedup less than one, while 462.libquantum remains the only benchmark with a speedup greater than one.
+Secondly 483.xalancbmk is not the benchmark with the worst speedup for this allocator.
+The benchmark with the worst speedup is the Richards benchmark.
 
-\Cref{fig:correlation-lru-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{LRU} cache for all benchmarks. As expected the results of the SingleAssignment allocator occur in the left lower corner. In comparison to the \ac{MIN}+Liveness cache the speedups vary more. Unexpectedly the 445.gobmk presents a speedup greater than one for the first time for this allocator.
+\Cref{fig:correlation-lru-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{LRU} cache for all benchmarks.
+As expected, the results of the SingleAssignment allocator occur in the left lower corner.
+In comparison to the \ac{MIN}+Liveness cache the speedups vary more.
+Unexpectedly the 445.gobmk presents a speedup greater than one for this allocator for the first time.
 
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
@@ -1397,29 +1624,50 @@ The 483.xalancbmk presents a speedup less than one with a compaction of approxim
   \label{fig:correlation-lru-liveness}
 \end{figure}
 
-\Cref{fig:correlation-lru-liveness} illustrates the results of all benchmark and allocator combinations applied on the \ac{LRU}+Liveness cache.
+\Cref{fig:correlation-lru-liveness} illustrates the results of all benchmarks and allocator combinations applied on the \ac{LRU}+Liveness cache.
 
-\Cref{fig:correlation-lru-liveness-compactstack} presents the results of the CompactStack allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks. The presented speedup results are quite similar to those of the \ac{LRU} cache without liveness information. Nevertheless, one thing is still worth mentioning the 462.libquantum significantly improves its speedup. It reaches a speedup close 445.gobmk benchmark.
+\Cref{fig:correlation-lru-liveness-compactstack} presents the results of the CompactStack allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks.
+The presented speedup results are quite similar to those of the \ac{LRU} cache without liveness information.
+Nevertheless, one thing is still worth mentioning, the 462.libquantum has significantly improved in terms of speedup.
+It reaches a speedup close 445.gobmk benchmark.
 
-\Cref{fig:correlation-lru-liveness-compactset} presents the results of the CompactSet allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks. The CompactSet allocators show as the CompactStack allocator only minimal improvements. Except of the 462.libquantum benchmark which improves its speedup significantly. All other benchmarks remain as before within the right left corner. This indicates a good compaction and a poor speedup.
+\Cref{fig:correlation-lru-liveness-compactset} presents the results of the CompactSet allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks.
+The CompactSet allocator shows only minimal improvements as the CompactStack allocator.
+Except the 462.libquantum benchmark which improves its speedup significantly.
+All other benchmarks remain within the right left corner as before.
+This indicates a good compaction and a poor speedup.
 
-\Cref{fig:correlation-lru-liveness-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks. For the CompactQueue allocator in combination with the \ac{LRU} algorithm as base of the eviction policy is seams that the liveness information has no significant influence.
+\Cref{fig:correlation-lru-liveness-compactqueue} presents the results of the CompactQueue allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks.
+For the CompactQueue allocator in combination with the \ac{LRU} algorithm as base of the eviction policy is seems that the liveness information has no significant influence.
 
-\Cref{fig:correlation-lru-liveness-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks. Similar to the CompactQueue allocator also for the SingleAssignment allocator is seams that the liveness information does not improve the speedup significantly.
+\Cref{fig:correlation-lru-liveness-singleassignment} presents the results of the SingleAssignment allocator in combination with the \ac{LRU}+Liveness cache for all benchmarks.
+Similar to the CompactQueue allocator and also for the SingleAssignment allocator is seems that the liveness information does not improve the speedup significantly.
 
 \subsection{445.gobmk}
 
-In this section we take a closer look at the speedup and compaction of the 445.gobmk benchmark. \Cref{fig:speedup-compaction-445-gobmk-speedup} presents an overview of the speedup results of the 445.gobmk benchmark of all allocators and caches applied.
+In this section we take a closer look at the speedup and compaction of the 445.gobmk benchmark.
+\Cref{fig:speedup-compaction-445-gobmk-speedup} presents an overview of the speedup results of the 445.gobmk benchmark of all allocators and caches applied.
 
-A speedup below indicates that the performance of this allocator is worse than the performance of the Identity allocator by using the same cache. In case of the 445.gobmk there are 4 such scenarios in which an allocator performance worse than the Identity allocator.
+A speedup below indicates that the performance of this allocator is worse than the performance of the Identity allocator by using the same cache.
+In case of the 445.gobmk there are 4 such scenarios in which an allocator performance is worse than the Identity allocator.
 
-For the \ac{MIN} cache the SingleAssignment allocators presents a speedup of $0.71$ which means that its performance is 29\% slower in comparison to the Identity allocator. For the \ac{MIN}+Liveness allocator also the SingleAssignment allocator performance worst. As expected the usage of the liveness information yields an improvement, the performance decreases by 14\%. Since the SingleAssignment allocator uses many more variables than the other allocators its results are not surprising.
+For the \ac{MIN} cache the SingleAssignment allocators presents a speedup of $0.71$ which means that its performance is 29\% slower in comparison to the Identity allocator.
+For the \ac{MIN}+Liveness cache also the SingleAssignment allocator has the worst performance.
+As expected the usage of the liveness information yields an improvement, the performance decreases by 14\%.
+Because the SingleAssignment allocator uses many more variables than the other allocators its results are not surprising.
 
-For the more realistic cache implementations based on the \ac{LRU} algorithm the SingleAssignment allocator performs better and present a speedup above one. Nevertheless, there is another allocator which does not perform well on the \ac{LRU} caches, the CompactQueue. The CompactQueue allocator shows a speedup of $0.29$ for the \ac{LRU} cache and $0.34$ for the \ac{LRU} cache using liveness information. Again the liveness information has a significant influence. Nevertheless, the performance of the CompactQueue allocator is 64\%-71\% worse than the performance of the Identity allocator.
+For the more realistic cache implementations based on the \ac{LRU} algorithm the SingleAssignment allocator performs better and presents a speedup above one.
+Nevertheless, there is another allocator which does not perform well on the \ac{LRU} caches, the CompactQueue.
+The CompactQueue allocator shows a speedup of $0.29$ for the \ac{LRU} cache and $0.34$ for the \ac{LRU} cache using liveness information.
+Again the liveness information has a significant influence.
+Nevertheless, the performance of the CompactQueue allocator is 64\%-71\% worse than the performance of the Identity allocator.
 
-However, the CompactStack allocator is for each cache the allocator with the highest speedup. The most impressive speedup is shown for the \ac{LRU} cache, in this scenario the CompactStack allocator reaches a speedup of $4.37$. Also the CompactSet allocator presents good results overall caches.
+However, the CompactStack allocator is the allocator with the highest speedup for each cache.
+The most impressive speedup is shown for the \ac{LRU} cache, in this scenario the CompactStack allocator reaches a speedup of $4.37$.
 
-The compaction shown by \Cref{fig:speedup-compaction-445-gobmk-compaction} is for all compacting allocators identical, which is as expecting according to the workflow presented by \Cref{fig:cache-behavior-liveness}. Its worth mentioning that all three compacting allocators are able to use $2.78$ times less variables than the Identity allocator does. Furthermore, it is not surprising that the SingleAssignment allocators requires that many more variables than the Identity allocator.
+The compaction shown by \Cref{fig:speedup-compaction-445-gobmk-compaction} is identical for all compacting allocators, which is as expected according to the workflow presented by \Cref{fig:cache-behavior-liveness}.
+It is worth mentioning that all three compacting allocators are able to use $2.78$ times less variables than the Identity allocator does.
+Furthermore, it is not surprising that the SingleAssignment allocators requires that many more variables than the Identity allocator.
 
 \begin{figure}[!ht]
   \centering
@@ -1441,9 +1689,18 @@ The compaction shown by \Cref{fig:speedup-compaction-445-gobmk-compaction} is fo
 
 \Cref{fig:speedup-compaction-471-omnetpp} presents the results of the 471.omnetpp benchmark in detail.
 
-\Cref{fig:speedup-compaction-471-omnetpp-speedup} shows the speedup of all allocators and caches of the 471.omnetpp benchmark. Obviously, the speedup results of the 471.omnetpp benchmark are significant worse than those of the 445.gobmk benchmark. Just for the two caches \ac{MIN} and \ac{MIN}+Liveness the 471.omnetpp benchmark is able to achieve a speedup greater than one at all. And for these caches only the compacting allocators are slightly greater than one. The results for the \ac{LRU} caches are dramatically worse. For the \ac{LRU} caches non of the allocators is able to achieve a speedup close to one. However, the CompactionStack allocator presents the best results o all allocators and again the CompactQueue allocators shows the worst results.
+\Cref{fig:speedup-compaction-471-omnetpp-speedup} shows the speedup of all allocators and caches of the 471.omnetpp benchmark.
+Obviously, the speedup results of the 471.omnetpp benchmark are significant worse than those of the 445.gobmk benchmark.
+Just for the two caches \ac{MIN} and \ac{MIN}+Liveness the 471.omnetpp benchmark is able to achieve a speedup greater than one at all.
+And for these caches only the compacting allocators are slightly greater than one.
+The results for the \ac{LRU} caches are dramatically worse.
+For the \ac{LRU} caches, none of the allocators are able to achieve a speedup close to one.
+However, the CompactionStack allocator presents the best results of all allocators and again the CompactQueue allocators shows the worst results.
 
-\Cref{fig:speedup-compaction-471-omnetpp-compaction} presents the compaction of the 471.omnetpp benchmark. As the previous figures suggested the compaction of the 471.omnetpp benchmark is extremely high. All compacting allocators require $39.76$ times less variables than the Identity allocator does. Furthermore, the compaction of the SingleAssignment allocator is quite interesting, because it indicates that the \ac{trace} consists of many store instructions which lead to a compaction of $0.004$.
+\Cref{fig:speedup-compaction-471-omnetpp-compaction} presents the compaction of the 471.omnetpp benchmark.
+As the previous figures suggested, the compaction of the 471.omnetpp benchmark is extremely high.
+All compacting allocators require $39.76$ times less variables than the Identity allocator does.
+Furthermore, the compaction of the SingleAssignment allocator is quite interesting, because it indicates that the \ac{trace} consists of many store instructions which lead to a compaction of $0.004$.
 
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
@@ -1464,9 +1721,15 @@ The compaction shown by \Cref{fig:speedup-compaction-445-gobmk-compaction} is fo
 
 \Cref{fig:speedup-compaction-483-xalancbmk} presents the results of the 483.xalancbmk benchmark in detail.
 
-\Cref{fig:speedup-compaction-483-xalancbmk-speedup} shows the speedup results of the 483.xalancbmk. Unfortunately, the presented results show only two scenarios for which a speedup greater than one can be achieved. Namely, this scenarios are the CompactStack allocator in combination with the \ac{MIN} cache and the CompactStack allocator in combination with the \ac{MIN}+Liveness cache. The CompactSet allocator is close to one but stays below even if a cache uses the liveness information. On the \ac{LRU} caches non of the presented allocators is able to achieve a speedup above $0.15$. Which means that all allocators show a performance at least 85\% worse than the Identity allocators performance.
+\Cref{fig:speedup-compaction-483-xalancbmk-speedup} shows the speedup results of the 483.xalancbmk.
+Unfortunately, the presented results show only two scenarios for which a speedup greater than one can be achieved.
+Namely, this scenarios are the CompactStack allocator in combination with the \ac{MIN} cache and the CompactStack allocator in combination with the \ac{MIN}+Liveness cache.
+The CompactSet allocator is close to one but stays below even if a cache uses the liveness information.
+On the \ac{LRU} caches, none of the presented allocators is able to achieve a speedup above $0.15$.
+Which means that all allocators show a performance at least 85\% worse than the Identity allocators performance.
 
-However, \Cref{fig:speedup-compaction-483-xalancbmk-compaction} presents quite good results for the compaction. The compacting allocators are able to use $7.14$ times less variables than the Identity allocators does.
+However, \Cref{fig:speedup-compaction-483-xalancbmk-compaction} presents quite good results for the compaction.
+The compacting allocators are able to use $7.14$ times less variables than the Identity allocators does.
 
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
@@ -1485,12 +1748,38 @@ However, \Cref{fig:speedup-compaction-483-xalancbmk-compaction} presents quite g
 
 \section{Performance}\label{sec:experiment-performance}
 
-This section presents the performance of the benchmarks. The performance is computed as explained by \Cref{sec:performance}. All figures of this section show the \ac{CPA} on the y-axis, computed as illustrated by \Cref{equ:performance-cpa}, on the x-axis the allocators are shown in groups of the applied cache. Additional to the performance we take a look at the distribution of cache misses and caches hits and influences of the different kinds of memory accesses. By now we focus on the benchmarks, \emph{445.gobmk}, \emph{471.omnetpp}, and \emph{483.xalancbmk}, namely. The remaining figures can be found at \Cref{app:experiment}. For each benchmark two figures are presented. Both figures show the performance in \ac{CPA}, but the figure on the left hand-side additionally presents the distribution of cache misses and cache hits and the figure on the right hand-side illustrates the different kinds of memory accesses.
+This section presents the performance of the benchmarks.
+The performance is computed as explained by \Cref{sec:performance}.
+All figures of this section show the \ac{CPA} on the y-axis, computed as illustrated by \Cref{equ:performance-cpa}.
+On the x-axis the allocators are shown in groups of the applied cache.
+Additional to the performance we take a look at the distribution of cache misses and caches hits and influences of the different kinds of memory accesses.
+By now we focus on the benchmarks namely \emph{445.gobmk}, \emph{471.omnetpp}, and \emph{483.xalancbmk}.
+The remaining figures can be found at \Cref{app:experiment}.
+For each benchmark two figures are presented.
+Both figures show the performance in \ac{CPA}, but the figure on the left hand-side additionally presents the distribution of cache misses and cache hits and the figure on the right hand-side illustrates the different kinds of memory accesses.
 
 \subsection{445.gobmk}
-\Cref{fig:performance-445-gobmk} presents the results of the 445.gobmk benchmark. For each group of allocators, e.g., the five allocators Identity, CompactStack, CompactSet, CompactQueue, and SingleAssignment of the \ac{LRU} group, the results of Identity represent the baseline. Lets stick with the first group the baseline is a CPA of $15.22$. The allocators CompactStack, CompactSet, and SingleAssignment perform better than the Identity. This means the performance of the original \ac{trace} offers potential of improvement, as shown by these three allocators. However, not all of them show an improvement. The CompactQueue allocators presents a dramatically worse performance than Identity. Nevertheless, we observe that the \ac{CPA} of the CompactQueue presented by the \ac{LRU} cache is the worst. For the other cache implementation its performance is significant better. In more detail the CompactQueue performs much better on the MIN caches than on the \ac{LRU} caches. For the MIN caches the performance of the SingleAssignment approach is the worst. For completeness the CompactStack performance best on all cache implementations. This nicely illustrates the influence of the underlining cache. It seams that all allocators benefit from the usage of liveness information. Not surprisingly the MIN cache is beatifically for all allocators.
-Taking in account the shown cache misses and cache hits the poor performance of the CompactQueue is not that surprising anymore. Obviously, the CompactQueue implementation yields the most cache misses, e.g., for the \ac{LRU} cache. Which in this case leads to more main memory accesses as illustrated by \Cref{fig:performance-445-gobmk-memops}. For all other allocators there much less main memory loads and main memory stores.
-Summarizing the \Cref{fig:performance-445-gobmk} illustrate that there is potential for performance improvement of the 445.gobmk benchmark. Furthermore, the presents of differences between the cache implementations is shown.
+\Cref{fig:performance-445-gobmk} presents the results of the 445.gobmk benchmark.
+For each group of allocators, e.g., the five allocators Identity, CompactStack, CompactSet, CompactQueue, and SingleAssignment of the \ac{LRU} group, the results of Identity represent the baseline.
+Lets stick with the first group.
+The baseline is a CPA of $15.22$.
+The allocators CompactStack, CompactSet, and SingleAssignment perform better than the Identity.
+This means the performance of the original \ac{trace} can offer potential improvement, as shown by these three allocators.
+However, not all of them show an improvement.
+The CompactQueue allocators presents a dramatically worse performance than Identity.
+Nevertheless, we observe that the \ac{CPA} of the CompactQueue presented by the \ac{LRU} cache is the worst.
+For the other cache implementations its performance is significant better.
+To describe it in more detail the CompactQueue allocator performs much better on the MIN caches than on the \ac{LRU} caches.
+For the MIN caches the performance of the SingleAssignment approach is the worst.
+The CompactStack allocator is best on all cache implementations.
+This nicely illustrates the influence of the underlining cache.
+It seems that all allocators benefit from the usage of liveness information.
+Not surprisingly the MIN cache is beneficial for all allocators.
+Taking to account the shown cache misses and cache hits, the poor performance of the CompactQueue allocator is not that surprising anymore.
+Obviously, the CompactQueue implementation yields the most cache misses, e.g., for the \ac{LRU} cache.
+Which in this case leads to more main memory accesses as illustrated by \Cref{fig:performance-445-gobmk-memops}.
+For all other allocators there much less main memory loads and main memory stores.
+Summarizing the \Cref{fig:performance-445-gobmk} illustrates that there is potential for performance improvement of the 445.gobmk benchmark.
 
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
@@ -1508,7 +1797,15 @@ Summarizing the \Cref{fig:performance-445-gobmk} illustrate that there is potent
 \end{figure}
 
 \subsection{471.omnetpp}
-\Cref{fig:performance-471-omnetpp} presents the performance results of the 471.omnetpp benchmark. As before both figures illustrate the performance in \ac{CPU}, but on the left hand-side the distribution of cache misses and cache hits is shown and on th right hand-side the relation of the different memory accesses is presented. For this benchmark the Identity results are much better than results of the 445.gobmk. Since the Identity \ac{CPA}s are quite close to 1 ($1.85$, $1.82$, $1.04$, and $1.03$) there is not much space for improvement, especially for the \ac{MIN} implementations. Nevertheless, only for the \ac{MIN} implementation we are able to achieve an improvement with the allocators CompactStack, CompactSet, and CompactQueue. The approach without compaction, SingleAssignment, seams to be a bad chose for this benchmark, for all four cache implementations it shows poor performance. As before it is observable that those allocators with less cache misses end up with less main memory accesses. What is plausible although a cache miss does not necessarily force a main memory access, as \Cref{fig:cache-behavior-liveness} illustrates. According to the work flow shown by \Cref{fig:cache-behavior-liveness} the hypothesis raises that the 471.omnetpp benchmark consists of many variables with overlapping liveness intervals or this benchmark is very load intensive or both aspects are more pronounced compared to 445.gobmk.
+\Cref{fig:performance-471-omnetpp} presents the performance results of the 471.omnetpp benchmark.
+As before both figures illustrate the performance in \ac{CPU}, but on the left hand-side the distribution of cache misses and cache hits is shown and on the right hand-side the relation of the different memory accesses is presented.
+For this benchmark the Identity results are much better than the results of the 445.gobmk benchmark.
+Since the Identity \ac{CPA}s are quite close to 1 ($1.85$, $1.82$, $1.04$, and $1.03$), there is not much space for improvement, especially for the \ac{MIN} implementations.
+Nevertheless, only for the \ac{MIN} implementation we are able to achieve an improvement with the allocators CompactStack, CompactSet, and CompactQueue.
+The approach without compaction, SingleAssignment, seems to be a bad choice for this benchmark, because for all four cache implementations it shows poor performance.
+As before it is observable that those allocators with less cache misses end up with less main memory accesses.
+What is plausible although a cache miss does not necessarily force a main memory access, as \Cref{fig:cache-behavior-liveness} illustrates.
+According to the work flow shown by \Cref{fig:cache-behavior-liveness} the hypothesis raises that the 471.omnetpp benchmark consists of many variables with overlapping liveness intervals or this benchmark is very load intensive or both aspects are more pronounced compared to 445.gobmk.
 
 
 \begin{figure}[!ht]
@@ -1527,7 +1824,18 @@ Summarizing the \Cref{fig:performance-445-gobmk} illustrate that there is potent
 \end{figure}
 
 \subsection{483.xalancbmk}
-\Cref{fig:performance-483-xalancbmk} illustrates the performance of the 483.xalancbmk. The most obvious observation is that the performance gap of the \ac{LRU} cache implementations and the \ac{MIN} implementations is dramatical. Hence, the \ac{LRU} cache is not the optimal cache for our compacting allocators. In a worst case our transformations yield approximately a 10 times worse \ac{CPA} than the Identity. The source of this poor performance seams to be that the compaction increases the number of cache misses. Unfortunately, many of the cache misses yield a main memory access, as illustrated by \Cref{fig:performance-483-xalancbmk-memops}. Peeking CompactQueue as out standing example the number of cache misses is nearly identical with the number of main memory access which leads to its poor performance. As expected the implementation of the \ac{LRU} cache which uses the liveness information is able a better \ac{CPA} for all allocators. But even those results are far from good. However, the results for the \ac{MIN} caches are much better than those of the \ac{LRU} caches. Even though the performance of the \ac{MIN} caches is much better there is only one allocator which is able to improve the performance in comparison to the Identity allocator, CompactStack namely. CompactSet is close to the original performance but the other tow CompactQueue, and SingleAssignment do not perform as well.
+\Cref{fig:performance-483-xalancbmk} illustrates the performance of the 483.xalancbmk.
+The most obvious observation is that the performance gap of the \ac{LRU} cache implementations and the \ac{MIN} implementations is dramatical.
+Hence, the \ac{LRU} cache is not the optimal cache for our compacting allocators.
+In a worst case our transformations yield approximately a 10 times worse \ac{CPA} than the Identity.
+The source of this poor performance seems to be that the compaction increases the number of cache misses.
+Unfortunately, many of the cache misses yield a main memory access, as illustrated by \Cref{fig:performance-483-xalancbmk-memops}.
+Peeking CompactQueue, as an outstanding example the number of cache misses is nearly identical with the number of main memory access which leads to its poor performance.
+As expected, the implementation of the \ac{LRU} cache which uses the liveness information is able archive a better \ac{CPA} for all allocators.
+But even those results are far from good.
+However, the results for the \ac{MIN} caches are much better than those of the \ac{LRU} caches.
+Even though the performance of the \ac{MIN} caches is much better; there is only one allocator which is able to improve the performance in comparison to the Identity allocator namely CompactStack.
+CompactSet is close to the original performance but the other two CompactQueue and SingleAssignment do not perform as good.
 
 \begin{figure}[!ht]
   \begin{subfigure}[b]{0.5\textwidth}%
@@ -1547,7 +1855,9 @@ Summarizing the \Cref{fig:performance-445-gobmk} illustrate that there is potent
 \section{Statistical Analysis}
 \label{sec:experiment-statistical-analysis}
 
-This section presents the statistical analysis on the benchmarks according to the metrics presented in \Cref{sec:metrics}. The metrics presented are observed from the Identity allocator. More details and further tables can be found in \Cref{app:experiment}.
+This section presents the statistical analysis on the benchmarks according to the metrics presented in \Cref{sec:metrics}.
+The metrics presented are observed from the Identity allocator.
+More details and further tables can be found in \Cref{app:experiment}.
 
 \begin{table}[!ht]
   \centering
@@ -1570,7 +1880,13 @@ This section presents the statistical analysis on the benchmarks according to th
   \label{tab:basic-benchmark-data}
 \end{table}
 
-\Cref{tab:basic-benchmark-data} shows the most basic data for all benchmarks analyzed. According to the size of a benchmark the number of instructions varies. The column \emph{Number of Instructions} shows the total number of load and store instructions. The columns \emph{Loads} and \emph{Store} present the distribution of loads and stores in percentage. Most of the listed benchmarks are store-intensive, consists of more store instructions than load instructions. Except the 445.gobmk benchmark that presents a distribution of $50.20$ percent loads and $49.8$ percent stores. 462.libquantum consists of $85.72$ percent stores which is the maximum for all benchmarks listed.
+\Cref{tab:basic-benchmark-data} shows the most basic data for all analyzed benchmarks.
+The number of instructions varies according to the size of a benchmark.
+The column \emph{Number of Instructions} shows the total number of load and store instructions.
+The columns \emph{Loads} and \emph{Store} present the distribution of loads and stores shown as percentage.
+Most of the listed benchmarks are store-intensive and consist of more store instructions than load instructions.
+Except the 445.gobmk benchmark that presents a distribution of $50.20$ percent loads and $49.8$ percent stores.
+462.libquantum consists of $85.72$ percent stores which is the maximum for all listed benchmarks.
 
 \begin{table}[!ht]
   \centering
@@ -1587,7 +1903,28 @@ This section presents the statistical analysis on the benchmarks according to th
   \label{tab:metric-accesses-3}
 \end{table}
 
-\Cref{tab:metric-accesses-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-accesses-all} presents the results for all benchmarks. \emph{Count} represents the number of different variables used. The arithmetic mean shows that a variables of 445.gobmk are accessed $111.56$ times in average, variables of 471.omnetpp are accessed $859.89$ times in average, and variable of 483.xalancbmk are accessed $155.57$ times in average. Clearly the variables of the 471.omnetpp benchmarks are accessed most in average. \emph{Minimum} and \emph{maximum} show that there exists at least one variable that is accessed only once and that there is at least on variable with is accessed $12057070$, $19444797$, and $2416458$ for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. Investigating the results of the percentiles shows that the \emph{average} is misleading. For the 445.gobmk the 95\% percentile presents a value of $23$. Hence, 95\% of all variables are accessed at most 23 times. This indicates that the remaining 5\% of the variables are accessed significantly more often. Otherwise the \emph{average} would not result in a value that high. These values indicate that half of the variables are accessed with high frequency. The 25\% percentile shows that there variables which are accessed with even higher frequency. The 445.gobmk benchmark presents a 25\% percentile of $3$. On the opposite the results of the 445.gobmk benchmark for the 95\% percentile illustrate that 5\% of the variables used are accessed with large distances, a low frequency. For the benchmarks 471.omnetpp and 483.xalancbmk the 95\% percentile is significantly larger then the 75\% percentile that show the same behavior as for the 445.gobmk benchmark. However, the increase is significantly less than for the 445.gobmk. The 471.omnetpp benchmark presents a similar behavior as the 445.gobmk benchmark. The most significant difference is that the variable are in general accessed more often, this is observable for example from the 50\% percentile. The 483.xalancbmk shows a significant gap between 75\% percentile and 95\% percentile. Indicating that 25\% of the used variables are accessed significantly more often that the others.
+\Cref{tab:metric-accesses-3} presents the results of the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk.
+\Cref{tab:metric-accesses-all} presents the results for all benchmarks.
+\emph{Count} represents the number of different used variables.
+The arithmetic mean shows that the variables of 445.gobmk are accessed $111.56$ times in average, variables of 471.omnetpp are accessed $859.89$ times in average, and variables of 483.xalancbmk are accessed $155.57$ times in average.
+Clearly the variables of the 471.omnetpp benchmarks are accessed most often.
+\emph{Minimum} and \emph{maximum} show that at least one variable exists that is accessed only once and that there is at least on variable which is accessed $12057070$, $19444797$, and $2416458$ for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk.
+Investigating the results of the percentiles shows that the \emph{average} is misleading.
+For the 445.gobmk benchmark, the 95\% percentile presents a value of $23$.
+Hence, 95\% of all variables are accessed at most 23 times.
+This indicates that the remaining 5\% of the variables are accessed significantly more often.
+Otherwise the \emph{average} would not result in a value that high.
+These values indicate that half of the variables are accessed with a high frequency.
+The 25\% percentile shows that the variables which are accessed with an even higher frequency.
+The 445.gobmk benchmark presents a 25\% percentile of $3$.
+On the opposite, the results of the 445.gobmk benchmark for the 95\% percentile illustrate that 5\% of the variables used are accessed with large distances.
+For the benchmarks 471.omnetpp and 483.xalancbmk the 95\% percentile is significantly larger then the 75\% percentile that shows the same behavior as for the 445.gobmk benchmark.
+However, the increase is significantly less than for the 445.gobmk.
+The 471.omnetpp benchmark presents a similar behavior as the 445.gobmk benchmark.
+The most significant difference is that the variables are, in general, accessed more often.
+This is for example observable from the 50\% percentile.
+The 483.xalancbmk shows a significant gap between the 75\% percentile and the 95\% percentile.
+This indicating that 25\% of the used variables are accessed significantly more often that the others.
 
 \begin{table}[!ht]
   \centering
@@ -1604,7 +1941,18 @@ This section presents the statistical analysis on the benchmarks according to th
   \label{tab:metric-access-distance-3}
 \end{table}
 
-\Cref{tab:metric-access-distance-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-access-distance-all} presents the results for all benchmarks. \emph{Count} represents the number of different access distances observed for a benchmark. This table shows a large gap between \emph{minimum} and \emph{maximum} access distance. The table show that the \emph{minimum} is $1$ for all benchmarks that indicates that at least one variable is accessed twice without accessing another variable in between. The \emph{maximum} indicates for all three benchmarks that there is at least one variable with is accessed rarely. The \emph{average} access distance is significantly smaller than the \emph{maximum}. The percentiles offer a deeper knowledge about the actual access distances. The $50$\% percentile is identical to the \emph{median}. It shows for the 445.gobmk benchmark that $50$\% of the used variables have an access distance of less equal to $73$. That is several magnitudes less than the average. For the other two benchmarks the situation is similar, 471.omnetpp presents an 50\% percentile of $41$ and the 483.xalancbmk show a value of $394$.
+\Cref{tab:metric-access-distance-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk.
+\Cref{tab:metric-access-distance-all} presents the results for all benchmarks.
+\emph{Count} represents the number of different access distances observed for a benchmark.
+This table shows a large gap between the \emph{minimum} and the \emph{maximum} access distance.
+The table show that the \emph{minimum} is $1$ for all benchmarks that indicates that at least one variable is accessed twice without accessing another variable in between.
+The \emph{maximum} indicates that there is at least one variable for all three benchmarks which is accessed rarely.
+The \emph{average} access distance is significantly smaller than the \emph{maximum}.
+The percentiles offer a deeper knowledge about the actual access distances.
+The $50$\% percentile is identical to the \emph{median}.
+It shows for the 445.gobmk benchmark that $50$\% of the used variables have an access distance of less equal to $73$.
+That is several magnitudes less than the average.
+For the other two benchmarks the situation is similar, 471.omnetpp presents an 50\% percentile of $41$ and the 483.xalancbmk show a value of $394$.
 
 \begin{table}[!ht]
   \centering
@@ -1621,7 +1969,12 @@ This section presents the statistical analysis on the benchmarks according to th
   \label{tab:metric-overlapping-liveness-3}
 \end{table}
 
-\Cref{tab:metric-overlapping-liveness-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-overlapping-liveness-all} presents the results for all benchmarks. \emph{Count} represents the number of overlapping liveness intervals. The table shows that for the 445.gobmk benchmark at least $67$ variables are live at the same time,  $83$ at the 471.omnetpp, and $75$ at the 283.xalancbmk. The 5\% percentile for all three benchmarks shows that during execution there are significantly more variables live at the same time. This indicates that the working set of these three benchmarks definitely does not fit into the cache for this experiment.
+\Cref{tab:metric-overlapping-liveness-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk.
+\Cref{tab:metric-overlapping-liveness-all} presents the results for all benchmarks.
+\emph{Count} represents the number of overlapping liveness intervals.
+The table shows that for the 445.gobmk benchmark at least $67$ variables are live at the same time, and respectively $83$ at the 471.omnetpp, and $75$ at the 283.xalancbmk.
+The 5\% percentile for all three benchmarks shows that there are significantly more variables live at the same time during the execution.
+This indicates that the working set of these three benchmarks definitely does not fit into the cache for this experiment.
 
 \begin{table}[!ht]
   \centering
@@ -1638,15 +1991,26 @@ This section presents the statistical analysis on the benchmarks according to th
   \label{tab:metric-liveness-length-3}
 \end{table}
 
-\Cref{tab:metric-liveness-length-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk. \Cref{tab:metric-liveness-interval-length-all} presents the results for all benchmarks. \emph{Count} represents the number of different liveness interval lengths. The results of the 445.gobmk benchmark indicate that most variables have short liveness intervals. This is indicated by the percentiles 5\%, 25\%, 50\%, and 75\%, which all present value $0$. In this context $0$ means that a variable is live for exactly one access. Hence, 75\% of the variables of the 445.gobmk benchmark are accessed only once. By the delta of the 75\% percentile and 95\% percentile we know that 20\% percent of the used variables are have a liveness interval of a length up to $156$. In combination with the fact that all variables used accumulate to an average liveness interval length of $1402011.75$, this implies that 5\% of the variables used by 445.gobmk consists of a significantly longer liveness interval. The results of the 471.omnetpp benchmark and the 483.xalancbmk benchmark indicate that there is a small amount of variables that significantly longer than the majority of the used variables.
+\Cref{tab:metric-liveness-length-3} presents the results about the access distance for the benchmarks 445.gobmk, 471.omnetpp, and 483.xalancbmk.
+\Cref{tab:metric-liveness-interval-length-all} presents the results for all benchmarks.
+\emph{Count} represents the number of different liveness interval lengths.
+The results of the 445.gobmk benchmark indicate that most variables have short liveness intervals.
+This is indicated by the percentiles 5\%, 25\%, 50\%, and 75\%, which all show value $0$.
+In this context $0$ means that a variable is live for exactly one access.
+Hence, 75\% of the variables of the 445.gobmk benchmark are accessed only once.
+By the delta of the 75\% percentile and 95\% percentile we know that 20\% percent of the used variables are have a liveness interval of a length up to $156$.
+In combination with the fact that all variables used accumulate to an average liveness interval length of $1402011.75$, this implies that 5\% of the variables used by 445.gobmk consists of a significantly longer liveness interval.
+The results of the 471.omnetpp benchmark and the 483.xalancbmk benchmark indicate that there is a small amount of variables that are significantly longer than the majority of the used variables.
 
-\Cref{fig:stats-overview} presents the results of all statistical metrics of all benchmarks. Note that the y-axis is logarithmic and the x-axis is linear.
+\Cref{fig:stats-overview} presents the results of all statistical metrics of all benchmarks.
+Note that the y-axis is logarithmic and the x-axis is linear.
 
-\Cref{fig:stats-liveness-interval-length} presents the liveness interval lengths on the y-axis. On the x-axis the liveness interval lengths of all variables are shown in decreasingly sorted.
+\Cref{fig:stats-liveness-interval-length} presents the liveness interval lengths on the y-axis.
+On the x-axis the liveness interval lengths of all variables are shown in decreasing order.
 % 445.gobmk
-As illustrated by \Cref{fig:stats-liveness-interval-length} over 90\% of the liveness intervals of the 445.gobmk are of length 1 and less than 5\% are of a length longer than 5.
+As illustrated by \Cref{fig:stats-liveness-interval-length}, over 90\% of the liveness intervals of the 445.gobmk are of length 1 and less than 5\% are of a length longer than 5.
 % 462.libquantum
-Approximately 20\% of the liveness intervals of the 462.libquantum benchmark are of length greater equal 5, less than 10\% are or length greater equal 100, and over 65\% of the liveness intervals are of length 1.
+Approximately 20\% of the liveness intervals of the 462.libquantum benchmark are of a length greater equal 5, less than 10\% are of a length greater or equal 100, and over 65\% of the liveness intervals are of length 1.
 % 471.omnetpp
 The 471.omnetpp benchmarks consists of approximately 5\% of liveness intervals with a length greater 100, slightly more than 10\% are of a length great than 1, and slightly less than 90\% of the liveness intervals are of length 1.
 % 483.xalancbmk
@@ -1654,22 +2018,25 @@ Approximately 20\% of the liveness intervals of the 483.xalancbmk benchmark are 
 
 \Cref{fig:stats-overlapping-liveness} shows the number of overlapping liveness intervals on the y-axis.
 % 445.gobmk
-The 445.gobmk benchmark presents the most overlapping liveness intervals. Different to the other benchmarks the number of overlapping liveness interval do net reduce exactly line, there are several steps observable.
+The 445.gobmk benchmark presents the most overlapping liveness intervals.
+Different to the other benchmarks the shape of the 445.gobmk benchmark decreases with several steps.
 % 462.libquantum
-The 462.libquantum benchmark is one of the benchmarks with the fewest overlapping liveness intervals. Then number of liveness intervals reduces linear.
+The 462.libquantum benchmark is one of the benchmarks with the fewest overlapping liveness intervals.
+The number of liveness intervals reduces linearly.
 % 471.omnetpp
-The 471.omnetpp benchmark consists of significant more overlapping liveness intervals than all other benchmarks except the 445.gobmk benchmark. In difference to the 445.gobmk benchmark the number of overlapping liveness intervals of the 471.omnetpp benchmark decreases linear.
+The 471.omnetpp benchmark consists of significantly more overlapping liveness intervals than all other benchmarks except the 445.gobmk benchmark.
+In difference to the 445.gobmk benchmark the number of overlapping liveness intervals of the 471.omnetpp benchmark decreases linearly.
 % 483.xalancbmk
 The 483.xalancbmk benchmark is one of the benchmarks with the fewest overlapping liveness intervals. The number of overlapping liveness intervals decreases linear.
 
-\Cref{fig:stats-accesses} shows the number of access at a variable on the y-axis.
-On the x-axis the values of all variables are shown in decreasing order.
+\Cref{fig:stats-accesses} shows the number of accesses at a variable on the y-axis.
+On the x-axis the values of all variables are shown in a decreasing order.
 % 445.gobmk
-Approximately 5\% of the variables of the 445.gobmk benchmark are accesses more often than 20 times, almost 3\% are accessed less than 20 times, and the remaining $\sim$92\% of the variables are accessed exactly 20 times.
+Approximately 5\% of the variables of the 445.gobmk benchmark are accessed more often than 20 times, almost 3\% are accessed less than 20 times, and the remaining $\sim$92\% of the variables are accessed exactly 20 times.
 % 462.libquantum
 For the 462.libquantum benchmark approximately 35\% of the variables are accessed once, $\sim$15\% are accessed 2 times, almost 40\% of the variables are accessed more often than 2 times and less often than 200 times, and less than 10\% are accessed over 200 times.
 % 471.omnetpp
-10\% of the 471.omnetpp benchmarks variables are accessed less than 20 times, approximately 85\% are of the variables are accessed between 20 and 400 times, and the remaining around 5\% of the variables are accessed over 400 times.
+10\% of the 471.omnetpp benchmarks variables are accessed less than 20 times, approximately 85\% of the variables are accessed between 20 and 400 times, and the remaining around 5\% of the variables are accessed over 400 times.
 % 483.xalancbmk
 Almost 45\% of the variables of the 483.xalancbmk benchmark are accessed at most 10 times, approximately 30\% of the variables are accessed between 10 and 20 times, almost 15\% are accessed between 20 and 100 times, and the remaining $\sim$ 10\% are accessed more often than 100 times.
 
@@ -1677,7 +2044,7 @@ Almost 45\% of the variables of the 483.xalancbmk benchmark are accessed at most
 % 445.gobmk
 Only approximately 35\% of the access distances of the 445.gobmk benchmark are greater than 1, less than 10\% are greater than 10, and just a few percentage of the access distances are greater than 100.
 % 462.libquantum
-Over 50\% of the accesses distances of the 462.libquantum benchmark are greater than 1, almost 32\% are greater than 5, less than 5\% of the access distances are greater than 100, and less than 3\% are even greater 1000.
+Over 50\% of the access distances of the 462.libquantum benchmark are greater than 1, almost 32\% are greater than 5, less than 5\% of the access distances are greater than 100, and less than 3\% are even greater then 1000.
 % 471.omnetpp
 Slightly less than 40\% of the access distances are greater than 1, approximately 35\% are greater than 3, and only less than 20\% are greater than 3.
 % 483.xalancbmk
@@ -1711,31 +2078,31 @@ Less than 30\% of the access distances are greater than 1, approximately 20\% ar
 \section{Conclusion}\label{sec:exp-conclusion}
 
 \Cref{cha:experiment} presents an experiment based on our environment to illustrate the difference of our cache implementations, of our allocator implementations, and the used benchmarks.
-The correlation of speedup and compaction presents that there are several benchmarks that show an outstanding good results: 445.gobmk, 471.omnetpp, and 483.xalancbmk.
+The correlation of speedup and compaction proves that there are several benchmarks that show an outstanding good results: 445.gobmk, 471.omnetpp, and 483.xalancbmk.
 
-The 445.gobmk benchmark presents that there is potential for performance improvement by picking the appropriate allocator.
-In this case CompactStack and CompactSet, namely.
-Further, it also illustrates that the performance can become significantly worse than the base line performance by deciding on one of the other allocators.
+The 445.gobmk benchmark demonstrates that there is potential for performance improvement by picking the appropriate allocator.
+In this case namely CompactStack and CompactSet.
+Furthermore, it also illustrates that the performance can become significantly worse than the base line performance by deciding on one of the other allocators.
 For this benchmark the CompactQueue allocators presents the worst performance results.
-The 445.gobmk benchmark is characterized by few accesses and extremely short liveness intervals for most of the used variables, that yields in a significant performance improvement indicated by the speedup.
+The 445.gobmk benchmark is characterized by few accesses and extremely short liveness intervals for most of the used variables that lead to a significant performance improvement indicated by the speedup.
 
 The 471.omnetpp benchmark presents less potential for performance improvement.
-Nevertheless, with the \ac{MIN} caches end up with quite close to the optimal \ac{CPA}.
-That is quite impressive facing that small margin of improvement potential.
-Unfortunately, non of our allocators is able to result in a speedup greater than one.
+Nevertheless, the \ac{MIN} caches end up with quite close to the optimal \ac{CPA}.
+That is quite impressive facing that small margin of potential improvement.
+Unfortunately, none of our allocators is able to result in a speedup greater than one.
 However, the 471.omnetpp benchmark presents a remarkable compaction.
 Using one of our compacting allocators reduced the necessary memory nearly by 40 times.
 The 471.omnetpp benchmark is characterized by short access distances and short liveness intervals for most of the used variables, that yields in a dramatical reduction for the memory required to execute this benchmark.
 
-The 483.xalancbmk present a significant gap in terms of performance for the \ac{LRU} and \ac{MIN} cache implementations.
+The 483.xalancbmk presents a significant gap in terms of performance for the \ac{LRU} and \ac{MIN} cache implementations.
 Further, the CompactStack allocator is the only implementation that is able to perform better than the original \ac{trace}.
-As for the benchmarks 445.gobmk and 471.omnetpp the CompactQueue allocator presents the worst performance.
-The 483.xalancbmk benchmark is characterized by few accesses and long liveness intervals for most of the used variables, that indicates that long liveness intervals are not beneficial for the performance.
+As for the benchmarks 445.gobmk and 471.omnetpp, the CompactQueue allocator presents the worst performance.
+The 483.xalancbmk benchmark is characterized by few accesses and long liveness intervals for most of the used variables, this indicates that long liveness intervals are not beneficial for the performance.
 
-In most of our experiments the results of the CompactQueue allocator have been outperformed by the CompactStack allocator, or the CompactSet allocator, or both.
+In most of our experiments, the results of the CompactQueue allocator have been outperformed by the CompactStack allocator, or the CompactSet allocator, or both.
 Intuitively, the CompactQueue implementation picks always the variable which has been freed least recently (longest ago).
 While the stack implementation of the free list enables the CompactStack to pick the most recently freed variable (shortest ago).
-Obviously, the most recently freed variable has a high probability to still be in the cache than the variable least recently freed.
+Obviously, the most recently freed variable has a higher probability to still be in the cache than the variable least recently freed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1758,21 +2125,21 @@ We have transformed the observed traces of all benchmarks by using different all
 Each of the transformed traces has been executed on four different caches to observe the data about their performance and memory usage.
 These four caches use two different algorithms to decide on an eviction candidate, namely \ac{LRU} and \citeauthor{belady1966study}.
 For each eviction policy, there is one version that uses the liveness information of a trace and a second one that proceeds without using liveness information.
-To reason about the performance and memory usage results we analyzed the observed memory access trace according to the four metrics: accesses, access distance, liveness interval length, and overlapping liveness.
+We analyzed the observed memory access trace according to the four metrics: accesses, access distance, liveness interval length, and overlapping liveness.
 % results
 The presented experiments illustrate that the analyzed memory access traces have potential for improvement.
 Our extremely simple allocators used for transformation reveal that each \ac{trace} uses at least twice the memory than necessary.
 However, the drawback of these extremely simple allocators is shown in the performance results, most benchmarks achieve a worse performance after transformation.
-The defined metrics, used to reason about performance and memory usage, illustrate tendencies for improvement rather than unique characteristics.
+The defined metrics used to reason about performance and memory usage, illustrate tendencies for improvement rather than unique characteristics.
 % conclustions
-We were able to show that even modern computer programs have not reached there limits yet, there is still space for improvement.
-Unfortunately, the chosen metrics are not as expressive than we have assumed.
+We were able to show that even modern computer programs have not reached there limits yet, their is still space for improvement.
+Unfortunately, the chosen metrics are not as expressive than what we have assumed.
 
 % future work
-Implementation of more sophisticated allocators that improve the quality of the trace transformations remains for future work.
+Implementation of more sophisticated allocators that improve the quality of the trace transformations remains as future work.
 Further, the set of available caches could be extended by implementing additional eviction policies.
 Moreover, other benchmark suites could be integrated and analyzed.
-The additional data could lead to further metrics, that may allow stronger statements or
+The additional data could lead to further metrics that may allow stronger statements or
  reveal new characteristics.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
