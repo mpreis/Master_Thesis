@@ -115,6 +115,7 @@
 \RequirePackage{standalone}%
 \RequirePackage{calc}%
 \RequirePackage{import}%
+\RequirePackage{datetime}%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Paths
@@ -136,6 +137,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Macros & styles
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newdateformat{monthyeardate}{%
+  \monthname[\THEMONTH], \THEYEAR}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Title of the thesis
@@ -196,7 +200,7 @@
   \noindent\@soa@statement%
 
   \vspace{1.5cm}%
-  \noindent\@field@box{Salzburg, \today\hfill}%
+  \noindent\@field@box{Salzburg, \monthyeardate\today\hfill}%
   \noindent\@field@box{\hfill\vspace{-0.2cm}\underline{\hspace{.5\textwidth}}}%
 
   \noindent\@field@box{\hfill}%
@@ -525,7 +529,7 @@
 
     \ifdefined\@signatures%
       %\vspace{1.1cm}%
-      \@field@box{Salzburg, \today\hfill}%
+      \@field@box{Salzburg, \monthyeardate\today\hfill}%
       \@field@box{\hfill\vspace{-0.2cm}\underline{\hspace{.5\textwidth}}\hfill}%
 
       \@field@box{\hfill}%
@@ -540,7 +544,7 @@
     \else
       \vspace{1.5cm}%
       \begin{center}%
-        Salzburg, \today
+        Salzburg, \monthyeardate\today
       \end{center}
     \fi%
   \end{titlingpage}%
